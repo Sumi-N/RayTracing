@@ -124,7 +124,7 @@ void LoadNode(Node *parent, TiXmlElement *element, int level)
 	char const *type = element->Attribute("type");
 	if (type) {
 		if (COMPARE(type, "sphere")) {
-			node->SetNodeObj(&theSphere);
+			//node->SetNodeObj(&theSphere); // I don't know what is this.
 			printf(" - Sphere");
 		}
 		else {

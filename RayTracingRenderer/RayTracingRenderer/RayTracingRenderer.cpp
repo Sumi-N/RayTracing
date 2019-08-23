@@ -5,9 +5,9 @@
 #include <iostream>
 #include <scene.h>
 
-static Camera camera;
-static RenderImage renderImage;
-static Node rootNode;
+Node rootNode;
+Camera camera;
+RenderImage renderImage;
 
 int main()
 {
