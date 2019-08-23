@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="cyColor.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cyCore.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cyGL.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cyHairFile.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cyHeap.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cyIPoint.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cyIVector.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cyLightingGrid.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cyMatrix.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cyPoint.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cyPointCloud.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cyQuat.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cySampleElim.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cySpatial.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cyString.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cyTimer.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cyTriMesh.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cyVector.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cyAlphaDistribution.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cyBVH.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

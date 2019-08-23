@@ -1,0 +1,11 @@
+﻿  RayTracingRenderer.cpp
+  viewport.cpp
+  xmlload.cpp
+LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
+viewport.obj : error LNK2001: unresolved external symbol "class Camera camera" (?camera@@3VCamera@@A)
+viewport.obj : error LNK2001: unresolved external symbol "class RenderImage renderImage" (?renderImage@@3VRenderImage@@A)
+viewport.obj : error LNK2001: unresolved external symbol "class Node rootNode" (?rootNode@@3VNode@@A)
+viewport.obj : error LNK2001: unresolved external symbol "void __cdecl StopRender(void)" (?StopRender@@YAXXZ)
+viewport.obj : error LNK2001: unresolved external symbol "void __cdecl BeginRender(void)" (?BeginRender@@YAXXZ)
+xmlload.obj : error LNK2001: unresolved external symbol "class Sphere theSphere" (?theSphere@@3VSphere@@A)
+C:\Users\u1217224\Documents\GraphicProjects\RayTracing\RayTracingRenderer\Release\RayTracingRenderer.exe : fatal error LNK1120: 6 unresolved externals

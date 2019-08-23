@@ -1,0 +1,6 @@
+﻿C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\VC\VCTargets\Microsoft.CppBuild.targets(391,5): warning MSB8028: The intermediate directory (Release\) contains files shared from another project (tinyxml.vcxproj, tinyxmlSTL.vcxproj, tinyXmlTest.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+  xmltest.cpp
+tinyxmlSTL.lib(tinyxml.obj) : warning LNK4099: PDB 'tinyxmlSTL.pdb' was not found with 'tinyxmlSTL.lib(tinyxml.obj)' or at 'C:\Users\u1217224\Documents\GraphicProjects\RayTracing\RayTracingRenderer\Release\tinyxmlSTL.pdb'; linking object as if no debug info
+tinyxmlSTL.lib(tinyxmlerror.obj) : warning LNK4099: PDB 'tinyxmlSTL.pdb' was not found with 'tinyxmlSTL.lib(tinyxmlerror.obj)' or at 'C:\Users\u1217224\Documents\GraphicProjects\RayTracing\RayTracingRenderer\Release\tinyxmlSTL.pdb'; linking object as if no debug info
+tinyxmlSTL.lib(tinyxmlparser.obj) : warning LNK4099: PDB 'tinyxmlSTL.pdb' was not found with 'tinyxmlSTL.lib(tinyxmlparser.obj)' or at 'C:\Users\u1217224\Documents\GraphicProjects\RayTracing\RayTracingRenderer\Release\tinyxmlSTL.pdb'; linking object as if no debug info
+  tinyXmlTestSTL.vcxproj -> C:\Users\u1217224\Documents\GraphicProjects\RayTracing\RayTracingRenderer\Release\tinyXmlTestSTL.exe
