@@ -1,2 +1,144 @@
-﻿  lodepng_benchmark.cpp
-c:\users\u1217224\documents\graphicprojects\raytracing\raytracingrenderer\lodepng\lodepng_benchmark.cpp(40): fatal error C1083: Cannot open include file: 'SDL/SDL.h': No such file or directory
+﻿  lodepng.cpp
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng.cpp(119): warning C4551: function call missing argument list
+  lodepng_benchmark.cpp
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_benchmark.cpp(40): fatal error C1083: Cannot open include file: 'SDL/SDL.h': No such file or directory
+  lodepng_fuzzer.cpp
+  lodepng_unittest.cpp
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(359): warning C4267: '=': conversion from 'size_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=unsigned char
+          ]
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(398): warning C4267: '=': conversion from 'size_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=unsigned char
+          ]
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(399): warning C4267: '=': conversion from 'size_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=unsigned char
+          ]
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(400): warning C4267: '=': conversion from 'size_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=unsigned char
+          ]
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(401): warning C4267: '=': conversion from 'size_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=unsigned char
+          ]
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(429): warning C4267: '=': conversion from 'size_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=unsigned char
+          ]
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(455): warning C4267: '=': conversion from 'size_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=unsigned char
+          ]
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(456): warning C4267: '=': conversion from 'size_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=unsigned char
+          ]
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(457): warning C4267: '=': conversion from 'size_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=unsigned char
+          ]
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(458): warning C4267: '=': conversion from 'size_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=unsigned char
+          ]
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(723): warning C4267: '=': conversion from 'size_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=unsigned char
+          ]
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(724): warning C4267: '=': conversion from 'size_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=unsigned char
+          ]
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(774): warning C4267: '=': conversion from 'size_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=unsigned char
+          ]
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(775): warning C4267: '=': conversion from 'size_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=unsigned char
+          ]
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(776): warning C4267: '=': conversion from 'size_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=unsigned char
+          ]
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(956): warning C4267: 'argument': conversion from 'size_t' to 'unsigned char', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(957): warning C4267: 'argument': conversion from 'size_t' to 'unsigned char', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(1146): warning C4267: 'argument': conversion from 'size_t' to 'unsigned char', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(1147): warning C4267: 'argument': conversion from 'size_t' to 'unsigned char', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(1326): warning C4805: '!=': unsafe mix of type 'bool' and type 'unsigned int' in operation
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(1328): warning C4267: 'argument': conversion from 'size_t' to 'unsigned char', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(1332): warning C4267: 'argument': conversion from 'size_t' to 'unsigned char', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(1394): warning C4267: '=': conversion from 'size_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=unsigned char
+          ]
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(1971): warning C4805: '!=': unsafe mix of type 'bool' and type 'unsigned int' in operation
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(1980): warning C4267: 'argument': conversion from 'size_t' to 'unsigned char', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(1985): warning C4267: 'argument': conversion from 'size_t' to 'unsigned char', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(1990): warning C4267: 'argument': conversion from 'size_t' to 'unsigned char', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(1995): warning C4267: 'argument': conversion from 'size_t' to 'unsigned char', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(2000): warning C4267: 'argument': conversion from 'size_t' to 'unsigned short', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(2005): warning C4267: 'argument': conversion from 'size_t' to 'unsigned char', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(2010): warning C4267: 'argument': conversion from 'size_t' to 'unsigned short', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(2033): warning C4267: 'argument': conversion from 'size_t' to 'unsigned char', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(2038): warning C4267: 'argument': conversion from 'size_t' to 'unsigned char', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(2043): warning C4267: 'argument': conversion from 'size_t' to 'unsigned char', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_unittest.cpp(2315): warning C4267: '=': conversion from 'size_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=unsigned char
+          ]
+  lodepng_util.cpp
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_util.cpp(484): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_util.cpp(662): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_util.cpp(663): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_util.cpp(664): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_util.cpp(688): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_util.cpp(689): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_util.cpp(690): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_util.cpp(691): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_util.cpp(692): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_util.cpp(693): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_util.cpp(694): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_util.cpp(695): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_util.cpp(696): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_util.cpp(747): warning C4305: 'initializing': truncation from 'double' to 'const float'
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_util.cpp(752): warning C4305: 'initializing': truncation from 'double' to 'const float'
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_util.cpp(757): warning C4305: 'initializing': truncation from 'double' to 'const float'
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\lodepng_util.cpp(762): warning C4305: 'initializing': truncation from 'double' to 'const float'
+  pngdetail.cpp
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\pngdetail.cpp(427): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\pngdetail.cpp(428): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\pngdetail.cpp(444): warning C4244: '=': conversion from 'double' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=unsigned char
+          ]
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\pngdetail.cpp(448): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\pngdetail.cpp(449): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\pngdetail.cpp(465): warning C4244: '=': conversion from 'double' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=unsigned char
+          ]
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\pngdetail.cpp(922): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\lodepng\pngdetail.cpp(927): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data

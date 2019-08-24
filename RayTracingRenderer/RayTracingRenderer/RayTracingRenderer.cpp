@@ -13,9 +13,9 @@ RenderImage renderImage;
 
 int main()
 {
-	printf("%d",LoadScene(".\\test.xml"));
-	//GlutDisplay();
+	printf("%d", LoadScene(".\\test.xml"));
 	ShowViewport();
+	//renderImage.SaveImage("hello.png");
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

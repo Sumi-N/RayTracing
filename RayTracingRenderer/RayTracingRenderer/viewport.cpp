@@ -367,6 +367,15 @@ void Sphere::ViewportDisplay() const
 //-------------------------------------------------------------------------------
 
 void BeginRender() {
+
+	Color24* firstpixel = renderImage.GetPixels();
+
+	for (int i = 0; i < renderImage.GetHeight() * renderImage.GetWidth(); i++) {
+		firstpixel[i].r = 0;
+		firstpixel[i].b = 255;
+		firstpixel[i].g = 255;
+	}
+
 	return;
 }
 
