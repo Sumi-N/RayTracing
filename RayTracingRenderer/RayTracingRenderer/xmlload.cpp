@@ -9,17 +9,8 @@
 ///
 //-------------------------------------------------------------------------------
 
-#include "scene.h"
-#include "objects.h"
-#include "tinyxml/tinyxml.h"
-
-//-------------------------------------------------------------------------------
-
-extern Node rootNode;
-extern Camera camera;
-extern RenderImage renderImage;
-
-//-------------------------------------------------------------------------------
+#pragma once
+#include <xmlload.h>
 
 #ifdef WIN32
 #define COMPARE(a,b) (_stricmp(a,b)==0)
@@ -27,15 +18,6 @@ extern RenderImage renderImage;
 #define COMPARE(a,b) (strcasecmp(a,b)==0)
 #endif
 
-//-------------------------------------------------------------------------------
-
-void LoadScene(TiXmlElement *element);
-void LoadNode(Node *node, TiXmlElement *element, int level = 0);
-void LoadTransform(Transformation *trans, TiXmlElement *element, int level);
-void ReadVector(TiXmlElement *element, Vec3f &v);
-void ReadFloat(TiXmlElement *element, float  &f, char const *name = "value");
-
-//-------------------------------------------------------------------------------
 
 int LoadScene(char const *filename)
 {

@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include <scene.h>
+#include <xmlload.h>
+#include <viewport.h>
 
 Node rootNode;
 Camera camera;
@@ -11,7 +13,9 @@ RenderImage renderImage;
 
 int main()
 {
-    std::cout << "Hello World!\n"; 
+	printf("%d",LoadScene(".\\test.xml"));
+	//GlutDisplay();
+	ShowViewport();
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

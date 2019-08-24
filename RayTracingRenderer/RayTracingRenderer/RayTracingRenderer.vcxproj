@@ -155,7 +155,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="objects.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="scene.h" />
+    <ClInclude Include="viewport.h" />
+    <ClInclude Include="xmlload.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RayTracingRenderer.cpp" />
@@ -163,7 +166,12 @@
     <ClCompile Include="xmlload.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="test.xml" />
+    <Xml Include="test.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="RayTracingRenderer.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

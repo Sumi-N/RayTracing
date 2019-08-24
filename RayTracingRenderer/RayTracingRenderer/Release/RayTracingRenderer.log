@@ -1,9 +1,10 @@
 ﻿  RayTracingRenderer.cpp
   viewport.cpp
-  xmlload.cpp
 LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
   Generating code
-  All 51 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  19 of 148 functions (12.8%) were compiled, the rest were copied from previous compilation.
+    3 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
 tinyxml.lib(tinystr.obj) : warning LNK4099: PDB 'tinyxml.pdb' was not found with 'tinyxml.lib(tinystr.obj)' or at 'C:\Users\sumil\source\repos\RayTracing\RayTracingRenderer\Release\tinyxml.pdb'; linking object as if no debug info
 tinyxml.lib(tinyxml.obj) : warning LNK4099: PDB 'tinyxml.pdb' was not found with 'tinyxml.lib(tinyxml.obj)' or at 'C:\Users\sumil\source\repos\RayTracing\RayTracingRenderer\Release\tinyxml.pdb'; linking object as if no debug info
