@@ -10,6 +10,7 @@
 Node rootNode;
 Camera camera;
 RenderImage renderImage;
+Sphere theSphere;
 
 int main()
 {

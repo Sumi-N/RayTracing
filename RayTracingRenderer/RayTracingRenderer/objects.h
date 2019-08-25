@@ -23,8 +23,8 @@ public:
 	virtual void ViewportDisplay() const;
 };
 
-extern Sphere theSphere;
-
 //-------------------------------------------------------------------------------
+
+extern Sphere theSphere;
 
 #endif

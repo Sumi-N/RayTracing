@@ -363,21 +363,37 @@ void Sphere::ViewportDisplay() const
 	}
 	gluSphere(q, 1, 50, 50);
 }
+
+bool Sphere::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const {
+	return true;
+}
 //-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------
+
+void TraverseNode(Node * traversingnode, Node ** nodes, int & cn ) {
+	int numberofchild = traversingnode->GetNumChild();
+	for (int i = cn; i < numberofchild + cn; i++) {
+		nodes[i] = traversingnode->GetChild(i);
+		cn++;
+		if (nodes[i] != nullptr) {
+			TraverseNode(nodes[i],nodes,cn);
+		}
+	}
+	//cn += numberofchild;
+}
 
 void BeginRender() {
 
-	Node * firstNode = rootNode.GetChild(0);
-	Object * firstSphere = firstNode->GetNodeObj();
-	Vec3f test = firstNode->GetPosition();
-	printf("%f,%f,%f", test.x, test.y, test.z);
+	//Node * firstNode = rootNode.GetChild(0);
+	//Object * firstSphere = firstNode->GetNodeObj();
+	//Vec3f test = firstNode->GetPosition();
+	//printf("%f,%f,%f", test.x, test.y, test.z);
+	
+	Node ** nodes = new Node *[100];
+	int cn = 0; //current number
+	TraverseNode(&rootNode, nodes, cn);
 
-	Node ** nodes;
-
-	while (1) {
-		int numberofchild = rootNode.GetNumChild();
-	}
+	printf("%d",cn);
 	
 	//for (int i = 0; i < rootNode.GetNumChild; i++) {
 	//	Node * rootNode.GetChild(i);
@@ -421,10 +437,6 @@ void BeginRender() {
 	}
 
 	return;
-}
-
-void FixCirclePosition(const Vec3f & circleposition) {
-
 }
 
 void StopRender() {
