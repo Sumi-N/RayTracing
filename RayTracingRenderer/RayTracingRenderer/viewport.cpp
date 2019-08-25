@@ -368,15 +368,22 @@ void Sphere::ViewportDisplay() const
 
 void BeginRender() {
 
-	Color24* pixels = renderImage.GetPixels();
+	Node * firstNode = rootNode.GetChild(0);
+	Object * firstSphere = firstNode->GetNodeObj();
+	Vec3f test = firstNode->GetPosition();
+	printf("%f,%f,%f", test.x, test.y, test.z);
 
-	/*
-	for (int i = 0; i < renderImage.GetHeight() * renderImage.GetWidth(); i++) {
-		pixels[i].r = 0;
-		pixels[i].b = 255;
-		pixels[i].g = 255;
+	Node ** nodes;
+
+	while (1) {
+		int numberofchild = rootNode.GetNumChild();
 	}
-	*/
+	
+	//for (int i = 0; i < rootNode.GetNumChild; i++) {
+	//	Node * rootNode.GetChild(i);
+	//}
+
+	Color24* pixels = renderImage.GetPixels();
 
 	Vec3f * cameraray = new Vec3f[renderImage.GetHeight() * renderImage.GetWidth()];
 
@@ -392,29 +399,32 @@ void BeginRender() {
 	Vec3f z = Vec3f(0, 0, 1);
 
 	Vec3f f = camera.pos - l * camera.dir + (h / 2) * y - (w / 2) * x;
-
-	Vec3f centralcameraray = -1 * camera.dir; //+ (0.5f * camera.imgHeight) - (0.5f * camera.imgWidth);
-	//Vec3f topleftcameraray = centralcameraray - (1/2 * camera.imgHeight / renderImage.GetHeight()) + (1/2 * camera.imgWidth / renderImage.GetWidth());
+	Vec3f centralcameraray = -1 * camera.dir;
 	
 	for (int i = 0; i < renderImage.GetHeight(); i++) {
 		for (int j = 0; j < renderImage.GetWidth(); j++) {
 			cameraray[i * renderImage.GetWidth() + j] = f + (j + 0.5f) * (w/W)*x - (i + 0.5f) * (h/H)*y - camera.pos;
 
-			float a = cameraray[i * renderImage.GetWidth() + j].Dot(cameraray[i * renderImage.GetWidth() + j]);
-			float b = 2 * cameraray[i * renderImage.GetWidth() + j].Dot(camera.pos);
-			float c = camera.pos.Dot(camera.pos) - 1;
+			Vec3f d = cameraray[i * renderImage.GetWidth() + j];
+			Vec3f e = camera.pos;
+
+			float a = d.Dot(d);
+			float b = 2 * d.Dot(e);
+			float c = e.Dot(e) - 1;
 
 			if (b*b - 4*a*c >= 0) {
-				//printf("%d is success", i * renderImage.GetWidth() + j);
 				pixels[i * renderImage.GetWidth() + j].r = 0;
 				pixels[i * renderImage.GetWidth() + j].b = 255;
 				pixels[i * renderImage.GetWidth() + j].g = 255;
 			}
 		}
-		
 	}
 
 	return;
+}
+
+void FixCirclePosition(const Vec3f & circleposition) {
+
 }
 
 void StopRender() {
