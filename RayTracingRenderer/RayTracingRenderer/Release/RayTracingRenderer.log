@@ -1,12 +1,12 @@
 ﻿  viewport.cpp
 LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
   Generating code
-  3 of 148 functions ( 2.0%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    4 functions had inline decision re-evaluated but remain unchanged
+  5 of 151 functions ( 3.3%) were compiled, the rest were copied from previous compilation.
+    2 functions were new in current compilation
+    10 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
-tinyxml.lib(tinystr.obj) : warning LNK4099: PDB 'tinyxml.pdb' was not found with 'tinyxml.lib(tinystr.obj)' or at 'C:\Users\sumil\source\repos\RayTracing\RayTracingRenderer\Release\tinyxml.pdb'; linking object as if no debug info
-tinyxml.lib(tinyxml.obj) : warning LNK4099: PDB 'tinyxml.pdb' was not found with 'tinyxml.lib(tinyxml.obj)' or at 'C:\Users\sumil\source\repos\RayTracing\RayTracingRenderer\Release\tinyxml.pdb'; linking object as if no debug info
-tinyxml.lib(tinyxmlerror.obj) : warning LNK4099: PDB 'tinyxml.pdb' was not found with 'tinyxml.lib(tinyxmlerror.obj)' or at 'C:\Users\sumil\source\repos\RayTracing\RayTracingRenderer\Release\tinyxml.pdb'; linking object as if no debug info
-tinyxml.lib(tinyxmlparser.obj) : warning LNK4099: PDB 'tinyxml.pdb' was not found with 'tinyxml.lib(tinyxmlparser.obj)' or at 'C:\Users\sumil\source\repos\RayTracing\RayTracingRenderer\Release\tinyxml.pdb'; linking object as if no debug info
-  RayTracingRenderer.vcxproj -> C:\Users\sumil\source\repos\RayTracing\RayTracingRenderer\Release\RayTracingRenderer.exe
+tinyxml.lib(tinystr.obj) : warning LNK4099: PDB 'tinyxml.pdb' was not found with 'tinyxml.lib(tinystr.obj)' or at 'C:\Users\u1217224\Documents\GraphicProjects\RayTracing\RayTracingRenderer\Release\tinyxml.pdb'; linking object as if no debug info
+tinyxml.lib(tinyxml.obj) : warning LNK4099: PDB 'tinyxml.pdb' was not found with 'tinyxml.lib(tinyxml.obj)' or at 'C:\Users\u1217224\Documents\GraphicProjects\RayTracing\RayTracingRenderer\Release\tinyxml.pdb'; linking object as if no debug info
+tinyxml.lib(tinyxmlerror.obj) : warning LNK4099: PDB 'tinyxml.pdb' was not found with 'tinyxml.lib(tinyxmlerror.obj)' or at 'C:\Users\u1217224\Documents\GraphicProjects\RayTracing\RayTracingRenderer\Release\tinyxml.pdb'; linking object as if no debug info
+tinyxml.lib(tinyxmlparser.obj) : warning LNK4099: PDB 'tinyxml.pdb' was not found with 'tinyxml.lib(tinyxmlparser.obj)' or at 'C:\Users\u1217224\Documents\GraphicProjects\RayTracing\RayTracingRenderer\Release\tinyxml.pdb'; linking object as if no debug info
+  RayTracingRenderer.vcxproj -> C:\Users\u1217224\Documents\GraphicProjects\RayTracing\RayTracingRenderer\Release\RayTracingRenderer.exe

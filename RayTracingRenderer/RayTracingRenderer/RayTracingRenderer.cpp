@@ -13,7 +13,7 @@ RenderImage renderImage;
 
 int main()
 {
-	printf("%d", LoadScene(".\\test.xml"));
+	LoadScene(".\\test.xml");
 	ShowViewport();
 	//renderImage.SaveImage("hello.png");
 }

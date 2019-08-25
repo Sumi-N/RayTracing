@@ -368,12 +368,50 @@ void Sphere::ViewportDisplay() const
 
 void BeginRender() {
 
-	Color24* firstpixel = renderImage.GetPixels();
+	Color24* pixels = renderImage.GetPixels();
 
+	/*
 	for (int i = 0; i < renderImage.GetHeight() * renderImage.GetWidth(); i++) {
-		firstpixel[i].r = 0;
-		firstpixel[i].b = 255;
-		firstpixel[i].g = 255;
+		pixels[i].r = 0;
+		pixels[i].b = 255;
+		pixels[i].g = 255;
+	}
+	*/
+
+	Vec3f * cameraray = new Vec3f[renderImage.GetHeight() * renderImage.GetWidth()];
+
+	float l = 1.0f;
+	float h = 2 * l * tanf(camera.fov/2);
+	float w = camera.imgWidth * ( h / camera.imgHeight);
+
+	int H = camera.imgHeight;
+	int W = camera.imgWidth;
+
+	Vec3f x = Vec3f(1, 0, 0);
+	Vec3f y = Vec3f(0, 1, 0);
+	Vec3f z = Vec3f(0, 0, 1);
+
+	Vec3f f = camera.pos - l * camera.dir + (h / 2) * y - (w / 2) * x;
+
+	Vec3f centralcameraray = -1 * camera.dir; //+ (0.5f * camera.imgHeight) - (0.5f * camera.imgWidth);
+	//Vec3f topleftcameraray = centralcameraray - (1/2 * camera.imgHeight / renderImage.GetHeight()) + (1/2 * camera.imgWidth / renderImage.GetWidth());
+	
+	for (int i = 0; i < renderImage.GetHeight(); i++) {
+		for (int j = 0; j < renderImage.GetWidth(); j++) {
+			cameraray[i * renderImage.GetWidth() + j] = f + (j + 0.5f) * (w/W)*x - (i + 0.5f) * (h/H)*y - camera.pos;
+
+			float a = cameraray[i * renderImage.GetWidth() + j].Dot(cameraray[i * renderImage.GetWidth() + j]);
+			float b = 2 * cameraray[i * renderImage.GetWidth() + j].Dot(camera.pos);
+			float c = camera.pos.Dot(camera.pos) - 1;
+
+			if (b*b - 4*a*c >= 0) {
+				//printf("%d is success", i * renderImage.GetWidth() + j);
+				pixels[i * renderImage.GetWidth() + j].r = 0;
+				pixels[i * renderImage.GetWidth() + j].b = 255;
+				pixels[i * renderImage.GetWidth() + j].g = 255;
+			}
+		}
+		
 	}
 
 	return;
