@@ -389,7 +389,7 @@ void BeginRender() {
 	Vec3f * cameraray = new Vec3f[renderImage.GetHeight() * renderImage.GetWidth()];
 
 	float l = 1.0f;
-	float h = 2 * l * tanf(camera.fov/2);
+	float h = 2 * l * tanf((camera.fov/2) * 3.14 /180);
 	float w = camera.imgWidth * ( h / camera.imgHeight);
 
 	int H = camera.imgHeight;
@@ -402,14 +402,15 @@ void BeginRender() {
 
 	for (int i = 0; i < renderImage.GetHeight(); i++) {
 		for (int j = 0; j < renderImage.GetWidth(); j++) {
+			Vec3f mockcicle = Vec3f(0, 50, -25);
 			cameraray[i * renderImage.GetWidth() + j] = f + (j + 0.5f) * (w / W)*x - (i + 0.5f) * (h / H)*y - camera.pos;
 
 			Vec3f d = cameraray[i * renderImage.GetWidth() + j];
-			Vec3f e = camera.pos;
+			Vec3f e = camera.pos - mockcicle;
 
 			float a = d.Dot(d);
 			float b = 2 * d.Dot(e);
-			float c = e.Dot(e) - 6.8f; //6.8 is the magic number
+			float c = e.Dot(e) - 625;
 
 			if (b*b - 4*a*c >= 0) {
 				pixels[i * renderImage.GetWidth() + j].r = 0;
@@ -418,6 +419,48 @@ void BeginRender() {
 			}
 		}
 	}
+
+
+	for (int i = 0; i < renderImage.GetHeight(); i++) {
+		for (int j = 0; j < renderImage.GetWidth(); j++) {
+			Vec3f mockcicle = Vec3f(0, 50, 5.1);
+			cameraray[i * renderImage.GetWidth() + j] = f + (j + 0.5f) * (w / W)*x - (i + 0.5f) * (h / H)*y - camera.pos;
+
+			Vec3f d = cameraray[i * renderImage.GetWidth() + j];
+			Vec3f e = camera.pos - mockcicle;
+
+			float a = d.Dot(d);
+			float b = 2 * d.Dot(e);
+			float c = e.Dot(e) - 25;
+
+			if (b*b - 4 * a*c >= 0) {
+				pixels[i * renderImage.GetWidth() + j].r = 0;
+				pixels[i * renderImage.GetWidth() + j].b = 255;
+				pixels[i * renderImage.GetWidth() + j].g = 0;
+			}
+		}
+	}
+
+	for (int i = 0; i < renderImage.GetHeight(); i++) {
+		for (int j = 0; j < renderImage.GetWidth(); j++) {
+			Vec3f mockcicle = Vec3f(0, 50, 11.1);
+			cameraray[i * renderImage.GetWidth() + j] = f + (j + 0.5f) * (w / W)*x - (i + 0.5f) * (h / H)*y - camera.pos;
+
+			Vec3f d = cameraray[i * renderImage.GetWidth() + j];
+			Vec3f e = camera.pos - mockcicle;
+
+			float a = d.Dot(d);
+			float b = 2 * d.Dot(e);
+			float c = e.Dot(e) - 1; //6.8 is the magic number
+
+			if (b*b - 4 * a*c >= 0) {
+				pixels[i * renderImage.GetWidth() + j].r = 255;
+				pixels[i * renderImage.GetWidth() + j].b = 0;
+				pixels[i * renderImage.GetWidth() + j].g = 0;
+			}
+		}
+	}
+
 	return;
 }
 

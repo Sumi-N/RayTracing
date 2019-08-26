@@ -14,8 +14,8 @@ Sphere theSphere;
 
 int main()
 {
-	LoadScene(".\\test.xml");
-	//LoadScene(".\\assignment1.xml");
+	//LoadScene(".\\test.xml");
+	LoadScene(".\\assignment1.xml");
 	//printf("%d", rootNode.GetNumChild());
 	ShowViewport();
 	//renderImage.SaveImage("hello.png");
