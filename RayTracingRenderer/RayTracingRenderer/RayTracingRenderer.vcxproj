@@ -154,6 +154,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="lodepng.h" />
     <ClInclude Include="objects.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="scene.h" />
@@ -161,6 +162,7 @@
     <ClInclude Include="xmlload.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="RayTracingRenderer.cpp" />
     <ClCompile Include="viewport.cpp" />
     <ClCompile Include="xmlload.cpp" />

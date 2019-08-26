@@ -461,6 +461,8 @@ void BeginRender() {
 		}
 	}
 
+	renderImage.SaveImage("hello.png");
+
 	return;
 }
 
