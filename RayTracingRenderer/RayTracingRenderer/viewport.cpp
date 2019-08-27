@@ -365,6 +365,9 @@ void Sphere::ViewportDisplay() const
 }
 
 bool Sphere::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const {
+	
+
+
 	return true;
 }
 //-------------------------------------------------------------------------------
@@ -372,96 +375,129 @@ bool Sphere::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const {
 
 void TraverseNode(Node * traversingnode, Node ** nodes, int & cn ) {
 	int numberofchild = traversingnode->GetNumChild();
-	for (int i = cn; i < numberofchild + cn; i++) {
+	int tmp = cn;
+	for (int i = tmp; i < numberofchild + tmp; i++) {
 		nodes[i] = traversingnode->GetChild(i);
 		cn++;
 		if (nodes[i] != nullptr) {
 			TraverseNode(nodes[i],nodes,cn);
 		}
 	}
-	//cn += numberofchild;
+}
+
+void TraverseNode2(Node * traversingnode, Node * node, int & cn) {
+	printf("Enter the traver\n");
+	int numberofchild = 0;
+	if (traversingnode->GetNumChild() != NULL) {
+		numberofchild = traversingnode->GetNumChild();
+		printf("number of child is %d\n", numberofchild);
+	}
+	
+	int tmp = cn;
+	printf("tmp is %d\n", tmp);
+	for (int i = tmp; i < numberofchild + tmp; i++) {
+		node = traversingnode->GetChild(i);
+		printf("this is %dth child\n", (i-tmp));
+		printf(node->GetName());
+		cn++;
+		if (node != nullptr) {
+			TraverseNode2(node, node, cn);
+		}
+	}
 }
 
 void BeginRender() {
 
-	Color24* pixels = renderImage.GetPixels();
+	/*Node ** nodes;
+	Node * startnode = &rootNode;
+	int cn = 0;
+	TraverseNode(startnode, nodes, cn);
+	printf("%d", cn);*/
 
-	Vec3f * cameraray = new Vec3f[renderImage.GetHeight() * renderImage.GetWidth()];
+	Node * node = new Node();
+	Node * startnode = &rootNode;
+	int cn = 0;
+	TraverseNode2(startnode, node, cn);
+	printf("%d\n", cn);
 
-	float l = 1.0f;
-	float h = 2 * l * tanf((camera.fov/2) * 3.14 /180);
-	float w = camera.imgWidth * ( h / camera.imgHeight);
+	//Color24* pixels = renderImage.GetPixels();
 
-	int H = camera.imgHeight;
-	int W = camera.imgWidth;
+	//Vec3f * cameraray = new Vec3f[renderImage.GetHeight() * renderImage.GetWidth()];
 
-	Vec3f x = camera.up.Cross(camera.dir);
-	Vec3f y = camera.up;
+	//float l = 1.0f;
+	//float h = 2 * l * tanf((camera.fov/2) * 3.14 /180);
+	//float w = camera.imgWidth * ( h / camera.imgHeight);
 
-	Vec3f f = camera.pos + l * camera.dir + (h / 2) * y - (w / 2) * x;
+	//int H = camera.imgHeight;
+	//int W = camera.imgWidth;
 
-	for (int i = 0; i < renderImage.GetHeight(); i++) {
-		for (int j = 0; j < renderImage.GetWidth(); j++) {
-			Vec3f mockcicle = Vec3f(0, 50, -25);
-			cameraray[i * renderImage.GetWidth() + j] = f + (j + 0.5f) * (w / W)*x - (i + 0.5f) * (h / H)*y - camera.pos;
+	//Vec3f x = camera.up.Cross(camera.dir);
+	//Vec3f y = camera.up;
 
-			Vec3f d = cameraray[i * renderImage.GetWidth() + j];
-			Vec3f e = camera.pos - mockcicle;
+	//Vec3f f = camera.pos + l * camera.dir + (h / 2) * y - (w / 2) * x;
 
-			float a = d.Dot(d);
-			float b = 2 * d.Dot(e);
-			float c = e.Dot(e) - 625;
+	//for (int i = 0; i < renderImage.GetHeight(); i++) {
+	//	for (int j = 0; j < renderImage.GetWidth(); j++) {
+	//		Vec3f mockcicle = Vec3f(0, 50, -25);
+	//		cameraray[i * renderImage.GetWidth() + j] = f + (j + 0.5f) * (w / W)*x - (i + 0.5f) * (h / H)*y - camera.pos;
 
-			if (b*b - 4*a*c >= 0) {
-				pixels[i * renderImage.GetWidth() + j].r = 0;
-				pixels[i * renderImage.GetWidth() + j].b = 0;
-				pixels[i * renderImage.GetWidth() + j].g = 255;
-			}
-		}
-	}
+	//		Vec3f d = cameraray[i * renderImage.GetWidth() + j];
+	//		Vec3f e = camera.pos - mockcicle;
+
+	//		float a = d.Dot(d);
+	//		float b = 2 * d.Dot(e);
+	//		float c = e.Dot(e) - 625;
+
+	//		if (b*b - 4*a*c >= 0) {
+	//			pixels[i * renderImage.GetWidth() + j].r = 0;
+	//			pixels[i * renderImage.GetWidth() + j].b = 0;
+	//			pixels[i * renderImage.GetWidth() + j].g = 255;
+	//		}
+	//	}
+	//}
 
 
-	for (int i = 0; i < renderImage.GetHeight(); i++) {
-		for (int j = 0; j < renderImage.GetWidth(); j++) {
-			Vec3f mockcicle = Vec3f(0, 50, 5.1);
-			cameraray[i * renderImage.GetWidth() + j] = f + (j + 0.5f) * (w / W)*x - (i + 0.5f) * (h / H)*y - camera.pos;
+	//for (int i = 0; i < renderImage.GetHeight(); i++) {
+	//	for (int j = 0; j < renderImage.GetWidth(); j++) {
+	//		Vec3f mockcicle = Vec3f(0, 50, 5.1);
+	//		cameraray[i * renderImage.GetWidth() + j] = f + (j + 0.5f) * (w / W)*x - (i + 0.5f) * (h / H)*y - camera.pos;
 
-			Vec3f d = cameraray[i * renderImage.GetWidth() + j];
-			Vec3f e = camera.pos - mockcicle;
+	//		Vec3f d = cameraray[i * renderImage.GetWidth() + j];
+	//		Vec3f e = camera.pos - mockcicle;
 
-			float a = d.Dot(d);
-			float b = 2 * d.Dot(e);
-			float c = e.Dot(e) - 25;
+	//		float a = d.Dot(d);
+	//		float b = 2 * d.Dot(e);
+	//		float c = e.Dot(e) - 25;
 
-			if (b*b - 4 * a*c >= 0) {
-				pixels[i * renderImage.GetWidth() + j].r = 0;
-				pixels[i * renderImage.GetWidth() + j].b = 255;
-				pixels[i * renderImage.GetWidth() + j].g = 0;
-			}
-		}
-	}
+	//		if (b*b - 4 * a*c >= 0) {
+	//			pixels[i * renderImage.GetWidth() + j].r = 0;
+	//			pixels[i * renderImage.GetWidth() + j].b = 255;
+	//			pixels[i * renderImage.GetWidth() + j].g = 0;
+	//		}
+	//	}
+	//}
 
-	for (int i = 0; i < renderImage.GetHeight(); i++) {
-		for (int j = 0; j < renderImage.GetWidth(); j++) {
-			Vec3f mockcicle = Vec3f(0, 50, 11.1);
-			cameraray[i * renderImage.GetWidth() + j] = f + (j + 0.5f) * (w / W)*x - (i + 0.5f) * (h / H)*y - camera.pos;
+	//for (int i = 0; i < renderImage.GetHeight(); i++) {
+	//	for (int j = 0; j < renderImage.GetWidth(); j++) {
+	//		Vec3f mockcicle = Vec3f(0, 50, 11.1);
+	//		cameraray[i * renderImage.GetWidth() + j] = f + (j + 0.5f) * (w / W)*x - (i + 0.5f) * (h / H)*y - camera.pos;
 
-			Vec3f d = cameraray[i * renderImage.GetWidth() + j];
-			Vec3f e = camera.pos - mockcicle;
+	//		Vec3f d = cameraray[i * renderImage.GetWidth() + j];
+	//		Vec3f e = camera.pos - mockcicle;
 
-			float a = d.Dot(d);
-			float b = 2 * d.Dot(e);
-			float c = e.Dot(e) - 1; //6.8 is the magic number
+	//		float a = d.Dot(d);
+	//		float b = 2 * d.Dot(e);
+	//		float c = e.Dot(e) - 1; //6.8 is the magic number
 
-			if (b*b - 4 * a*c >= 0) {
-				pixels[i * renderImage.GetWidth() + j].r = 255;
-				pixels[i * renderImage.GetWidth() + j].b = 0;
-				pixels[i * renderImage.GetWidth() + j].g = 0;
-			}
-		}
-	}
+	//		if (b*b - 4 * a*c >= 0) {
+	//			pixels[i * renderImage.GetWidth() + j].r = 255;
+	//			pixels[i * renderImage.GetWidth() + j].b = 0;
+	//			pixels[i * renderImage.GetWidth() + j].g = 0;
+	//		}
+	//	}
+	//}
 
-	renderImage.SaveImage("hello.png");
+	//renderImage.SaveImage("hello.png");
 
 	return;
 }
