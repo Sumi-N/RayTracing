@@ -170,6 +170,8 @@ class Object
 public:
 	virtual bool IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide = HIT_FRONT) const = 0;
 	virtual void ViewportDisplay() const {} // used for OpenGL display
+	Vec3f position;
+	float scale =1.0f;
 };
 
 typedef ItemFileList<Object> ObjFileList;

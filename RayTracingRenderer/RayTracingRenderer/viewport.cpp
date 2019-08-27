@@ -366,59 +366,86 @@ void Sphere::ViewportDisplay() const
 
 bool Sphere::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const {
 	
-
+	
 
 	return true;
 }
 //-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------
 
-void TraverseNode(Node * traversingnode, Node ** nodes, int & cn ) {
-	int numberofchild = traversingnode->GetNumChild();
-	int tmp = cn;
-	for (int i = tmp; i < numberofchild + tmp; i++) {
-		nodes[i] = traversingnode->GetChild(i);
-		cn++;
-		if (nodes[i] != nullptr) {
-			TraverseNode(nodes[i],nodes,cn);
+void CheckHit(Node * sphere) {
+
+	Color24* pixels = renderImage.GetPixels();
+
+	Vec3f * cameraray = new Vec3f[renderImage.GetHeight() * renderImage.GetWidth()];
+
+	float l = 1.0f;
+	float h = 2 * l * tanf((camera.fov / 2) * 3.14 / 180);
+	float w = camera.imgWidth * (h / camera.imgHeight);
+
+	int H = camera.imgHeight;
+	int W = camera.imgWidth;
+
+	Vec3f x = camera.up.Cross(camera.dir);
+	Vec3f y = camera.up;
+
+	Vec3f f = camera.pos + l * camera.dir + (h / 2) * y - (w / 2) * x;
+
+	//Vec3f sphereposition = sphere->GetPosition();
+	Object * sphere2 = sphere->GetNodeObj();
+	Vec3f sphereposition = sphere2->position;
+	printf("The cordination is %f,%f,%f\n",sphereposition.x, sphereposition.y, sphereposition.z);
+	float radious = sphere2->scale;
+
+	//float spherescale = sphere->Scale();
+	for (int i = 0; i < renderImage.GetHeight(); i++) {
+		for (int j = 0; j < renderImage.GetWidth(); j++) {
+			cameraray[i * renderImage.GetWidth() + j] = f + (j + 0.5f) * (w / W)*x - (i + 0.5f) * (h / H)*y - camera.pos;
+
+			Vec3f d = cameraray[i * renderImage.GetWidth() + j];
+			Vec3f e = camera.pos - sphereposition;
+
+			float a = d.Dot(d);
+			float b = 2 * d.Dot(e);
+			float c = e.Dot(e) - radious * radious;
+
+			if (b*b - 4 * a*c >= 0) {
+				pixels[i * renderImage.GetWidth() + j].r = 255;
+				pixels[i * renderImage.GetWidth() + j].b = 255;
+				pixels[i * renderImage.GetWidth() + j].g = 255;
+			}
 		}
 	}
 }
 
-void TraverseNode2(Node * traversingnode, Node * node, int & cn) {
-	printf("Enter the traver\n");
+void TraverseNode(Node * traversingnode, Node * node, int & cn) {
 	int numberofchild = 0;
-	if (traversingnode->GetNumChild() != NULL) {
-		numberofchild = traversingnode->GetNumChild();
-		printf("number of child is %d\n", numberofchild);
-	}
-	
+	numberofchild = traversingnode->GetNumChild();
 	int tmp = cn;
-	printf("tmp is %d\n", tmp);
 	for (int i = tmp; i < numberofchild + tmp; i++) {
-		node = traversingnode->GetChild(i);
-		printf("this is %dth child\n", (i-tmp));
-		printf(node->GetName());
+		node = traversingnode->GetChild(i-tmp);
+		Object * sphere = node->GetNodeObj();
+		sphere->position = traversingnode->GetPosition() + node->GetPosition() * traversingnode->GetTransform().GetAvrgScale();
+		sphere->scale = traversingnode->GetTransform().GetAvrgScale() * node->GetTransform().GetAvrgScale();
+		printf("scale is %f\n", sphere->scale);
+		
+		//printf("The cordination is %f,%f,%f\n", node->GetPosition().x, node->GetPosition().y, node->GetPosition().z);
+		CheckHit(node);
 		cn++;
 		if (node != nullptr) {
-			TraverseNode2(node, node, cn);
+			Node * childnode = new Node();
+			TraverseNode(node, childnode, cn);
 		}
 	}
 }
 
 void BeginRender() {
 
-	/*Node ** nodes;
-	Node * startnode = &rootNode;
-	int cn = 0;
-	TraverseNode(startnode, nodes, cn);
-	printf("%d", cn);*/
 
 	Node * node = new Node();
 	Node * startnode = &rootNode;
 	int cn = 0;
-	TraverseNode2(startnode, node, cn);
-	printf("%d\n", cn);
+	TraverseNode(startnode, node, cn);
 
 	//Color24* pixels = renderImage.GetPixels();
 
