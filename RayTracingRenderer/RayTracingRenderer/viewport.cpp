@@ -465,11 +465,7 @@ void BeginRender() {
 		}
 	}
 
-	//renderImage.ComputeZBufferImage();
-
 	printf("Really \n");
-	//renderImage.SaveImage("hfksdhksdfdsffa.png");
-	//renderImage.SaveZImage("hfksdhkfa.png");
 	return;
 }
 
