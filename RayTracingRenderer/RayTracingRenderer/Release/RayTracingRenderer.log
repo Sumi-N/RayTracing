@@ -1,9 +1,10 @@
 ﻿  viewport.cpp
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(447): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
   Generating code
-  4 of 171 functions ( 2.3%) were compiled, the rest were copied from previous compilation.
-    1 functions were new in current compilation
-    7 functions had inline decision re-evaluated but remain unchanged
+  3 of 181 functions ( 1.7%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    1 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
 tinyxml.lib(tinystr.obj) : warning LNK4099: PDB 'tinyxml.pdb' was not found with 'tinyxml.lib(tinystr.obj)' or at 'C:\Users\sumil\source\repos\RayTracing\RayTracingRenderer\Release\tinyxml.pdb'; linking object as if no debug info
 tinyxml.lib(tinyxml.obj) : warning LNK4099: PDB 'tinyxml.pdb' was not found with 'tinyxml.lib(tinyxml.obj)' or at 'C:\Users\sumil\source\repos\RayTracing\RayTracingRenderer\Release\tinyxml.pdb'; linking object as if no debug info

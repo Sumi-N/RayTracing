@@ -379,15 +379,41 @@ void RenderPixel(Ray ray, Color24 & pixel, float & zbuffer) {
 	float b = 2 * ray.dir.Dot(ray.p);
 	float c = ray.p.Dot(ray.p) - 1;
 
-	if (b*b - 4 * a*c >= 0) {
+	if (b*b - 4*a*c >= 0) {
+
 		pixel.r = 255;
 		pixel.b = 255;
 		pixel.g = 255;
+
+		float answer1 = (-1 * b + sqrt(b*b - 4 * a*c)) / (2 * a);
+		float answer2 = (-1 * b - sqrt(b*b - 4 * a*c)) / (2 * a);
+
+		float large;
+		float small;
+
+		if (answer1 >= answer2) {
+			large = answer1;
+			small = answer2;
+		}
+		else
+		{
+			large = answer2;
+			small = answer1;
+		}
+
+		if (small < 0) {
+			if (large > 0) {
+				zbuffer = large;
+			}
+		}
+		else
+		{
+			zbuffer =  small;
+		}
+
+	}else{
+
 	}
-
-	//float answer1 = -1 *b + /(2* a)
-	//float answer2 = -1 * b + 
-
 }
 
 void ConvertRayCordination(Node * traversingnode, Node * node, Ray ray, Color24 & pixel, float & zbuffer) {
@@ -434,19 +460,18 @@ void BeginRender() {
 			cameraray[i * renderImage.GetWidth() + j].dir = f + (j + 0.5f) * (w / W)*x - (i + 0.5f) * (h / H)*y - camera.pos;
 			cameraray[i * renderImage.GetWidth() + j].p = camera.pos;
 
+			zbuffers[i * renderImage.GetWidth() + j] = BIGFLOAT;
 			ConvertRayCordination(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j]);
 		}
 	}
 
-	printf("Render Finished! \n");
-
-	renderImage.ComputeZBufferImage();
+	//renderImage.ComputeZBufferImage();
 
 	printf("Really \n");
-
+	//renderImage.SaveImage("hfksdhksdfdsffa.png");
+	//renderImage.SaveZImage("hfksdhkfa.png");
 	return;
 }
 
 void StopRender() {
-	return;
 }
