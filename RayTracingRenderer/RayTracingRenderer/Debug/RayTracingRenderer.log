@@ -1,3 +1,4 @@
 ﻿  viewport.cpp
-c:\users\sumil\source\repos\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(383): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-  RayTracingRenderer.vcxproj -> C:\Users\sumil\source\repos\RayTracing\RayTracingRenderer\Debug\RayTracingRenderer.exe
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(388): error C2059: syntax error: '/'
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(391): error C2143: syntax error: missing ';' before '{'
+c:\users\sumil\source\repos\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(426): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
