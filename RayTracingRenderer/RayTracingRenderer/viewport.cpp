@@ -380,40 +380,44 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		}
 		else if(strcmp((*light)->GetName(), "directionalLight") == 0)
 		{
+			Vec3f L = -1 * (*light)->Direction(hInfo.p);
+			L.Normalize();
+			Vec3f V = ray.p - hInfo.p;
+			V.Normalize();
+			Vec3f H = (V + L) / (V + L).Length();
+			H.Normalize();
+
 			// Incoming light
 			Color IR;
 			IR.r = 0; IR.g = 0; IR.b = 0;
 			if (N.Dot(-1 * (*light)->Direction(hInfo.p)) >= 0)
 			{
-				IR = (*light)->Illuminate(hInfo.p, N) * N.Dot(-1 * (*light)->Direction(hInfo.p));
+				IR = (*light)->Illuminate(hInfo.p, N) * N.Dot(L);
 			}
 
-			// Incoming direction
-			Vec3f V = ray.p - hInfo.p;
-			V.Normalize();
-			Vec3f H = (V - (*light)->Direction(hInfo.p)) / (V - (*light)->Direction(hInfo.p)).Length();
-			H.Normalize();
-			float oneofcos = 2 / hInfo.N.Dot(-1 * (*light)->Direction(hInfo.p));
+			float oneofcos = 1/hInfo.N.Dot(L);
 			Color specularpart = oneofcos * pow(H.Dot(hInfo.N), this->glossiness) * this->specular;
 			Color diffusepart = this->diffuse;
 			color += (diffusepart + specularpart) * IR;
 		}
 		else if (strcmp((*light)->GetName(), "pointLight") == 0)
 		{
+			Vec3f L = -1 * (*light)->Direction(hInfo.p);
+			L.Normalize();
+			Vec3f V = ray.p - hInfo.p;
+			V.Normalize();
+			Vec3f H = (V + L) / (V + L).Length();
+			H.Normalize();
+
 			// Incoming light
 			Color IR;
 			IR.r = 0; IR.g = 0; IR.b = 0;
 			if (N.Dot(-1 * (*light)->Direction(hInfo.p)) >= 0)
 			{
-				IR = (*light)->Illuminate(hInfo.p, N) * N.Dot(-1 * (*light)->Direction(hInfo.p));
+				IR = (*light)->Illuminate(hInfo.p, N) * N.Dot(L);
 			}
 
-			// Incoming direction
-			Vec3f V = ray.p - hInfo.p;
-			V.Normalize();
-			Vec3f H = (V - (*light)->Direction(hInfo.p)) / (V - (*light)->Direction(hInfo.p)).Length();
-			H.Normalize();
-			float oneofcos = 2 / hInfo.N.Dot(-1 * (*light)->Direction(hInfo.p));
+			float oneofcos = 1/hInfo.N.Dot(L);
 			Color specularpart = oneofcos * pow(H.Dot(hInfo.N), this->glossiness) * this->specular;
 			Color diffusepart = this->diffuse;
 			color += (diffusepart + specularpart) * IR;
