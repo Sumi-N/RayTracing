@@ -388,11 +388,11 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			}
 
 			// Incoming direction
-			Vec3f ID = ray.p - hInfo.p;
-			ID.Normalize();
-			Vec3f H = (ID - (*light)->Direction(hInfo.p)) / (ID - (*light)->Direction(hInfo.p)).Length();
+			Vec3f V = ray.p - hInfo.p;
+			V.Normalize();
+			Vec3f H = (V - (*light)->Direction(hInfo.p)) / (V - (*light)->Direction(hInfo.p)).Length();
 			H.Normalize();
-			float oneofcos = (hInfo.N.Length() + -1 * (*light)->Direction(hInfo.p).Length()) / hInfo.N.Dot(-1 * (*light)->Direction(hInfo.p));
+			float oneofcos = 2 / hInfo.N.Dot(-1 * (*light)->Direction(hInfo.p));
 			Color specularpart = oneofcos * pow(H.Dot(hInfo.N), this->glossiness) * this->specular;
 			Color diffusepart = this->diffuse;
 			color += (diffusepart + specularpart) * IR;

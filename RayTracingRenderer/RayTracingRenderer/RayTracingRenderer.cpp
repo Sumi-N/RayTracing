@@ -23,7 +23,7 @@ int main()
 	//LoadScene(".\\assignment1.xml");
 	//printf("%d", rootNode.GetNumChild());
 	ShowViewport();
-	//renderImage.SaveImage("hello.png");
+	renderImage.SaveImage("test.png");
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
