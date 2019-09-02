@@ -89,16 +89,17 @@ void RenderPixel(Ray ray, Color24 & pixel, float & zbuffer, HitInfo & hitinfo, N
 	}
 }
 
-void ConvertRayCordination(Node * traversingnode, Node * node, Ray currentray, Color24 & pixel, float & zbuffer, Ray originalray) {
+void ConvertRayCordination(Node * traversingnode, Node * node, Ray ray, Color24 & pixel, float & zbuffer, Ray originalray) {
 
 	int numberofchild = traversingnode->GetNumChild();
+	Ray currentray = ray;
 	for (int i = 0; i < numberofchild; i++) {
 		node = traversingnode->GetChild(i);
 		if (node->GetNodeObj() != nullptr) {
-			currentray = node->ToNodeCoords(currentray);
+			ray = node->ToNodeCoords(currentray);
 			HitInfo hitinfo = HitInfo();
 
-			RenderPixel(currentray, pixel, zbuffer, hitinfo, node);
+			RenderPixel(ray, pixel, zbuffer, hitinfo, node);
 
 			if (hitinfo.node != nullptr) {
 				if (materials.Find(node->GetMaterial()->GetName()) != nullptr) {
@@ -112,7 +113,7 @@ void ConvertRayCordination(Node * traversingnode, Node * node, Ray currentray, C
 
 		if (node != nullptr) {
 			Node * childnode = new Node();
-			ConvertRayCordination(node, childnode, currentray, pixel, zbuffer, originalray);
+			ConvertRayCordination(node, childnode, ray, pixel, zbuffer, originalray);
 		}
 	}
 }
