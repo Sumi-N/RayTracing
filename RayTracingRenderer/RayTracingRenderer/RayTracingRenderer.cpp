@@ -19,7 +19,7 @@ std::vector<NodeMtl> nodeMtlList;
 
 int main()
 {
-	LoadScene(".\\assignment2.xml");
+	LoadScene(".\\assignment1.xml");
 	//LoadScene(".\\assignment1.xml");
 	//printf("%d", rootNode.GetNumChild());
 	ShowViewport();
@@ -112,7 +112,7 @@ void BeginRender() {
 	int H = camera.imgHeight;
 	int W = camera.imgWidth;
 
-	Vec3f x = camera.up.Cross(camera.dir);
+	Vec3f x = camera.dir.Cross(camera.up);
 	Vec3f y = camera.up;
 
 	Vec3f f = camera.pos + l * camera.dir + (h / 2) * y - (w / 2) * x;
@@ -123,11 +123,12 @@ void BeginRender() {
 			cameraray[i * renderImage.GetWidth() + j].p = camera.pos;
 
 			zbuffers[i * renderImage.GetWidth() + j] = BIGFLOAT;
+			cameraray[i * renderImage.GetWidth() + j].Normalize();
 			ConvertRayCordination(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j]);
 		}
 	}
 
-	printf("Really \n");
+	printf("Ready \n");
 	return;
 }
 
