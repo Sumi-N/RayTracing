@@ -1,5 +1,14 @@
 #pragma once
-#define USE_GLUT
+//-------------------------------------------------------------------------------
+///
+/// \file       viewport.cpp 
+/// \author     Cem Yuksel (www.cemyuksel.com)
+/// \version    2.0
+/// \date       August 21, 2019
+///
+/// \brief Example source for CS 6620 - University of Utah.
+///
+//-------------------------------------------------------------------------------
 
 #ifdef __GNUC__
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -7,6 +16,8 @@
 
 #include "scene.h"
 #include "objects.h"
+#include "lights.h"
+#include "materials.h"
 #include <stdlib.h>
 #include <time.h>
 
@@ -23,11 +34,12 @@
 //-------------------------------------------------------------------------------
 
 void BeginRender(); // Called to start rendering (renderer must run in a separate thread)
-void StopRender(); // Called to end rendering (if it is not already finished)
+void StopRender();  // Called to end rendering (if it is not already finished)
 
 extern Node rootNode;
 extern Camera camera;
 extern RenderImage renderImage;
+extern LightList lights;
 
 //-------------------------------------------------------------------------------
 

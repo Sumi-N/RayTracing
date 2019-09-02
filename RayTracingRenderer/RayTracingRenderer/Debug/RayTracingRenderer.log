@@ -1,3 +1,5 @@
-﻿  viewport.cpp
-c:\users\sumil\source\repos\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(447): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+﻿  RayTracingRenderer.cpp
+  xmlload.cpp
+  Generating Code...
+LINK : warning LNK4098: defaultlib 'LIBCMTD' conflicts with use of other libs; use /NODEFAULTLIB:library
   RayTracingRenderer.vcxproj -> C:\Users\sumil\source\repos\RayTracing\RayTracingRenderer\Debug\RayTracingRenderer.exe

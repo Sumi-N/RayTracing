@@ -1,15 +1,4 @@
-//-------------------------------------------------------------------------------
-///
-/// \file       viewport.cpp 
-/// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    1.0
-/// \date       August 21, 2019
-///
-/// \brief Example source for CS 6620 - University of Utah.
-///
-//-------------------------------------------------------------------------------
-
-#include <viewport.h>
+#include "viewport.h"
 
 //-------------------------------------------------------------------------------
 
@@ -39,15 +28,8 @@ void ShowViewport()
 	glPointSize(3.0);
 	glEnable(GL_CULL_FACE);
 
-#define LIGHTAMBIENT 0.1f
-	glEnable(GL_LIGHT0);
-	float lightamb[4] = { LIGHTAMBIENT, LIGHTAMBIENT, LIGHTAMBIENT, 1.0f };
-	glLightfv(GL_LIGHT0, GL_AMBIENT, lightamb);
-
-#define LIGHTDIF0 1.0f
-	float lightdif0[4] = { LIGHTDIF0, LIGHTDIF0, LIGHTDIF0, 1.0f };
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightdif0);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, lightdif0);
+	float zero[] = { 0,0,0,0 };
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, zero);
 
 	glEnable(GL_NORMALIZE);
 
@@ -87,13 +69,16 @@ void DrawNode(Node *node)
 {
 	glPushMatrix();
 
+	const Material *mtl = node->GetMaterial();
+	if (mtl) mtl->SetViewportMaterial();
+
 	Matrix3f tm = node->GetTransform();
 	Vec3f p = node->GetPosition();
 	float m[16] = { tm[0],tm[1],tm[2],0, tm[3],tm[4],tm[5],0, tm[6],tm[7],tm[8],0, p.x,p.y,p.z,1 };
 	glMultMatrixf(m);
 
 	Object *obj = node->GetNodeObj();
-	if (obj) obj->ViewportDisplay();
+	if (obj) obj->ViewportDisplay(mtl);
 
 	for (int i = 0; i < node->GetNumChild(); i++) {
 		DrawNode(node->GetChild(i));
@@ -120,33 +105,28 @@ void DrawScene()
 	glRotatef(viewAngle1, 1, 0, 0);
 	glRotatef(viewAngle2, 0, 0, 1);
 
+	if (lights.size() > 0) {
+		for (unsigned int i = 0; i < lights.size(); i++) {
+			lights[i]->SetViewportLight(i);
+		}
+	}
+	else {
+		float white[] = { 1,1,1,1 };
+		float black[] = { 0,0,0,0 };
+		Vec4f p(camera.pos, 1);
+		glEnable(GL_LIGHT0);
+		glLightfv(GL_LIGHT0, GL_AMBIENT, black);
+		glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
+		glLightfv(GL_LIGHT0, GL_SPECULAR, white);
+		glLightfv(GL_LIGHT0, GL_POSITION, &p.x);
+	}
+
 	DrawNode(&rootNode);
 
 	glPopMatrix();
 
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_LIGHTING);
-}
-
-//-------------------------------------------------------------------------------
-
-void DrawProgressBar(float done)
-{
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-
-	glBegin(GL_LINES);
-	glColor3f(1, 1, 1);
-	glVertex2f(-1, -1);
-	glVertex2f(done * 2 - 1, -1);
-	glColor3f(0, 0, 0);
-	glVertex2f(done * 2 - 1, -1);
-	glVertex2f(1, -1);
-	glEnd();
-
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
 }
 
 //-------------------------------------------------------------------------------
@@ -184,6 +164,27 @@ void DrawImage(void *data, GLenum type, GLenum format)
 
 //-------------------------------------------------------------------------------
 
+void DrawProgressBar(float done)
+{
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+
+	glBegin(GL_LINES);
+	glColor3f(1, 1, 1);
+	glVertex2f(-1, -1);
+	glVertex2f(done * 2 - 1, -1);
+	glColor3f(0, 0, 0);
+	glVertex2f(done * 2 - 1, -1);
+	glVertex2f(1, -1);
+	glEnd();
+
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+}
+
+//-------------------------------------------------------------------------------
+
 void DrawRenderProgressBar()
 {
 	int rp = renderImage.GetNumRenderedPixels();
@@ -202,15 +203,12 @@ void GlutDisplay()
 		DrawScene();
 		break;
 	case VIEWMODE_IMAGE:
-		//glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
-		//glDrawPixels( renderImage.GetWidth(), renderImage.GetHeight(), GL_RGB, GL_UNSIGNED_BYTE, renderImage.GetPixels() );
 		DrawImage(renderImage.GetPixels(), GL_UNSIGNED_BYTE, GL_RGB);
 		DrawRenderProgressBar();
 		break;
 	case VIEWMODE_Z:
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		if (!renderImage.GetZBufferImage()) renderImage.ComputeZBufferImage();
-		//glDrawPixels( renderImage.GetWidth(), renderImage.GetHeight(), GL_LUMINANCE, GL_UNSIGNED_BYTE, renderImage.GetZBufferImage() );
 		DrawImage(renderImage.GetZBufferImage(), GL_UNSIGNED_BYTE, GL_LUMINANCE);
 		break;
 	}
@@ -352,10 +350,15 @@ void GlutMotion(int x, int y)
 	}
 }
 
+bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
+{
+	return false;
+}
+
 //-------------------------------------------------------------------------------
 // Viewport Methods for various classes
 //-------------------------------------------------------------------------------
-void Sphere::ViewportDisplay() const
+void Sphere::ViewportDisplay(const Material *mtl) const
 {
 	static GLUquadric *q = nullptr;
 	if (q == nullptr) {
@@ -363,111 +366,26 @@ void Sphere::ViewportDisplay() const
 	}
 	gluSphere(q, 1, 50, 50);
 }
-
+Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & lights) const
+{
+	return Color();
+}
+void MtlBlinn::SetViewportMaterial(int subMtlID) const
+{
+	ColorA c;
+	c = ColorA(diffuse);
+	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, &c.r);
+	c = ColorA(specular);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, &c.r);
+	glMaterialf(GL_FRONT, GL_SHININESS, glossiness*1.5f);
+}
+void GenLight::SetViewportParam(int lightID, ColorA ambient, ColorA intensity, Vec4f pos) const
+{
+	glEnable(GL_LIGHT0 + lightID);
+	glLightfv(GL_LIGHT0 + lightID, GL_AMBIENT, &ambient.r);
+	glLightfv(GL_LIGHT0 + lightID, GL_DIFFUSE, &intensity.r);
+	glLightfv(GL_LIGHT0 + lightID, GL_SPECULAR, &intensity.r);
+	glLightfv(GL_LIGHT0 + lightID, GL_POSITION, &pos.x);
+}
 //-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------
-
-bool Sphere::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const {
-
-
-
-	return true;
-}
-
-void RenderPixel(Ray ray, Color24 & pixel, float & zbuffer) {
-	float a = ray.dir.Dot(ray.dir);
-	float b = 2 * ray.dir.Dot(ray.p);
-	float c = ray.p.Dot(ray.p) - 1;
-
-	if (b*b - 4*a*c >= 0) {
-
-		pixel.r = 255;
-		pixel.b = 255;
-		pixel.g = 255;
-
-		float answer1 = (-1 * b + sqrt(b*b - 4 * a*c)) / (2 * a);
-		float answer2 = (-1 * b - sqrt(b*b - 4 * a*c)) / (2 * a);
-
-		float large;
-		float small;
-
-		if (answer1 >= answer2) {
-			large = answer1;
-			small = answer2;
-		}
-		else
-		{
-			large = answer2;
-			small = answer1;
-		}
-
-		if (small < 0) {
-			if (large > 0) {
-				zbuffer = large;
-			}
-		}
-		else
-		{
-			zbuffer =  small;
-		}
-
-	}else{
-
-	}
-}
-
-void ConvertRayCordination(Node * traversingnode, Node * node, Ray ray, Color24 & pixel, float & zbuffer) {
-	
-	int numberofchild = traversingnode->GetNumChild();
-	Ray originalray = ray;
-	for (int i = 0; i < numberofchild; i++) {
-		node = traversingnode->GetChild(i);
-		if (node->GetNodeObj() != nullptr) {
-			ray = node->ToNodeCoords(originalray);
-			RenderPixel(ray, pixel, zbuffer);
-		}
-		
-		if (node != nullptr) {
-			Node * childnode = new Node();
-			ConvertRayCordination(node, childnode, ray, pixel, zbuffer);
-		}
-	}
-}
-
-void BeginRender() {
-
-	Node * node = new Node();
-	Node * startnode = &rootNode;
-
-	float * zbuffers = renderImage.GetZBuffer();
-	Color24* pixels = renderImage.GetPixels();
-	Ray * cameraray = new Ray[renderImage.GetHeight() * renderImage.GetWidth()];
-
-	float l = 1.0f;
-	float h = 2 * l * tanf((camera.fov / 2) * 3.14 / 180);
-	float w = camera.imgWidth * (h / camera.imgHeight);
-
-	int H = camera.imgHeight;
-	int W = camera.imgWidth;
-
-	Vec3f x = camera.up.Cross(camera.dir);
-	Vec3f y = camera.up;
-
-	Vec3f f = camera.pos + l * camera.dir + (h / 2) * y - (w / 2) * x;
-
-	for (int i = 0; i < renderImage.GetHeight(); i++) {
-		for (int j = 0; j < renderImage.GetWidth(); j++) {
-			cameraray[i * renderImage.GetWidth() + j].dir = f + (j + 0.5f) * (w / W)*x - (i + 0.5f) * (h / H)*y - camera.pos;
-			cameraray[i * renderImage.GetWidth() + j].p = camera.pos;
-
-			zbuffers[i * renderImage.GetWidth() + j] = BIGFLOAT;
-			ConvertRayCordination(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j]);
-		}
-	}
-
-	printf("Really \n");
-	return;
-}
-
-void StopRender() {
-}
