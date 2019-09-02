@@ -89,21 +89,20 @@ void RenderPixel(Ray ray, Color24 & pixel, float & zbuffer, HitInfo & hitinfo, N
 	}
 }
 
-void ConvertRayCordination(Node * traversingnode, Node * node, Ray ray, Color24 & pixel, float & zbuffer) {
+void ConvertRayCordination(Node * traversingnode, Node * node, Ray currentray, Color24 & pixel, float & zbuffer, Ray originalray) {
 
 	int numberofchild = traversingnode->GetNumChild();
-	Ray originalray = ray;
 	for (int i = 0; i < numberofchild; i++) {
 		node = traversingnode->GetChild(i);
 		if (node->GetNodeObj() != nullptr) {
-			ray = node->ToNodeCoords(originalray);
+			currentray = node->ToNodeCoords(currentray);
 			HitInfo hitinfo = HitInfo();
 
-			RenderPixel(ray, pixel, zbuffer, hitinfo, node);
+			RenderPixel(currentray, pixel, zbuffer, hitinfo, node);
 
 			if (hitinfo.node != nullptr) {
 				if (materials.Find(node->GetMaterial()->GetName()) != nullptr) {
-					pixel = (Color24)materials.Find(node->GetMaterial()->GetName())->Shade(ray, hitinfo, lights);
+					pixel = (Color24)materials.Find(node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights);
 				}
 				else {
 					assert(materials.Find(node->GetMaterial()->GetName()));
@@ -113,7 +112,7 @@ void ConvertRayCordination(Node * traversingnode, Node * node, Ray ray, Color24 
 
 		if (node != nullptr) {
 			Node * childnode = new Node();
-			ConvertRayCordination(node, childnode, ray, pixel, zbuffer);
+			ConvertRayCordination(node, childnode, currentray, pixel, zbuffer, originalray);
 		}
 	}
 }
@@ -179,7 +178,7 @@ void BeginRender() {
 
 	for (int i = 0; i < renderImage.GetHeight(); i++) {
 		for (int j = 0; j < renderImage.GetWidth(); j++) {
-			ConvertRayCordination(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j]);
+			ConvertRayCordination(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j]);
 		}
 	}
 

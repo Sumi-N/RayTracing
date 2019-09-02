@@ -1,4 +1,5 @@
 #include "viewport.h"
+#include <math.h>
 
 //-------------------------------------------------------------------------------
 
@@ -370,12 +371,38 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 {
 	Vec3f N = hInfo.N;
 	N.Normalize();
-	for (auto light = lights.begin(); light != lights.end(); ++light) {
-		if ((*light)->IsAmbient()) {
-			return (*light)->Illuminate(hInfo.p, N) * this->diffuse;
+	Color color = Color();
+	for (auto light = lights.begin(); light != lights.end(); ++light) 
+	{
+		if ((*light)->IsAmbient()) 
+		{
+			color += (*light)->Illuminate(hInfo.p, N) * this->diffuse;
+		}
+		else if(strcmp((*light)->GetName(), "directionalLight") == 0)
+		{
+			// Incoming light
+			Color IR;
+			if (N.Dot(-1 * (*light)->Direction(hInfo.p)) > 0)
+			{
+				IR = (*light)->Illuminate(hInfo.p, N) * N.Dot(-1 * (*light)->Direction(hInfo.p));
+			}
+
+			// Incoming direction
+			Vec3f ID = ray.p - hInfo.p;
+			ID.Normalize();
+			Vec3f H = (ID - (*light)->Direction(hInfo.p)) / (ID - (*light)->Direction(hInfo.p)).Length();
+			H.Normalize();
+			float oneofcos = (hInfo.N.Length() + -1 * (*light)->Direction(hInfo.p).Length()) / hInfo.N.Dot(-1 * (*light)->Direction(hInfo.p));
+			Color specularpart = oneofcos * pow(H.Dot(hInfo.N), this->glossiness) * this->specular;
+			Color diffusepart = this->diffuse;
+			color += (diffusepart + specularpart) * IR;
+		}
+		else if (strcmp((*light)->GetName(), "pointLight") == 0)
+		{
+			//printf("%d\n", strcmp((*light)->GetName(), "directionalLight"));
 		}
 	}
-	return Color();
+	return color;
 }
 void MtlBlinn::SetViewportMaterial(int subMtlID) const
 {
