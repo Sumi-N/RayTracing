@@ -368,6 +368,13 @@ void Sphere::ViewportDisplay(const Material *mtl) const
 }
 Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & lights) const
 {
+	Vec3f N = hInfo.N;
+	N.Normalize();
+	for (auto light = lights.begin(); light != lights.end(); ++light) {
+		if ((*light)->IsAmbient()) {
+			return (*light)->Illuminate(hInfo.p, N) * this->diffuse;
+		}
+	}
 	return Color();
 }
 void MtlBlinn::SetViewportMaterial(int subMtlID) const
