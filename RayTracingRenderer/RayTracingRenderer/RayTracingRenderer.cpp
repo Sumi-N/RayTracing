@@ -37,16 +37,19 @@ int main()
 //   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
 //   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
 
+bool CheckZbuffer(float & zbuffer, float answer) {
+	if (answer < zbuffer) {
+		return true;
+	}
+	return false;
+}
+
 void RenderPixel(Ray ray, Color24 & pixel, float & zbuffer, HitInfo & hitinfo, Node * node) {
 	float a = ray.dir.Dot(ray.dir);
 	float b = 2 * ray.dir.Dot(ray.p);
 	float c = ray.p.Dot(ray.p) - 1;
 
 	if (b*b - 4 * a*c >= 0) {
-
-		pixel.r = 255;
-		pixel.b = 255;
-		pixel.g = 255;
 
 		float answer1 = (-1 * b + sqrt(b*b - 4 * a*c)) / (2 * a);
 		float answer2 = (-1 * b - sqrt(b*b - 4 * a*c)) / (2 * a);
@@ -66,30 +69,34 @@ void RenderPixel(Ray ray, Color24 & pixel, float & zbuffer, HitInfo & hitinfo, N
 
 		if (small < 0) {
 			if (large > 0) {
-				zbuffer = large;
-				hitinfo.z = large;
-				hitinfo.front = false;
-				hitinfo.p = ray.p + large * ray.dir;
+				if (CheckZbuffer(zbuffer, large)) {
+					zbuffer = large;
+					hitinfo.z = large;
+					hitinfo.front = false;
+					hitinfo.p = ray.p + large * ray.dir;
+					hitinfo.N = hitinfo.p;
+					hitinfo.node = node;
+					node->FromNodeCoords(hitinfo);
+				}
+			}
+		}
+		else
+		{
+			if (CheckZbuffer(zbuffer, small)) {
+				zbuffer = small;
+				hitinfo.z = small;
+				hitinfo.front = true;
+				hitinfo.p = ray.p + small * ray.dir;
 				hitinfo.N = hitinfo.p;
 				hitinfo.node = node;
 				node->FromNodeCoords(hitinfo);
 			}
 		}
-		else
-		{
-			zbuffer = small;
-			hitinfo.z = small;
-			hitinfo.front = true;
-			hitinfo.p = ray.p + small * ray.dir;
-			hitinfo.N = hitinfo.p;
-			hitinfo.node = node;
-			node->FromNodeCoords(hitinfo);
-		}
 
 	}
 }
 
-void ConvertRayCordination(Node * traversingnode, Node * node, Ray ray, Color24 & pixel, float & zbuffer, Ray originalray) {
+void ConvertRayCordination(Node * traversingnode, Node * node, Ray ray, Color24 & pixel, float & zbuffer) {
 
 	int numberofchild = traversingnode->GetNumChild();
 	Ray currentray = ray;
@@ -103,7 +110,7 @@ void ConvertRayCordination(Node * traversingnode, Node * node, Ray ray, Color24 
 
 			if (hitinfo.node != nullptr) {
 				if (materials.Find(node->GetMaterial()->GetName()) != nullptr) {
-					pixel = (Color24)materials.Find(node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights);
+					pixel = (Color24)materials.Find(node->GetMaterial()->GetName())->Shade(currentray, hitinfo, lights);
 				}
 				else {
 					assert(materials.Find(node->GetMaterial()->GetName()));
@@ -113,7 +120,7 @@ void ConvertRayCordination(Node * traversingnode, Node * node, Ray ray, Color24 
 
 		if (node != nullptr) {
 			Node * childnode = new Node();
-			ConvertRayCordination(node, childnode, ray, pixel, zbuffer, originalray);
+			ConvertRayCordination(node, childnode, ray, pixel, zbuffer);
 		}
 	}
 }
@@ -179,7 +186,7 @@ void BeginRender() {
 
 	for (int i = 0; i < renderImage.GetHeight(); i++) {
 		for (int j = 0; j < renderImage.GetWidth(); j++) {
-			ConvertRayCordination(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j]);
+			ConvertRayCordination(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j]);
 		}
 	}
 
