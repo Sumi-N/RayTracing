@@ -98,30 +98,35 @@ void RenderPixel(Ray ray, Color24 & pixel, float & zbuffer, HitInfo & hitinfo, N
 void ConvertRayCordination(Node * traversingnode, Node * node, Ray ray, Color24 & pixel, float & zbuffer, Ray originalray) {
 
 	int numberofchild = traversingnode->GetNumChild();
-	Ray currentray = ray;
 	for (int i = 0; i < numberofchild; i++) {
 		node = traversingnode->GetChild(i);
+		Ray changedray = node->ToNodeCoords(ray);
+		HitInfo hitinfo = HitInfo();
+
 		if (node->GetNodeObj() != nullptr) {
-			Ray changedray = node->ToNodeCoords(ray);
-			HitInfo hitinfo = HitInfo();
-
 			RenderPixel(changedray, pixel, zbuffer, hitinfo, node);
-
-			// Shading
-			if (hitinfo.node != nullptr) {
-				if (materials.Find(node->GetMaterial()->GetName()) != nullptr) {
-					pixel = (Color24)materials.Find(node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights);
-				}
-				else {
-					assert(materials.Find(node->GetMaterial()->GetName()));
-				}
-			}
 		}
 
 		if (node != nullptr) {
 			Node * childnode = new Node();
-			ConvertRayCordination(node, childnode, node->ToNodeCoords(ray), pixel, zbuffer, originalray);
+			ConvertRayCordination(node, childnode, changedray, pixel, zbuffer, originalray);
 			delete childnode;
+		}
+
+		if (node->GetNodeObj() != nullptr)
+		{
+			// Shading
+			if (hitinfo.node != nullptr)
+			{
+				if (materials.Find(node->GetMaterial()->GetName()) != nullptr)
+				{
+					pixel = (Color24)materials.Find(node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights);
+				}
+				else
+				{
+					assert(materials.Find(node->GetMaterial()->GetName()));
+				}
+			}
 		}
 	}
 }
