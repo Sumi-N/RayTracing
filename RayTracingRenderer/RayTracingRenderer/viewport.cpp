@@ -442,10 +442,95 @@ void GenLight::SetViewportParam(int lightID, ColorA ambient, ColorA intensity, V
 	glLightfv(GL_LIGHT0 + lightID, GL_SPECULAR, &intensity.r);
 	glLightfv(GL_LIGHT0 + lightID, GL_POSITION, &pos.x);
 }
+
+bool DetectShadow(Node * traversingnode, Node * node, Ray ray, float t_max)
+{
+	int numberofchild = traversingnode->GetNumChild();
+	Ray currentray = ray;
+	for (int i = 0; i < numberofchild; i++)
+	{
+		node = traversingnode->GetChild(i);
+		if (node->GetNodeObj() != nullptr)
+		{
+			Ray changedray = node->ToNodeCoords(currentray);
+
+			float a = changedray.dir.Dot(changedray.dir);
+			float b = 2 * changedray.dir.Dot(changedray.p);
+			float c = changedray.p.Dot(changedray.p) - 1;
+
+			if (b*b - 4 * a*c >= 0)
+			{
+
+				float answer1 = (-1 * b + sqrt(b*b - 4 * a*c)) / (2 * a);
+				float answer2 = (-1 * b - sqrt(b*b - 4 * a*c)) / (2 * a);
+
+				float large;
+				float small;
+
+				float answer;
+
+				if (answer1 >= answer2)
+				{
+					large = answer1;
+					small = answer2;
+				}
+				else
+				{
+					large = answer2;
+					small = answer1;
+				}
+
+				if (small < 0)
+				{
+					if (large > 0)
+					{
+						answer = large;
+
+						float delta = 0.001f;
+						if (answer > delta && answer <= t_max)
+						{
+							return true;
+						}
+					}
+				}
+				else
+				{
+					answer = small;
+
+					float delta = 0.001f;
+					if (answer >= delta && answer <= t_max)
+					{
+						return true;
+					}
+				}
+			}
+		}
+
+
+		if (node != nullptr)
+		{
+			Node * childnode = new Node();
+			DetectShadow(node, childnode, currentray, t_max);
+			delete childnode;
+		}
+	}
+	return false;
+}
+
 float GenLight::Shadow(Ray ray, float t_max)
 {
-	
-	return 1.0f;
+	Node * node = new Node();
+	Node * startnode = &rootNode;
+	if (DetectShadow(startnode, node, ray, t_max))
+	{
+		delete node;
+		return 0.0f;
+	}
+	else
+	{
+		delete node;
+		return 1.0f;
+	}
 }
 //-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------

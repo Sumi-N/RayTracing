@@ -19,7 +19,7 @@ std::vector<NodeMtl> nodeMtlList;
 
 int main()
 {
-	LoadScene(".\\xmlfiles\\assignment2.xml");
+	LoadScene(".\\xmlfiles\\BoxScene.xml");
 	//LoadScene(".\\assignment1.xml");
 	//printf("%d", rootNode.GetNumChild());
 	ShowViewport();
@@ -126,28 +126,6 @@ void ConvertRayCordination(Node * traversingnode, Node * node, Ray ray, Color24 
 	}
 }
 
-void DetectShadow(Node * traversingnode, Node * node, Ray ray)
-{
-	int numberofchild = traversingnode->GetNumChild();
-	Ray currentray = ray;
-	for (int i = 0; i < numberofchild; i++)
-	{
-		node = traversingnode->GetChild(i);
-		if (node->GetNodeObj() != nullptr)
-		{
-			Ray changedray = node->ToNodeCoords(currentray);
-		}
-
-
-		if (node != nullptr)
-		{
-			Node * childnode = new Node();
-			DetectShadow(node, childnode, ray);
-			delete childnode;
-		}
-	}
-}
-
 void BeginRender() {
 
 	Node * node = new Node();
@@ -188,8 +166,10 @@ void BeginRender() {
 	}
 
 	printf("Ready \n");
-	//renderImage.SaveImage("saveimage.png");
+	renderImage.SaveImage("saveimage.png");
 	//renderImage.SaveZImage("savezimage.png");
+	delete node;
+	delete cameraray;
 	return;
 }
 
