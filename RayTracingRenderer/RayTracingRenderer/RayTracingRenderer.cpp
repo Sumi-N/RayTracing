@@ -102,7 +102,7 @@ void ConvertRayCordination(Node * traversingnode, Node * node, Ray ray, Color24 
 	for (int i = 0; i < numberofchild; i++) {
 		node = traversingnode->GetChild(i);
 		if (node->GetNodeObj() != nullptr) {
-			Ray changedray = node->ToNodeCoords(currentray);
+			Ray changedray = node->ToNodeCoords(ray);
 			HitInfo hitinfo = HitInfo();
 
 			RenderPixel(changedray, pixel, zbuffer, hitinfo, node);
@@ -110,7 +110,7 @@ void ConvertRayCordination(Node * traversingnode, Node * node, Ray ray, Color24 
 			// Shading
 			if (hitinfo.node != nullptr) {
 				if (materials.Find(node->GetMaterial()->GetName()) != nullptr) {
-					pixel = (Color24)materials.Find(node->GetMaterial()->GetName())->Shade(currentray, hitinfo, lights);
+					pixel = (Color24)materials.Find(node->GetMaterial()->GetName())->Shade(ray, hitinfo, lights);
 				}
 				else {
 					assert(materials.Find(node->GetMaterial()->GetName()));
@@ -133,14 +133,18 @@ void DetectShadow(Node * traversingnode, Node * node, Ray ray)
 	for (int i = 0; i < numberofchild; i++)
 	{
 		node = traversingnode->GetChild(i);
-		ray = node->ToNodeCoords(currentray);
-	}
+		if (node->GetNodeObj() != nullptr)
+		{
+			Ray changedray = node->ToNodeCoords(currentray);
+		}
 
-	if (node != nullptr)
-	{
-		Node * childnode = new Node();
-		DetectShadow(node, childnode, ray);
-		delete childnode;
+
+		if (node != nullptr)
+		{
+			Node * childnode = new Node();
+			DetectShadow(node, childnode, ray);
+			delete childnode;
+		}
 	}
 }
 
