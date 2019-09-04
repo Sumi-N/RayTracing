@@ -506,14 +506,7 @@ bool DetectShadow(Node * traversingnode, Node * node, Ray ray, float t_max)
 			}
 		}
 
-
 		if (node != nullptr)
-		{
-			Node * childnode = new Node();
-			DetectShadow(node, childnode, node->ToNodeCoords(currentray), t_max);
-			delete childnode;
-		}
-		else
 		{
 			Node * childnode = new Node();
 			DetectShadow(node, childnode, node->ToNodeCoords(currentray), t_max);
