@@ -19,8 +19,8 @@ std::vector<NodeMtl> nodeMtlList;
 
 int main()
 {
-	LoadScene(".\\xmlfiles\\assignment2.xml");
-	//LoadScene(".\\assignment1.xml");
+	LoadScene(".\\xmlfiles\\BoxScene.xml");
+	//LoadScene(".\\xmlfiles\\SimpleTestScene.xml");
 	//printf("%d", rootNode.GetNumChild());
 	ShowViewport();
 }
@@ -98,10 +98,10 @@ void UpdateHitInfo(Ray ray, Color24 & pixel, float & zbuffer, HitInfo & hitinfo,
 void ConvertRayCordination(Node * traversingnode, Node * node, Ray ray, Color24 & pixel, float & zbuffer, Ray originalray, HitInfo & hit) {
 
 	int numberofchild = traversingnode->GetNumChild();
+	HitInfo hitinfo = HitInfo();
 	for (int i = 0; i < numberofchild; i++) {
 		node = traversingnode->GetChild(i);
 		Ray changedray = node->ToNodeCoords(ray);
-		HitInfo hitinfo = HitInfo();
 
 		if (node->GetNodeObj() != nullptr) {
 			UpdateHitInfo(changedray, pixel, zbuffer, hitinfo, node);
@@ -118,16 +118,16 @@ void ConvertRayCordination(Node * traversingnode, Node * node, Ray ray, Color24 
 			}
 			delete childnode;
 		}
+	}
 
-		//Shading
-		if (node->GetNodeObj() != nullptr)
+	//Shading
+	if (node->GetNodeObj() != nullptr)
+	{
+		if (hitinfo.node != nullptr)
 		{
-			if (hitinfo.node != nullptr)
+			if (materials.Find(node->GetMaterial()->GetName()) != nullptr)
 			{
-				if (materials.Find(node->GetMaterial()->GetName()) != nullptr)
-				{
-					pixel = (Color24)materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights);
-				}
+				pixel = (Color24)materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights);
 			}
 		}
 	}

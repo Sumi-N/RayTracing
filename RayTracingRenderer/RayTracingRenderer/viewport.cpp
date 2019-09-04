@@ -486,7 +486,7 @@ bool DetectShadow(Node * traversingnode, Node * node, Ray ray, float t_max)
 					{
 						answer = large;
 
-						float delta = 0.0005f;
+						float delta = 0.00003f;
 						if (answer > delta && answer <= t_max)
 						{
 							return true;
@@ -497,7 +497,7 @@ bool DetectShadow(Node * traversingnode, Node * node, Ray ray, float t_max)
 				{
 					answer = small;
 
-					float delta = 0.0005f;
+					float delta = 0.00003f;
 					if (answer >= delta && answer <= t_max)
 					{
 						return true;
