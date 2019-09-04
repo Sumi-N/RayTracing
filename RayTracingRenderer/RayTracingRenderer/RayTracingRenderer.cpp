@@ -19,7 +19,7 @@ std::vector<NodeMtl> nodeMtlList;
 
 int main()
 {
-	LoadScene(".\\assignment2.xml");
+	LoadScene(".\\xmlfiles\\assignment2.xml");
 	//LoadScene(".\\assignment1.xml");
 	//printf("%d", rootNode.GetNumChild());
 	ShowViewport();
@@ -102,11 +102,12 @@ void ConvertRayCordination(Node * traversingnode, Node * node, Ray ray, Color24 
 	for (int i = 0; i < numberofchild; i++) {
 		node = traversingnode->GetChild(i);
 		if (node->GetNodeObj() != nullptr) {
-			ray = node->ToNodeCoords(currentray);
+			Ray changedray = node->ToNodeCoords(currentray);
 			HitInfo hitinfo = HitInfo();
 
-			RenderPixel(ray, pixel, zbuffer, hitinfo, node);
+			RenderPixel(changedray, pixel, zbuffer, hitinfo, node);
 
+			// Shading
 			if (hitinfo.node != nullptr) {
 				if (materials.Find(node->GetMaterial()->GetName()) != nullptr) {
 					pixel = (Color24)materials.Find(node->GetMaterial()->GetName())->Shade(currentray, hitinfo, lights);
@@ -119,36 +120,29 @@ void ConvertRayCordination(Node * traversingnode, Node * node, Ray ray, Color24 
 
 		if (node != nullptr) {
 			Node * childnode = new Node();
-			ConvertRayCordination(node, childnode, ray, pixel, zbuffer);
+			ConvertRayCordination(node, childnode, currentray, pixel, zbuffer);
+			delete childnode;
 		}
 	}
 }
 
-//void ConvertRayCordinationTest(Node * traversingnode, Node * node, Ray ray, Color24 & pixel, float & zbuffer) {
-//
-//	int numberofchild = traversingnode->GetNumChild();
-//	Ray originalray = ray;
-//	for (int i = 0; i < numberofchild; i++) {
-//		node = traversingnode->GetChild(i);
-//		if (node->GetNodeObj() != nullptr) {
-//			ray = node->ToNodeCoords(originalray);
-//			RenderPixel(ray, pixel, zbuffer);
-//			HitInfo hitinfo = HitInfo();
-//
-//			if (node->GetMaterial() != nullptr) {
-//				node->GetMaterial()->Shade(ray, );
-//			}
-//			else {
-//				assert(node->GetMaterial());
-//			}
-//		}
-//
-//		if (node != nullptr) {
-//			Node * childnode = new Node();
-//			ConvertRayCordinationTest(node, childnode, ray, pixel, zbuffer);
-//		}
-//	}
-//}
+void DetectShadow(Node * traversingnode, Node * node, Ray ray)
+{
+	int numberofchild = traversingnode->GetNumChild();
+	Ray currentray = ray;
+	for (int i = 0; i < numberofchild; i++)
+	{
+		node = traversingnode->GetChild(i);
+		ray = node->ToNodeCoords(currentray);
+	}
+
+	if (node != nullptr)
+	{
+		Node * childnode = new Node();
+		DetectShadow(node, childnode, ray);
+		delete childnode;
+	}
+}
 
 void BeginRender() {
 
@@ -191,7 +185,7 @@ void BeginRender() {
 
 	printf("Ready \n");
 	//renderImage.SaveImage("saveimage.png");
-	renderImage.SaveZImage("savezimage.png");
+	//renderImage.SaveZImage("savezimage.png");
 	return;
 }
 
