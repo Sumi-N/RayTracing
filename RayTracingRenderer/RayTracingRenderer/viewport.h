@@ -78,3 +78,7 @@ void GlutIdle();
 void GlutKeyboard(unsigned char key, int x, int y);
 void GlutMouse(int button, int state, int x, int y);
 void GlutMotion(int x, int y);
+
+//--------------------------------------------------------------------------------
+void ConvertRayCoordination(Node *, Node *, Ray, Color24 &, float &, Ray, HitInfo &);
+void UpdateHitInfo(Ray, float &, HitInfo &, Node *);

@@ -359,6 +359,54 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 //-------------------------------------------------------------------------------
 // Viewport Methods for various classes
 //-------------------------------------------------------------------------------
+
+bool FindReflection(Node * traversingnode, Node * node, Ray ray, float & zbuffer, Ray oroginalray, HitInfo & hit)
+{
+	int numberofchild = traversingnode->GetNumChild();
+	HitInfo hitinfo = HitInfo();
+	for (int i = 0; i < numberofchild; i++)
+	{
+		node = traversingnode->GetChild(i);
+		Ray changedray = node->ToNodeCoords(ray);
+
+		if (node->GetNodeObj() != nullptr)
+		{
+			UpdateHitInfo(changedray, zbuffer, hitinfo, node);
+			hit = hitinfo;
+		}
+
+		if (node != nullptr)
+		{
+			Node * childnode = new Node();
+			FindReflection(node, childnode, changedray, zbuffer, oroginalray, hit);
+			if (hit.node != nullptr && hit.node != hitinfo.node)
+			{
+				node->FromNodeCoords(hit);
+				hitinfo = hit;
+			}
+			delete childnode;
+		}
+	}
+}
+
+void Reflection(Ray const & ray, const HitInfo & hInfo, int bounce, Color reflection) 
+{
+	Vec3f V = -1 * ray.dir;
+	Vec3f R = 2 * (hInfo.N.Dot(V)) * hInfo.N - V;
+
+
+
+	if (bounce <= 0)
+	{
+		return;
+	}
+	else
+	{
+		//Reflection(ray, hInfo, bounce -1);
+	}
+	return;
+}
+
 void Sphere::ViewportDisplay(const Material *mtl) const
 {
 	static GLUquadric *q = nullptr;
@@ -423,6 +471,13 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			color += (diffusepart + specularpart) * IR;
 		}
 	}
+
+	// Caluculate obly relfection part for reflection
+	if (this->reflection != Color(0, 0, 0))
+	{
+		Reflection(ray, hInfo, bounce, this->reflection);
+	}
+
 	return color;
 }
 void MtlBlinn::SetViewportMaterial(int subMtlID) const

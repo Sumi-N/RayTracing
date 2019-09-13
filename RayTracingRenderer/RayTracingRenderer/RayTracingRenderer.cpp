@@ -43,7 +43,7 @@ bool CheckZbuffer(float & zbuffer, float answer) {
 	return false;
 }
 
-void UpdateHitInfo(Ray ray, Color24 & pixel, float & zbuffer, HitInfo & hitinfo, Node * node) {
+void UpdateHitInfo(Ray ray, float & zbuffer, HitInfo & hitinfo, Node * node) {
 	float a = ray.dir.Dot(ray.dir);
 	float b = 2 * ray.dir.Dot(ray.p);
 	float c = ray.p.Dot(ray.p) - 1;
@@ -95,7 +95,7 @@ void UpdateHitInfo(Ray ray, Color24 & pixel, float & zbuffer, HitInfo & hitinfo,
 	}
 }
 
-void ConvertRayCordination(Node * traversingnode, Node * node, Ray ray, Color24 & pixel, float & zbuffer, Ray originalray, HitInfo & hit) {
+void ConvertRayCoordination(Node * traversingnode, Node * node, Ray ray, Color24 & pixel, float & zbuffer, Ray originalray, HitInfo & hit) {
 
 	int numberofchild = traversingnode->GetNumChild();
 	HitInfo hitinfo = HitInfo();
@@ -104,13 +104,13 @@ void ConvertRayCordination(Node * traversingnode, Node * node, Ray ray, Color24 
 		Ray changedray = node->ToNodeCoords(ray);
 
 		if (node->GetNodeObj() != nullptr) {
-			UpdateHitInfo(changedray, pixel, zbuffer, hitinfo, node);
+			UpdateHitInfo(changedray, zbuffer, hitinfo, node);
 			hit = hitinfo;
 		}
 
 		if (node != nullptr) {
 			Node * childnode = new Node();
-			ConvertRayCordination(node, childnode, changedray, pixel, zbuffer, originalray, hit);
+			ConvertRayCoordination(node, childnode, changedray, pixel, zbuffer, originalray, hit);
 			if (hit.node != nullptr && hit.node != hitinfo.node)
 			{
 				node->FromNodeCoords(hit);
@@ -168,7 +168,7 @@ void BeginRender() {
 	for (int i = 0; i < renderImage.GetHeight(); i++) {
 		for (int j = 0; j < renderImage.GetWidth(); j++) {
 			HitInfo hit = HitInfo();
-			ConvertRayCordination(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+			ConvertRayCoordination(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 		}
 	}
 
