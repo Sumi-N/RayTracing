@@ -431,12 +431,120 @@ Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce)
 		S.dir = R;
 		S.p = P;
 
-		// Starttraversing node 
+		// Start traversing node 
 		Node * node = new Node();
 		Node * startnode = &rootNode;
 		HitInfo hitinfo;
 
-		return FindReflection(startnode, node, S, S, hitinfo, bounce - 1);
+		Color returnColor = FindReflection(startnode, node, S, S, hitinfo, bounce - 1);
+		delete node;
+		return returnColor;
+	}
+}
+
+Color FindRefraction(Node * traversingnode, Node * node, Ray originalray, Ray ray, HitInfo & hit, int bounce)
+{
+	int numberofchild = traversingnode->GetNumChild();
+	HitInfo hitinfo = HitInfo();
+	for (int i = 0; i < numberofchild; i++)
+	{
+		node = traversingnode->GetChild(i);
+		Ray changedray = node->ToNodeCoords(ray);
+
+		if (node->GetNodeObj() != nullptr)
+		{
+			// This zbuffer is a fake, I don't use this buffer to do something
+			float fakezbuffer;
+			UpdateHitInfo(changedray, fakezbuffer, hitinfo, node);
+			hit = hitinfo;
+		}
+
+		if (node != nullptr)
+		{
+			Node * childnode = new Node();
+			FindReflection(node, childnode, originalray, changedray, hit, bounce);
+			if (hit.node != nullptr && hit.node != hitinfo.node)
+			{
+				node->FromNodeCoords(hit);
+				hitinfo = hit;
+			}
+			delete childnode;
+		}
+	}
+
+	//Shading
+	if (node->GetNodeObj() != nullptr)
+	{
+		if (hitinfo.node != nullptr)
+		{
+			if (materials.Find(node->GetMaterial()->GetName()) != nullptr)
+			{
+				Color returnColor = materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, bounce);
+				return returnColor;
+			}
+		}
+	}
+	else
+	{
+		return Color(0, 0, 0);
+	}
+}
+
+Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refractionIndex)
+{
+	// bounce 1 is refract 1 time
+	if (bounce <= 0)
+	{
+		return Color(0, 0, 0);
+	}
+	else
+	{
+		// P is a surface point, 0.00003f is a bias
+		Vec3f P = hInfo.N;
+		P.Normalize(); P -= 0.00003f;  hInfo.p;
+
+		Vec3f V = -1 * ray.dir;
+		V.Normalize();
+		Vec3f N = hInfo.N;
+		N.Normalize();
+
+		// Calculate angles 
+		float cos1 = V.Dot(N); float sin1 = sqrt(1 - (cos1 * cos1));
+		float sin2;
+		if (hInfo.front)
+		{
+			sin2 = (1 / refractionIndex) * sin1;
+		}
+		else
+		{
+			sin2 = refractionIndex * sin1;
+		}
+		float cos2 = sqrt(1 - (sin2 * sin2));
+
+		// Total internal reflection
+		if (sin2 > 1)
+		{
+			return Color(0, 0, 0);	
+		}
+
+		// Horizontal dirction Vector
+		Vec3f T_h = -cos2 * N;
+		// Vertical Direction Vector
+		Vec3f T_v = -sin2 * (V - (V.Dot(N))*N);
+		Vec3f T = T_h + T_v;
+
+		// S is a starting point from the surface point
+		Ray S;
+		S.dir = T;
+		S.p = P;
+
+		// Start traversing node 
+		Node * node = new Node();
+		Node * startnode = &rootNode;
+		HitInfo hitinfo;
+
+		Color returnColor = FindReflection(startnode, node, S, S, hitinfo, bounce - 1);
+		delete node;
 	}
 }
 
@@ -451,7 +559,7 @@ void Sphere::ViewportDisplay(const Material *mtl) const
 Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & lights, int bounce) const
 {
 	Vec3f N = hInfo.N;
-	N.Normalize();
+	//N.Normalize();
 	Color color = Color();
 	for (auto light = lights.begin(); light != lights.end(); ++light) 
 	{
@@ -505,11 +613,21 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		}
 	}
 
-	// Caluculate obly relfection part for reflection
+	// Caluculate only relfection part for reflection
 	if (this->reflection != Color(0, 0, 0))
 	{
 		color += this->reflection * Reflection(ray, hInfo, bounce);
 	}
+
+	//// Caluculate refraction part
+	//if (this->refraction != Color(0, 0, 0))
+	//{
+	//	if (!hInfo.front)
+	//	{
+
+	//	}
+	//	color += this->refraction * Refraction(ray, hInfo, bounce, ior);
+	//}
 
 	return color;
 }

@@ -353,3 +353,7 @@ MigrationBackup/
 
 # Log file
 *.log
+*.tlog
+*.pdb
+*.ipdb
+*.iobj
