@@ -509,7 +509,7 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 	}
 	else
 	{
-		// P is a surface point, 0.00003f is a bias
+		// P is a surface point, 0.0001f is a bias
 		Vec3f P = hInfo.N;
 
 		Vec3f V = -1 * ray.dir;
@@ -554,18 +554,23 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 			// Horizontal dirction Vector
 			T_h = -cos2 * N;
 			// Vertical Direction Vector
-			T_v = -sin2 * (V - (V.Dot(-N))*-N);
+			T_v = (V - (V.Dot(N))* N);
+			T_v.Normalize();
+			T_v = -sin2 * T_v;
 		}
 		else
 		{
 			// Horizontal dirction Vector
-			T_h = cos2 * N;
+			T_h = -cos2 * -N;
 			// Vertical Direction Vector
-			T_v = -sin2 * (V - (V.Dot(N))*N);
+			T_v = (V - (V.Dot(-N))* -N);
+			T_v.Normalize();
+			T_v = -sin2 * T_v;
 		}
 		// Combined horizontal and vertical
 		T = T_h + T_v;
-
+		float s = T.Length();
+		
 		// S is a starting point from the surface point
 		Ray S;
 		S.dir = T;
