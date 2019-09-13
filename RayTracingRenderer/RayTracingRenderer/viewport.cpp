@@ -360,7 +360,7 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 // Viewport Methods for various classes
 //-------------------------------------------------------------------------------
 
-bool FindReflection(Node * traversingnode, Node * node, Ray ray, float & zbuffer, Ray oroginalray, HitInfo & hit)
+void FindReflection(Node * traversingnode, Node * node, Ray oroginalray, Ray ray, float & zbuffer, HitInfo & hit)
 {
 	int numberofchild = traversingnode->GetNumChild();
 	HitInfo hitinfo = HitInfo();
@@ -371,14 +371,14 @@ bool FindReflection(Node * traversingnode, Node * node, Ray ray, float & zbuffer
 
 		if (node->GetNodeObj() != nullptr)
 		{
-			UpdateHitInfo(changedray, zbuffer, hitinfo, node);
+			UpdateHitInfo(changedray, hitinfo, node);
 			hit = hitinfo;
 		}
 
 		if (node != nullptr)
 		{
 			Node * childnode = new Node();
-			FindReflection(node, childnode, changedray, zbuffer, oroginalray, hit);
+			FindReflection(node, childnode, oroginalray, changedray, zbuffer,  hit);
 			if (hit.node != nullptr && hit.node != hitinfo.node)
 			{
 				node->FromNodeCoords(hit);
@@ -393,7 +393,18 @@ void Reflection(Ray const & ray, const HitInfo & hInfo, int bounce, Color reflec
 {
 	Vec3f V = -1 * ray.dir;
 	Vec3f R = 2 * (hInfo.N.Dot(V)) * hInfo.N - V;
+	R.Normalize();
+	Ray surfacepoint;
+	surfacepoint.dir = R;
+	surfacepoint.p = hInfo.p;
 
+	// Starttraversing node 
+	Node * node = new Node();
+	Node * startnode = &rootNode;
+	float zbuffer = BIGFLOAT;
+	HitInfo hitinfo;
+
+	FindReflection(startnode, node, surfacepoint,surfacepoint,zbuffer, hitinfo);
 
 
 	if (bounce <= 0)
