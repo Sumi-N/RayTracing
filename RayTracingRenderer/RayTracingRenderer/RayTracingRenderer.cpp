@@ -68,7 +68,7 @@ void UpdateHitInfo(Ray ray, float & zbuffer, HitInfo & hitinfo, Node * node) {
 
 		if (small < 0) {
 			if (large > 0) {
-				if (CheckZbuffer(zbuffer, large)) {
+				if (CheckZbuffer(hitinfo.z, large)) {
 					zbuffer = large;
 					hitinfo.z = large;
 					hitinfo.front = false;
@@ -81,7 +81,7 @@ void UpdateHitInfo(Ray ray, float & zbuffer, HitInfo & hitinfo, Node * node) {
 		}
 		else
 		{
-			if (CheckZbuffer(zbuffer, small)) {
+			if (CheckZbuffer(hitinfo.z, small)) {
 				zbuffer = small;
 				hitinfo.z = small;
 				hitinfo.front = true;

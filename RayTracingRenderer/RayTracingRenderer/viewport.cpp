@@ -1,6 +1,8 @@
 #include "viewport.h"
 #include <math.h>
 
+extern MaterialList materials;
+
 //-------------------------------------------------------------------------------
 
 void ShowViewport()
@@ -360,7 +362,7 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 // Viewport Methods for various classes
 //-------------------------------------------------------------------------------
 
-void FindReflection(Node * traversingnode, Node * node, Ray oroginalray, Ray ray, float & zbuffer, HitInfo & hit)
+Color FindReflection(Node * traversingnode, Node * node, Ray originalray, Ray ray, HitInfo & hit, int bounce)
 {
 	int numberofchild = traversingnode->GetNumChild();
 	HitInfo hitinfo = HitInfo();
@@ -371,14 +373,16 @@ void FindReflection(Node * traversingnode, Node * node, Ray oroginalray, Ray ray
 
 		if (node->GetNodeObj() != nullptr)
 		{
-			UpdateHitInfo(changedray, hitinfo, node);
+			// This zbuffer is a fake, I don't use this buffer to do something
+			float fakezbuffer;
+			UpdateHitInfo(changedray, fakezbuffer, hitinfo, node);
 			hit = hitinfo;
 		}
 
 		if (node != nullptr)
 		{
 			Node * childnode = new Node();
-			FindReflection(node, childnode, oroginalray, changedray, zbuffer,  hit);
+			FindReflection(node, childnode, originalray, changedray, hit, bounce);
 			if (hit.node != nullptr && hit.node != hitinfo.node)
 			{
 				node->FromNodeCoords(hit);
@@ -387,35 +391,53 @@ void FindReflection(Node * traversingnode, Node * node, Ray oroginalray, Ray ray
 			delete childnode;
 		}
 	}
-}
 
-void Reflection(Ray const & ray, const HitInfo & hInfo, int bounce, Color reflection) 
-{
-	Vec3f V = -1 * ray.dir;
-	Vec3f R = 2 * (hInfo.N.Dot(V)) * hInfo.N - V;
-	R.Normalize();
-	Ray surfacepoint;
-	surfacepoint.dir = R;
-	surfacepoint.p = hInfo.p;
-
-	// Starttraversing node 
-	Node * node = new Node();
-	Node * startnode = &rootNode;
-	float zbuffer = BIGFLOAT;
-	HitInfo hitinfo;
-
-	FindReflection(startnode, node, surfacepoint,surfacepoint,zbuffer, hitinfo);
-
-
-	if (bounce <= 0)
+	//Shading
+	if (node->GetNodeObj() != nullptr)
 	{
-		return;
+		if (hitinfo.node != nullptr)
+		{
+			if (materials.Find(node->GetMaterial()->GetName()) != nullptr)
+			{
+				return materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, bounce);
+			}
+		}
 	}
 	else
 	{
-		//Reflection(ray, hInfo, bounce -1);
+		return Color(0, 0, 0);
 	}
-	return;
+}
+
+Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce) 
+{
+	// bounce 1 is reflect 1 time
+	if (bounce <= 0)
+	{
+		return Color(0,0,0);
+	}
+	else
+	{
+		//P is a surface point, 0.00003f is a bias
+		Vec3f P = hInfo.N;
+		P.Normalize(); P += 0.00003f; P += hInfo.p;
+
+		Vec3f V = -1 * ray.dir;
+		Vec3f R = 2 * (hInfo.N.Dot(V)) * hInfo.N - V;
+		R.Normalize();
+
+		// S is a starting point from the surface point
+		Ray S;
+		S.dir = R;
+		S.p = P;
+
+		// Starttraversing node 
+		Node * node = new Node();
+		Node * startnode = &rootNode;
+		HitInfo hitinfo;
+
+		return FindReflection(startnode, node, S, S, hitinfo, bounce - 1);
+	}
 }
 
 void Sphere::ViewportDisplay(const Material *mtl) const
@@ -486,7 +508,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 	// Caluculate obly relfection part for reflection
 	if (this->reflection != Color(0, 0, 0))
 	{
-		Reflection(ray, hInfo, bounce, this->reflection);
+		color += this->reflection * Reflection(ray, hInfo, bounce);
 	}
 
 	return color;
