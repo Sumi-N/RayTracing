@@ -1,9 +1,8 @@
-#pragma once
 //-------------------------------------------------------------------------------
 ///
 /// \file       scene.h 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    2.2
+/// \version    4.0
 /// \date       August 21, 2019
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -28,7 +27,6 @@
 #include "cyMatrix.h"
 #include "cyColor.h"
 using namespace cy;
-
 //-------------------------------------------------------------------------------
 
 #ifndef Min
@@ -209,7 +207,8 @@ public:
 	// The main method that handles the shading by calling all the lights in the list.
 	// ray: incoming ray,
 	// hInfo: hit information for the point that is being shaded, lights: the light list,
-	virtual Color Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lights) const = 0;
+	// bounceCount: permitted number of additional bounces for reflection and refraction.
+	virtual Color Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lights, int bounceCount) const = 0;
 
 	virtual void SetViewportMaterial(int subMtlID = 0) const {}   // used for OpenGL display
 };

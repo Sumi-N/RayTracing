@@ -367,7 +367,7 @@ void Sphere::ViewportDisplay(const Material *mtl) const
 	}
 	gluSphere(q, 1, 50, 50);
 }
-Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & lights) const
+Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & lights, int bounce) const
 {
 	Vec3f N = hInfo.N;
 	N.Normalize();

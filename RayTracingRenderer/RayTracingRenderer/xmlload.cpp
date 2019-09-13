@@ -1,6 +1,5 @@
 #include "xmlload.h"
 
-//-------------------------------------------------------------------------------
 
 int LoadScene(char const *filename)
 {
@@ -207,6 +206,23 @@ void LoadMaterial(TiXmlElement *element)
 					m->SetGlossiness(f);
 					printf("   glossiness %f\n", f);
 				}
+				else if (COMPARE(child->Value(), "reflection")) {
+					ReadColor(child, c);
+					m->SetReflection(c);
+					printf("   reflection %f %f %f\n", c.r, c.g, c.b);
+				}
+				else if (COMPARE(child->Value(), "refraction")) {
+					ReadColor(child, c);
+					m->SetRefraction(c);
+					ReadFloat(child, f, "index");
+					m->SetRefractionIndex(f);
+					printf("   refraction %f %f %f (index %f)\n", c.r, c.g, c.b, f);
+				}
+				else if (COMPARE(child->Value(), "absorption")) {
+					ReadColor(child, c);
+					m->SetAbsorption(c);
+					printf("   absorption %f %f %f\n", c.r, c.g, c.b);
+				}
 			}
 		}
 		else {
@@ -345,4 +361,4 @@ void ReadFloat(TiXmlElement *element, float &f, char const *name)
 	f = (float)d;
 }
 
-//-------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------

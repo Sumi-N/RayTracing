@@ -127,7 +127,7 @@ void ConvertRayCordination(Node * traversingnode, Node * node, Ray ray, Color24 
 		{
 			if (materials.Find(node->GetMaterial()->GetName()) != nullptr)
 			{
-				pixel = (Color24)materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights);
+				pixel = (Color24)materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights,1);
 			}
 		}
 	}

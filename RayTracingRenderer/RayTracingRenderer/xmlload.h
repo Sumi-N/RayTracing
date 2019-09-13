@@ -1,9 +1,10 @@
 #pragma once
+
 //-------------------------------------------------------------------------------
 ///
 /// \file       xmlload.cpp 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    2.0
+/// \version    4.0
 /// \date       August 21, 2019
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -52,3 +53,5 @@ struct NodeMtl
 };
 
 extern std::vector<NodeMtl> nodeMtlList;
+
+//-------------------------------------------------------------------------------
