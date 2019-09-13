@@ -500,8 +500,24 @@ Color FindRefraction(Node * traversingnode, Node * node, Ray originalray, Ray ra
 	}
 }
 
-Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refractionIndex)
+float FresnelReflections(const HitInfo & hInfo, float refractionIndex, float cos1)
 {
+	float R0;
+	if (hInfo.front)
+	{
+		R0 = (1 - refractionIndex) / (1 + refractionIndex) * (1 - refractionIndex) / (1 + refractionIndex);
+	}
+	else
+	{
+		R0 = (refractionIndex -1) / (1 + refractionIndex) * (refractionIndex - 1) / (1 + refractionIndex);
+	}
+
+	return R0 + (1 - R0) * pow(1 - cos1,5);
+}
+
+Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refractionIndex, Color refraction)
+{
+	float R;
 	// bounce 1 is refract 1 time
 	if (bounce <= -1)
 	{
@@ -531,6 +547,9 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 			cos1 = V.Dot(-N); sin1 = sqrt(1 - (cos1 * cos1));
 		}
 
+		// Calculate fresnel reflection
+		R = FresnelReflections(hInfo, refractionIndex, cos1);
+
 		Vec3f T_h, T_v, T;
 
 		if (hInfo.front)
@@ -555,8 +574,6 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 			T_h = -cos2 * N;
 			// Vertical Direction Vector
 			T_v = (V - (V.Dot(N))* N);
-			T_v.Normalize();
-			T_v = -sin2 * T_v;
 		}
 		else
 		{
@@ -564,9 +581,9 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 			T_h = -cos2 * -N;
 			// Vertical Direction Vector
 			T_v = (V - (V.Dot(-N))* -N);
-			T_v.Normalize();
-			T_v = -sin2 * T_v;
 		}
+		T_v.Normalize();
+		T_v = -sin2 * T_v;
 		// Combined horizontal and vertical
 		T = T_h + T_v;
 		float s = T.Length();
@@ -581,7 +598,10 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 		Node * startnode = &rootNode;
 		HitInfo hitinfo;
 
-		Color returnColor = FindRefraction(startnode, node, S, S, hitinfo, bounce -1);
+		// Refraction part
+		Color returnColor = (1-R) * refraction * FindRefraction(startnode, node, S, S, hitinfo, bounce -1);
+		// Reflection part
+		returnColor += R * refraction * Reflection(ray, hInfo, bounce);
 		delete node;
 		return returnColor;
 	}
@@ -665,7 +685,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		{
 			color += CalculateAbsorption(color, absorption, hInfo.z);
 		}
-		color += this->refraction * Refraction(ray, hInfo, bounce, ior);
+		color += Refraction(ray, hInfo, bounce, ior, refraction);
 	}
 
 	return color;
