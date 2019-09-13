@@ -362,6 +362,16 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 // Viewport Methods for various classes
 //-------------------------------------------------------------------------------
 
+void Sphere::ViewportDisplay(const Material *mtl) const
+{
+	static GLUquadric *q = nullptr;
+	if (q == nullptr)
+	{
+		q = gluNewQuadric();
+	}
+	gluSphere(q, 1, 50, 50);
+}
+
 Color FindReflection(Node * traversingnode, Node * node, Ray originalray, Ray ray, HitInfo & hit, int bounce)
 {
 	int numberofchild = traversingnode->GetNumChild();
@@ -420,7 +430,7 @@ Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce)
 	{
 		//P is a surface point, 0.00003f is a bias
 		Vec3f P = hInfo.N;
-		P.Normalize(); P += 0.00003f; P += hInfo.p;
+		P.Normalize(); P = 0.00008f * P; P += hInfo.p;
 
 		Vec3f V = -1 * ray.dir;
 		Vec3f R = 2 * (hInfo.N.Dot(V)) * hInfo.N - V;
@@ -462,7 +472,7 @@ Color FindRefraction(Node * traversingnode, Node * node, Ray originalray, Ray ra
 		if (node != nullptr)
 		{
 			Node * childnode = new Node();
-			FindReflection(node, childnode, originalray, changedray, hit, bounce);
+			FindRefraction(node, childnode, originalray, changedray, hit, bounce);
 			if (hit.node != nullptr && hit.node != hitinfo.node)
 			{
 				node->FromNodeCoords(hit);
@@ -493,7 +503,7 @@ Color FindRefraction(Node * traversingnode, Node * node, Ray originalray, Ray ra
 Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refractionIndex)
 {
 	// bounce 1 is refract 1 time
-	if (bounce <= 0)
+	if (bounce <= -1)
 	{
 		return Color(0, 0, 0);
 	}
@@ -501,16 +511,28 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 	{
 		// P is a surface point, 0.00003f is a bias
 		Vec3f P = hInfo.N;
-		P.Normalize(); P -= 0.00003f;  hInfo.p;
 
 		Vec3f V = -1 * ray.dir;
 		V.Normalize();
+
 		Vec3f N = hInfo.N;
 		N.Normalize();
 
-		// Calculate angles 
-		float cos1 = V.Dot(N); float sin1 = sqrt(1 - (cos1 * cos1));
-		float sin2;
+		float cos1, cos2, sin1, sin2;
+
+		if (hInfo.front)
+		{
+			P.Normalize(); P = -0.0001f * P;  P += hInfo.p;
+			cos1 = V.Dot(N); sin1 = sqrt(1 - (cos1 * cos1));
+		}
+		else
+		{
+			P.Normalize(); P = 0.0001f * P;  P += hInfo.p;
+			cos1 = V.Dot(-N); sin1 = sqrt(1 - (cos1 * cos1));
+		}
+
+		Vec3f T_h, T_v, T;
+
 		if (hInfo.front)
 		{
 			sin2 = (1 / refractionIndex) * sin1;
@@ -519,7 +541,7 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 		{
 			sin2 = refractionIndex * sin1;
 		}
-		float cos2 = sqrt(1 - (sin2 * sin2));
+		cos2 = sqrt(1 - (sin2 * sin2));
 
 		// Total internal reflection
 		if (sin2 > 1)
@@ -527,11 +549,22 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 			return Color(0, 0, 0);	
 		}
 
-		// Horizontal dirction Vector
-		Vec3f T_h = -cos2 * N;
-		// Vertical Direction Vector
-		Vec3f T_v = -sin2 * (V - (V.Dot(N))*N);
-		Vec3f T = T_h + T_v;
+		if (hInfo.front)
+		{
+			// Horizontal dirction Vector
+			T_h = -cos2 * N;
+			// Vertical Direction Vector
+			T_v = -sin2 * (V - (V.Dot(-N))*-N);
+		}
+		else
+		{
+			// Horizontal dirction Vector
+			T_h = cos2 * N;
+			// Vertical Direction Vector
+			T_v = -sin2 * (V - (V.Dot(N))*N);
+		}
+		// Combined horizontal and vertical
+		T = T_h + T_v;
 
 		// S is a starting point from the surface point
 		Ray S;
@@ -543,23 +576,23 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 		Node * startnode = &rootNode;
 		HitInfo hitinfo;
 
-		Color returnColor = FindReflection(startnode, node, S, S, hitinfo, bounce - 1);
+		Color returnColor = FindRefraction(startnode, node, S, S, hitinfo, bounce -1);
 		delete node;
+		return returnColor;
 	}
 }
 
-void Sphere::ViewportDisplay(const Material *mtl) const
+Color CalculateAbsorption(Color in, Color absorption, float distance)
 {
-	static GLUquadric *q = nullptr;
-	if (q == nullptr) {
-		q = gluNewQuadric();
-	}
-	gluSphere(q, 1, 50, 50);
+	float rout = exp(-1 * absorption.r * distance) * in.r;
+	float gout = exp(-1 * absorption.g * distance) * in.g;
+	float bout = exp(-1 * absorption.b * distance) * in.b;
+	return Color(rout, gout, bout);
 }
+
 Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & lights, int bounce) const
 {
 	Vec3f N = hInfo.N;
-	//N.Normalize();
 	Color color = Color();
 	for (auto light = lights.begin(); light != lights.end(); ++light) 
 	{
@@ -619,15 +652,16 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		color += this->reflection * Reflection(ray, hInfo, bounce);
 	}
 
-	//// Caluculate refraction part
-	//if (this->refraction != Color(0, 0, 0))
-	//{
-	//	if (!hInfo.front)
-	//	{
-
-	//	}
-	//	color += this->refraction * Refraction(ray, hInfo, bounce, ior);
-	//}
+	// Caluculate refraction part
+	if (this->refraction != Color(0, 0, 0))
+	{
+		// When it is a back side hit, it means that absorption gonna happen during inside the material the light go through
+		if (!hInfo.front)
+		{
+			color += CalculateAbsorption(color, absorption, hInfo.z);
+		}
+		color += this->refraction * Refraction(ray, hInfo, bounce, ior);
+	}
 
 	return color;
 }
