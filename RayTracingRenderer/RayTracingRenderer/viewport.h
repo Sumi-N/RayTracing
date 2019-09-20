@@ -83,5 +83,4 @@ void GlutMotion(int x, int y);
 // Custom reference I set
 //--------------------------------------------------------------------------------
 void ShowViewport();
-void RayTraversing(Node *, Node *, Ray, Color24 &, float &, Ray, HitInfo &);
 void UpdateHitInfo(Ray, HitInfo &, Node *);

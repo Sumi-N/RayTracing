@@ -42,63 +42,6 @@ int main()
 //   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
 //   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
 
-bool CheckZbuffer(float & zbuffer, float answer) {
-	if (answer < zbuffer) {
-		return true;
-	}
-	return false;
-}
-
-void UpdateHitInfo(Ray ray, HitInfo & hitinfo, Node * node) {
-	float a = ray.dir.Dot(ray.dir);
-	float b = 2 * ray.dir.Dot(ray.p);
-	float c = ray.p.Dot(ray.p) - 1;
-
-	if (b*b - 4 * a*c >= 0) {
-
-		float answer1 = (-1 * b + sqrt(b*b - 4 * a*c)) / (2 * a);
-		float answer2 = (-1 * b - sqrt(b*b - 4 * a*c)) / (2 * a);
-
-		float large;
-		float small;
-
-		if (answer1 >= answer2) {
-			large = answer1;
-			small = answer2;
-		}
-		else
-		{
-			large = answer2;
-			small = answer1;
-		}
-
-		if (small < 0) {
-			if (large > 0) {
-				if (CheckZbuffer(hitinfo.z, large)) {
-					hitinfo.z = large;
-					hitinfo.front = false;
-					hitinfo.p = ray.p + large * ray.dir;
-					hitinfo.N = hitinfo.p;
-					hitinfo.node = node;
-					node->FromNodeCoords(hitinfo);
-				}
-			}
-		}
-		else
-		{
-			if (CheckZbuffer(hitinfo.z, small)) {
-				hitinfo.z = small;
-				hitinfo.front = true;
-				hitinfo.p = ray.p + small * ray.dir;
-				hitinfo.N = hitinfo.p;
-				hitinfo.node = node;
-				node->FromNodeCoords(hitinfo);
-			}
-		}
-
-	}
-}
-
 void RayTraversing(Node * traversingnode, Node * node, Ray ray, Color24 & pixel, float & zbuffer, Ray originalray, HitInfo & hit) {
 
 	int numberofchild = traversingnode->GetNumChild();
@@ -108,7 +51,11 @@ void RayTraversing(Node * traversingnode, Node * node, Ray ray, Color24 & pixel,
 		Ray changedray = node->ToNodeCoords(ray);
 
 		if (node->GetNodeObj() != nullptr) {
-			UpdateHitInfo(changedray, hitinfo, node);
+			if (node->GetNodeObj()->IntersectRay(changedray, hitinfo, 0))
+			{
+				hitinfo.node = node;
+				node->FromNodeCoords(hitinfo);
+			}
 			hit = hitinfo;
 		}
 
