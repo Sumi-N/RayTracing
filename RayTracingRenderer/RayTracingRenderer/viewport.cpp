@@ -4,6 +4,7 @@
 extern MaterialList materials;
 
 //-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 
 void ShowViewport()
 {
@@ -12,7 +13,8 @@ void ShowViewport()
 	char *argv = argstr;
 	glutInit(&argc, &argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
-	if (glutGet(GLUT_SCREEN_WIDTH) > 0 && glutGet(GLUT_SCREEN_HEIGHT) > 0) {
+	if (glutGet(GLUT_SCREEN_WIDTH) > 0 && glutGet(GLUT_SCREEN_HEIGHT) > 0)
+	{
 		glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH) - camera.imgWidth) / 2, (glutGet(GLUT_SCREEN_HEIGHT) - camera.imgHeight) / 2);
 	}
 	else glutInitWindowPosition(50, 50);
@@ -50,10 +52,12 @@ void ShowViewport()
 
 void GlutReshape(int w, int h)
 {
-	if (w != camera.imgWidth || h != camera.imgHeight) {
+	if (w != camera.imgWidth || h != camera.imgHeight)
+	{
 		glutReshapeWindow(camera.imgWidth, camera.imgHeight);
 	}
-	else {
+	else
+	{
 		glViewport(0, 0, w, h);
 
 		glMatrixMode(GL_PROJECTION);
@@ -83,7 +87,8 @@ void DrawNode(Node *node)
 	Object *obj = node->GetNodeObj();
 	if (obj) obj->ViewportDisplay(mtl);
 
-	for (int i = 0; i < node->GetNumChild(); i++) {
+	for (int i = 0; i < node->GetNumChild(); i++)
+	{
 		DrawNode(node->GetChild(i));
 	}
 
@@ -108,12 +113,15 @@ void DrawScene()
 	glRotatef(viewAngle1, 1, 0, 0);
 	glRotatef(viewAngle2, 0, 0, 1);
 
-	if (lights.size() > 0) {
-		for (unsigned int i = 0; i < lights.size(); i++) {
+	if (lights.size() > 0)
+	{
+		for (unsigned int i = 0; i < lights.size(); i++)
+		{
 			lights[i]->SetViewportLight(i);
 		}
 	}
-	else {
+	else
+	{
 		float white[] = { 1,1,1,1 };
 		float black[] = { 0,0,0,0 };
 		Vec4f p(camera.pos, 1);
@@ -201,7 +209,8 @@ void DrawRenderProgressBar()
 
 void GlutDisplay()
 {
-	switch (viewMode) {
+	switch (viewMode)
+	{
 	case VIEWMODE_OPENGL:
 		DrawScene();
 		break;
@@ -224,11 +233,14 @@ void GlutDisplay()
 void GlutIdle()
 {
 	static int lastRenderedPixels = 0;
-	if (mode == MODE_RENDERING) {
+	if (mode == MODE_RENDERING)
+	{
 		int nrp = renderImage.GetNumRenderedPixels();
-		if (lastRenderedPixels != nrp) {
+		if (lastRenderedPixels != nrp)
+		{
 			lastRenderedPixels = nrp;
-			if (renderImage.IsRenderDone()) {
+			if (renderImage.IsRenderDone())
+			{
 				mode = MODE_RENDER_DONE;
 				int endTime = (int)time(nullptr);
 				int t = endTime - startTime;
@@ -246,12 +258,14 @@ void GlutIdle()
 
 void GlutKeyboard(unsigned char key, int x, int y)
 {
-	switch (key) {
+	switch (key)
+	{
 	case 27:    // ESC
 		exit(0);
 		break;
 	case ' ':
-		switch (mode) {
+		switch (mode)
+		{
 		case MODE_READY:
 			mode = MODE_RENDERING;
 			viewMode = VIEWMODE_IMAGE;
@@ -259,10 +273,12 @@ void GlutKeyboard(unsigned char key, int x, int y)
 			glReadPixels(0, 0, renderImage.GetWidth(), renderImage.GetHeight(), GL_RGB, GL_UNSIGNED_BYTE, renderImage.GetPixels());
 			{
 				Color24 *c = renderImage.GetPixels();
-				for (int y0 = 0, y1 = renderImage.GetHeight() - 1; y0 < y1; y0++, y1--) {
+				for (int y0 = 0, y1 = renderImage.GetHeight() - 1; y0 < y1; y0++, y1--)
+				{
 					int i0 = y0 * renderImage.GetWidth();
 					int i1 = y1 * renderImage.GetWidth();
-					for (int x = 0; x < renderImage.GetWidth(); x++, i0++, i1++) {
+					for (int x = 0; x < renderImage.GetWidth(); x++, i0++, i1++)
+					{
 						Color24 t = c[i0]; c[i0] = c[i1]; c[i1] = t;
 					}
 				}
@@ -302,13 +318,15 @@ void GlutKeyboard(unsigned char key, int x, int y)
 
 void PrintPixelData(int x, int y)
 {
-	if (x < renderImage.GetWidth() && y < renderImage.GetHeight()) {
+	if (x < renderImage.GetWidth() && y < renderImage.GetHeight())
+	{
 		Color24 *colors = renderImage.GetPixels();
 		float *zbuffer = renderImage.GetZBuffer();
 		int i = (renderImage.GetHeight() - y - 1) *renderImage.GetWidth() + x;
 		printf("Pixel [ %d, %d ] Color24: %d, %d, %d   Z: %f\n", x, y, colors[i].r, colors[i].g, colors[i].b, zbuffer[i]);
 	}
-	else {
+	else
+	{
 		printf("-- Invalid pixel (%d,%d) --\n", x, y);
 	}
 }
@@ -317,11 +335,14 @@ void PrintPixelData(int x, int y)
 
 void GlutMouse(int button, int state, int x, int y)
 {
-	if (state == GLUT_UP) {
+	if (state == GLUT_UP)
+	{
 		mouseMode = MOUSEMODE_NONE;
 	}
-	else {
-		switch (button) {
+	else
+	{
+		switch (button)
+		{
 		case GLUT_LEFT_BUTTON:
 			mouseMode = MOUSEMODE_DEBUG;
 			PrintPixelData(x, y);
@@ -339,7 +360,8 @@ void GlutMouse(int button, int state, int x, int y)
 
 void GlutMotion(int x, int y)
 {
-	switch (mouseMode) {
+	switch (mouseMode)
+	{
 	case MOUSEMODE_DEBUG:
 		PrintPixelData(x, y);
 		break;
@@ -361,7 +383,6 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 //-------------------------------------------------------------------------------
 // Viewport Methods for various classes
 //-------------------------------------------------------------------------------
-
 void Sphere::ViewportDisplay(const Material *mtl) const
 {
 	static GLUquadric *q = nullptr;
@@ -371,6 +392,74 @@ void Sphere::ViewportDisplay(const Material *mtl) const
 	}
 	gluSphere(q, 1, 50, 50);
 }
+bool Plane::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
+{
+	return false;
+}
+void Plane::ViewportDisplay(const Material *mtl) const
+{
+	const int resolution = 32;
+	glPushMatrix();
+	glScalef(2.0f / resolution, 2.0f / resolution, 2.0f / resolution);
+	glNormal3f(0, 0, 1);
+	glBegin(GL_QUADS);
+	for (int y = 0; y < resolution; y++)
+	{
+		int yy = y - resolution / 2;
+		for (int x = 0; x < resolution; x++)
+		{
+			int xx = x - resolution / 2;
+			glVertex3i(yy, xx, 0);
+			glVertex3i(yy + 1, xx, 0);
+			glVertex3i(yy + 1, xx + 1, 0);
+			glVertex3i(yy, xx + 1, 0);
+		}
+	}
+	glEnd();
+	glPopMatrix();
+}
+bool TriObj::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
+{
+	return false;
+}
+void TriObj::ViewportDisplay(const Material *mtl) const
+{
+	glBegin(GL_TRIANGLES);
+	for (unsigned int i = 0; i < NF(); i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			if (HasTextureVertices()) glTexCoord3fv(&VT(FT(i).v[j]).x);
+			if (HasNormals()) glNormal3fv(&VN(FN(i).v[j]).x);
+			glVertex3fv(&V(F(i).v[j]).x);
+		}
+	}
+	glEnd();
+}
+bool TriObj::IntersectTriangle(Ray const & ray, HitInfo & hInfo, int hitSide, unsigned int faceID) const
+{
+	return false;
+}
+void MtlBlinn::SetViewportMaterial(int subMtlID) const
+{
+	ColorA c;
+	c = ColorA(diffuse);
+	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, &c.r);
+	c = ColorA(specular);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, &c.r);
+	glMaterialf(GL_FRONT, GL_SHININESS, glossiness*1.5f);
+}
+void GenLight::SetViewportParam(int lightID, ColorA ambient, ColorA intensity, Vec4f pos) const
+{
+	glEnable(GL_LIGHT0 + lightID);
+	glLightfv(GL_LIGHT0 + lightID, GL_AMBIENT, &ambient.r);
+	glLightfv(GL_LIGHT0 + lightID, GL_DIFFUSE, &intensity.r);
+	glLightfv(GL_LIGHT0 + lightID, GL_SPECULAR, &intensity.r);
+	glLightfv(GL_LIGHT0 + lightID, GL_POSITION, &pos.x);
+}
+//-------------------------------------------------------------------------------
+// Custom class I made
+//-------------------------------------------------------------------------------
 
 Color FindReflection(Node * traversingnode, Node * node, Ray originalray, Ray ray, HitInfo & hit, int bounce)
 {
@@ -690,23 +779,6 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 
 	return color;
 }
-void MtlBlinn::SetViewportMaterial(int subMtlID) const
-{
-	ColorA c;
-	c = ColorA(diffuse);
-	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, &c.r);
-	c = ColorA(specular);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, &c.r);
-	glMaterialf(GL_FRONT, GL_SHININESS, glossiness*1.5f);
-}
-void GenLight::SetViewportParam(int lightID, ColorA ambient, ColorA intensity, Vec4f pos) const
-{
-	glEnable(GL_LIGHT0 + lightID);
-	glLightfv(GL_LIGHT0 + lightID, GL_AMBIENT, &ambient.r);
-	glLightfv(GL_LIGHT0 + lightID, GL_DIFFUSE, &intensity.r);
-	glLightfv(GL_LIGHT0 + lightID, GL_SPECULAR, &intensity.r);
-	glLightfv(GL_LIGHT0 + lightID, GL_POSITION, &pos.x);
-}
 
 bool DetectShadow(Node * traversingnode, Node * node, Ray ray, float t_max)
 {
@@ -796,5 +868,3 @@ float GenLight::Shadow(Ray ray, float t_max)
 		return 1.0f;
 	}
 }
-//-------------------------------------------------------------------------------
-//-------------------------------------------------------------------------------

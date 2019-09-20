@@ -1,10 +1,8 @@
-#pragma once
-
 //-------------------------------------------------------------------------------
 ///
 /// \file       xmlload.cpp 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    4.0
+/// \version    5.0
 /// \date       August 21, 2019
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -24,6 +22,7 @@ extern Camera camera;
 extern RenderImage renderImage;
 extern MaterialList materials;
 extern LightList lights;
+extern ObjFileList objList;
 
 //-------------------------------------------------------------------------------
 
@@ -34,7 +33,7 @@ extern LightList lights;
 #endif
 
 //-------------------------------------------------------------------------------
-int  LoadScene(char const *filename);
+int LoadScene(char const *filename);
 void LoadScene(TiXmlElement *element);
 void LoadNode(Node *node, TiXmlElement *element, int level = 0);
 void LoadTransform(Transformation *trans, TiXmlElement *element, int level);

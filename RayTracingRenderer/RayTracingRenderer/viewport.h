@@ -1,9 +1,8 @@
-#pragma once
 //-------------------------------------------------------------------------------
 ///
 /// \file       viewport.cpp 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    2.0
+/// \version    5.0
 /// \date       August 21, 2019
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -43,7 +42,8 @@ extern LightList lights;
 
 //-------------------------------------------------------------------------------
 
-enum Mode {
+enum Mode
+{
 	MODE_READY,         // Ready to render
 	MODE_RENDERING,     // Rendering the image
 	MODE_RENDER_DONE    // Rendering is finished
@@ -56,7 +56,8 @@ enum ViewMode
 	VIEWMODE_Z,
 };
 
-enum MouseMode {
+enum MouseMode
+{
 	MOUSEMODE_NONE,
 	MOUSEMODE_DEBUG,
 	MOUSEMODE_ROTATE,
@@ -71,7 +72,7 @@ static float viewAngle1 = 0, viewAngle2 = 0;
 static GLuint viewTexture;
 
 //-------------------------------------------------------------------------------
-void ShowViewport();
+
 void GlutDisplay();
 void GlutReshape(int w, int h);
 void GlutIdle();
@@ -79,6 +80,8 @@ void GlutKeyboard(unsigned char key, int x, int y);
 void GlutMouse(int button, int state, int x, int y);
 void GlutMotion(int x, int y);
 
+// Custom reference I set
 //--------------------------------------------------------------------------------
+void ShowViewport();
 void ConvertRayCoordination(Node *, Node *, Ray, Color24 &, float &, Ray, HitInfo &);
 void UpdateHitInfo(Ray, float &, HitInfo &, Node *);

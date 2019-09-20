@@ -12,6 +12,8 @@ Node rootNode;
 Camera camera;
 RenderImage renderImage;
 Sphere theSphere;
+Plane thePlane;
+ItemFileList<Object> objList;
 LightList lights;
 MaterialList materials;
 std::vector<NodeMtl> nodeMtlList;
@@ -127,7 +129,7 @@ void ConvertRayCoordination(Node * traversingnode, Node * node, Ray ray, Color24
 		{
 			if (materials.Find(node->GetMaterial()->GetName()) != nullptr)
 			{
-				pixel = (Color24)materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights,2);
+				pixel = (Color24)materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights,5);
 			}
 		}
 	}
