@@ -472,9 +472,7 @@ Color FindReflection(Node * traversingnode, Node * node, Ray originalray, Ray ra
 
 		if (node->GetNodeObj() != nullptr)
 		{
-			// This zbuffer is a fake, I don't use this buffer to do something
-			float fakezbuffer;
-			UpdateHitInfo(changedray, fakezbuffer, hitinfo, node);
+			UpdateHitInfo(changedray, hitinfo, node);
 			hit = hitinfo;
 		}
 
@@ -552,9 +550,7 @@ Color FindRefraction(Node * traversingnode, Node * node, Ray originalray, Ray ra
 
 		if (node->GetNodeObj() != nullptr)
 		{
-			// This zbuffer is a fake, I don't use this buffer to do something
-			float fakezbuffer;
-			UpdateHitInfo(changedray, fakezbuffer, hitinfo, node);
+			UpdateHitInfo(changedray, hitinfo, node);
 			hit = hitinfo;
 		}
 

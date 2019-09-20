@@ -18,15 +18,16 @@ LightList lights;
 MaterialList materials;
 std::vector<NodeMtl> nodeMtlList;
 
+#define TIMEOFREFRECTION 5
+
 
 int main()
 {
 	//LoadScene(".\\objfiles\\plane.obj");
 	//LoadScene(".\\objfiles\\teapot.obj");
 	//LoadScene(".\\objfiles\\teapot-low.obj");
-	LoadScene(".\\xmlfiles\\assignment5.xml");
+	LoadScene(".\\xmlfiles\\assignment4.xml");
 	//LoadScene(".\\xmlfiles\\SimpleTestScene.xml");
-	//printf("%d", rootNode.GetNumChild());
 	ShowViewport();
 }
 
@@ -48,7 +49,7 @@ bool CheckZbuffer(float & zbuffer, float answer) {
 	return false;
 }
 
-void UpdateHitInfo(Ray ray, float & zbuffer, HitInfo & hitinfo, Node * node) {
+void UpdateHitInfo(Ray ray, HitInfo & hitinfo, Node * node) {
 	float a = ray.dir.Dot(ray.dir);
 	float b = 2 * ray.dir.Dot(ray.p);
 	float c = ray.p.Dot(ray.p) - 1;
@@ -74,7 +75,6 @@ void UpdateHitInfo(Ray ray, float & zbuffer, HitInfo & hitinfo, Node * node) {
 		if (small < 0) {
 			if (large > 0) {
 				if (CheckZbuffer(hitinfo.z, large)) {
-					zbuffer = large;
 					hitinfo.z = large;
 					hitinfo.front = false;
 					hitinfo.p = ray.p + large * ray.dir;
@@ -87,7 +87,6 @@ void UpdateHitInfo(Ray ray, float & zbuffer, HitInfo & hitinfo, Node * node) {
 		else
 		{
 			if (CheckZbuffer(hitinfo.z, small)) {
-				zbuffer = small;
 				hitinfo.z = small;
 				hitinfo.front = true;
 				hitinfo.p = ray.p + small * ray.dir;
@@ -100,7 +99,7 @@ void UpdateHitInfo(Ray ray, float & zbuffer, HitInfo & hitinfo, Node * node) {
 	}
 }
 
-void ConvertRayCoordination(Node * traversingnode, Node * node, Ray ray, Color24 & pixel, float & zbuffer, Ray originalray, HitInfo & hit) {
+void RayTraversing(Node * traversingnode, Node * node, Ray ray, Color24 & pixel, float & zbuffer, Ray originalray, HitInfo & hit) {
 
 	int numberofchild = traversingnode->GetNumChild();
 	HitInfo hitinfo = HitInfo();
@@ -109,13 +108,13 @@ void ConvertRayCoordination(Node * traversingnode, Node * node, Ray ray, Color24
 		Ray changedray = node->ToNodeCoords(ray);
 
 		if (node->GetNodeObj() != nullptr) {
-			UpdateHitInfo(changedray, zbuffer, hitinfo, node);
+			UpdateHitInfo(changedray, hitinfo, node);
 			hit = hitinfo;
 		}
 
 		if (node != nullptr) {
 			Node * childnode = new Node();
-			ConvertRayCoordination(node, childnode, changedray, pixel, zbuffer, originalray, hit);
+			RayTraversing(node, childnode, changedray, pixel, zbuffer, originalray, hit);
 			if (hit.node != nullptr && hit.node != hitinfo.node)
 			{
 				node->FromNodeCoords(hit);
@@ -125,14 +124,16 @@ void ConvertRayCoordination(Node * traversingnode, Node * node, Ray ray, Color24
 		}
 	}
 
-	//Shading
 	if (node->GetNodeObj() != nullptr)
 	{
 		if (hitinfo.node != nullptr)
 		{
+			// Get Z buffer
+			zbuffer = hitinfo.z;
+			//Shading
 			if (materials.Find(node->GetMaterial()->GetName()) != nullptr)
 			{
-				pixel = (Color24)materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights,5);
+				pixel = (Color24)materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, TIMEOFREFRECTION);
 			}
 		}
 	}
@@ -173,7 +174,7 @@ void BeginRender() {
 	for (int i = 0; i < renderImage.GetHeight(); i++) {
 		for (int j = 0; j < renderImage.GetWidth(); j++) {
 			HitInfo hit = HitInfo();
-			ConvertRayCoordination(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+			RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 		}
 	}
 
