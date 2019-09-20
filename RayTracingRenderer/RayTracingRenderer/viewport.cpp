@@ -930,11 +930,14 @@ bool Plane::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 	{
 		if (point.y >= -1 && point.y <= 1)
 		{
-			hInfo.front = true;
-			hInfo.p = point;
-			hInfo.z = t;
-			hInfo.N = Vec3f(0, 0, 1);
-			return true;
+			if (CheckZbuffer(hInfo.z, t))
+			{
+				hInfo.front = true;
+				hInfo.p = point;
+				hInfo.z = t;
+				hInfo.N = Vec3f(0, 0, 1);
+				return true;
+			}
 		}
 	}
 	return false;
