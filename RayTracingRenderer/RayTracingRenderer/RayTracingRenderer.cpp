@@ -26,7 +26,7 @@ int main()
 	//LoadScene(".\\objfiles\\plane.obj");
 	//LoadScene(".\\objfiles\\teapot.obj");
 	//LoadScene(".\\objfiles\\teapot-low.obj");
-	LoadScene(".\\xmlfiles\\assignment4.xml");
+	LoadScene(".\\xmlfiles\\assignment5.xml");
 	//LoadScene(".\\xmlfiles\\SimpleTestScene.xml");
 	ShowViewport();
 }
@@ -121,6 +121,10 @@ void BeginRender() {
 	for (int i = 0; i < renderImage.GetHeight(); i++) {
 		for (int j = 0; j < renderImage.GetWidth(); j++) {
 			HitInfo hit = HitInfo();
+			if (i = 0 && j == 100)
+			{
+
+			}
 			RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 		}
 	}

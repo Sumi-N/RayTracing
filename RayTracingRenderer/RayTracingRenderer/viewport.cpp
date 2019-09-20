@@ -487,6 +487,7 @@ Color FindReflection(Node * traversingnode, Node * node, Ray originalray, Ray ra
 				return materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, bounce);
 			}
 		}
+		return Color(0, 0, 0);
 	}
 	else
 	{
@@ -568,6 +569,7 @@ Color FindRefraction(Node * traversingnode, Node * node, Ray originalray, Ray ra
 				return returnColor;
 			}
 		}
+		return Color(0, 0, 0);
 	}
 	else
 	{
@@ -922,6 +924,19 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 
 bool Plane::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 {
+	float t = -1 * (ray.p.Dot(Vec3f(0, 0, 1))) / ray.dir.Dot(Vec3f(0, 0, 1));
+	Vec3f point = ray.p + t * ray.dir;
+	if (point.x >= -1 && point.x <= 1)
+	{
+		if (point.y >= -1 && point.y <= 1)
+		{
+			hInfo.front = true;
+			hInfo.p = point;
+			hInfo.z = t;
+			hInfo.N = Vec3f(0, 0, 1);
+			return true;
+		}
+	}
 	return false;
 }
 
