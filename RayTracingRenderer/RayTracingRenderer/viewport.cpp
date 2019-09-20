@@ -457,10 +457,12 @@ Color FindReflection(Node * traversingnode, Node * node, Ray originalray, Ray ra
 		Ray changedray = node->ToNodeCoords(ray);
 
 		if (node->GetNodeObj() != nullptr)
-		{
-			UpdateHitInfo(changedray, hitinfo, node);
-			hit = hitinfo;
-		}
+			if (node->GetNodeObj()->IntersectRay(changedray, hitinfo, 0))
+			{
+				hitinfo.node = node;
+				node->FromNodeCoords(hitinfo);
+			}
+		hit = hitinfo;
 
 		if (node != nullptr)
 		{
@@ -535,10 +537,12 @@ Color FindRefraction(Node * traversingnode, Node * node, Ray originalray, Ray ra
 		Ray changedray = node->ToNodeCoords(ray);
 
 		if (node->GetNodeObj() != nullptr)
-		{
-			UpdateHitInfo(changedray, hitinfo, node);
-			hit = hitinfo;
-		}
+			if (node->GetNodeObj()->IntersectRay(changedray, hitinfo, 0))
+			{
+				hitinfo.node = node;
+				node->FromNodeCoords(hitinfo);
+			}
+		hit = hitinfo;
 
 		if (node != nullptr)
 		{
@@ -858,63 +862,6 @@ bool CheckZbuffer(float & zbuffer, float answer)
 		return true;
 	}
 	return false;
-}
-
-void UpdateHitInfo(Ray ray, HitInfo & hitinfo, Node * node)
-{
-	float a = ray.dir.Dot(ray.dir);
-	float b = 2 * ray.dir.Dot(ray.p);
-	float c = ray.p.Dot(ray.p) - 1;
-
-	if (b*b - 4 * a*c >= 0)
-	{
-
-		float answer1 = (-1 * b + sqrt(b*b - 4 * a*c)) / (2 * a);
-		float answer2 = (-1 * b - sqrt(b*b - 4 * a*c)) / (2 * a);
-
-		float large;
-		float small;
-
-		if (answer1 >= answer2)
-		{
-			large = answer1;
-			small = answer2;
-		}
-		else
-		{
-			large = answer2;
-			small = answer1;
-		}
-
-		if (small < 0)
-		{
-			if (large > 0)
-			{
-				if (CheckZbuffer(hitinfo.z, large))
-				{
-					hitinfo.z = large;
-					hitinfo.front = false;
-					hitinfo.p = ray.p + large * ray.dir;
-					hitinfo.N = hitinfo.p;
-					hitinfo.node = node;
-					node->FromNodeCoords(hitinfo);
-				}
-			}
-		}
-		else
-		{
-			if (CheckZbuffer(hitinfo.z, small))
-			{
-				hitinfo.z = small;
-				hitinfo.front = true;
-				hitinfo.p = ray.p + small * ray.dir;
-				hitinfo.N = hitinfo.p;
-				hitinfo.node = node;
-				node->FromNodeCoords(hitinfo);
-			}
-		}
-
-	}
 }
 
 bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
