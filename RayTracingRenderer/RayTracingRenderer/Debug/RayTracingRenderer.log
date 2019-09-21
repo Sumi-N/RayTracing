@@ -1,2 +1,10 @@
-﻿  RayTracingRenderer.cpp
-  RayTracingRenderer.vcxproj -> F:\SchoolStuff\RayTracing_school\RayTracing\RayTracing\RayTracingRenderer\Debug\RayTracingRenderer.exe
+﻿  lodepng.cpp
+c:\users\u1217224\documents\graphicprojects\raytracing\raytracingrenderer\raytracingrenderer\lodepng.cpp(119): warning C4551: function call missing argument list
+  RayTracingRenderer.cpp
+  viewport.cpp
+  xmlload.cpp
+  Generating Code...
+c:\users\u1217224\documents\graphicprojects\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(992): warning C4715: 'TriObj::IntersectRay': not all control paths return a value
+  LINK : C:\Users\u1217224\Documents\GraphicProjects\RayTracing\RayTracingRenderer\Debug\RayTracingRenderer.exe not found or not built by the last incremental link; performing full link
+LINK : warning LNK4098: defaultlib 'LIBCMTD' conflicts with use of other libs; use /NODEFAULTLIB:library
+  RayTracingRenderer.vcxproj -> C:\Users\u1217224\Documents\GraphicProjects\RayTracing\RayTracingRenderer\Debug\RayTracingRenderer.exe

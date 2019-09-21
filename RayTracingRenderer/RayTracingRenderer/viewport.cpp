@@ -604,6 +604,7 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 	{
 		// P is a surface point, 0.0001f is a bias
 		Vec3f P = hInfo.N;
+		P.Normalize();
 
 		Vec3f V = -1 * ray.dir;
 		V.Normalize();
@@ -615,12 +616,12 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 
 		if (hInfo.front)
 		{
-			P.Normalize(); P = -0.0001f * P;  P += hInfo.p;
+			P = -0.0001f * P;  P += hInfo.p;
 			cos1 = V.Dot(N); sin1 = sqrt(1 - (cos1 * cos1));
 		}
 		else
 		{
-			P.Normalize(); P = 0.0001f * P;  P += hInfo.p;
+			P = 0.0001f * P;  P += hInfo.p;
 			cos1 = V.Dot(-N); sin1 = sqrt(1 - (cos1 * cos1));
 		}
 
@@ -926,6 +927,8 @@ bool Plane::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 {
 	float t = -1 * (ray.p.Dot(Vec3f(0, 0, 1))) / ray.dir.Dot(Vec3f(0, 0, 1));
 	Vec3f point = ray.p + t * ray.dir;
+	if (t < 0)
+		return false;
 	if (point.x >= -1 && point.x <= 1)
 	{
 		if (point.y >= -1 && point.y <= 1)
@@ -945,7 +948,52 @@ bool Plane::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 
 bool TriObj::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 {
-	return false;
+	// n is a face normal with unnormalized value
+	Vec3f n = (v[2] - v[0]).Cross(v[1] - v[0]);
+	float h = -1 * n.Dot(v[0]);
+	float t = -1 * (ray.p.Dot(n) + h) / ray.dir.Dot(n);
+
+	if (t < 0)
+		return false;
+
+	Vec3f point = ray.p + t * ray.dir;
+
+	Vec2f v0, v1, v2, x;
+	if ( std::abs(n.x) >= std::abs(n.y) && std::abs(n.x) >= std::abs(n.z))
+	{
+		v0 = Vec2f(v[0].y, v[0].z); v1 = Vec2f(v[1].y, v[1].z); v2 = Vec2f(v[2].y, v[2].z);
+		x = Vec2f(point.y, point.z);
+	}
+	else if (std::abs(n.y) >= std::abs(n.x) && std::abs(n.y) >= std::abs(n.z))
+	{
+		v0 = Vec2f(v[0].x, v[0].z); v1 = Vec2f(v[1].x, v[1].z); v2 = Vec2f(v[2].x, v[2].z);
+		x = Vec2f(point.x, point.z);
+	}
+	else if (std::abs(n.z) >= std::abs(n.x) && std::abs(n.z) >= abs(n.y))
+	{
+		v0 = Vec2f(v[0].x, v[0].y); v1 = Vec2f(v[1].x, v[1].y); v2 = Vec2f(v[2].x, v[2].y);
+		x = Vec2f(point.x, point.y);
+	}
+
+	float a0, a1, a2;
+	a0 = (v1 - x).Cross(v2 - x);
+	a1 = (v2 - x).Cross(v0 - x);
+	a2 = (v0 - x).Cross(v1 - x);
+
+	if (a0 >= 0 && a1 >= 0 && a2 >= 0)
+	{
+		if (CheckZbuffer(hInfo.z, t))
+		{
+			hInfo.front = true;
+			hInfo.N = n;
+			hInfo.p = point;
+			hInfo.z = t;
+		}
+	}
+	else
+	{
+		return false;
+	}
 }
 
 bool TriObj::IntersectTriangle(Ray const & ray, HitInfo & hInfo, int hitSide, unsigned int faceID) const

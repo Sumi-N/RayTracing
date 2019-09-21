@@ -18,7 +18,7 @@ LightList lights;
 MaterialList materials;
 std::vector<NodeMtl> nodeMtlList;
 
-#define TIMEOFREFRECTION 2
+#define TIMEOFREFRECTION 1
 
 
 int main()
@@ -121,10 +121,6 @@ void BeginRender() {
 	for (int i = 0; i < renderImage.GetHeight(); i++) {
 		for (int j = 0; j < renderImage.GetWidth(); j++) {
 			HitInfo hit = HitInfo();
-			if (i == 0 && j == 100)
-			{
-				int a = 0;
-			}
 			RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 		}
 	}
