@@ -986,12 +986,20 @@ bool TriObj::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 		a1 = (v2 - x).Cross(v0 - x);
 		a2 = (v0 - x).Cross(v1 - x);
 
-		if (a0 >= 0 && a1 >= 0 && a2 >= 0)
+		if ((a0 >= 0 && a1 >= 0 && a2 >= 0) || (a0 < 0 && a1 < 0 && a2 < 0))
 		{
 			if (CheckZbuffer(hInfo.z, t))
 			{
+				float a = (v1 - v0).Cross(v2 - v0);
+				float beta0, beta1, beta2;
+				beta0 = std::abs(a0 / a);
+				beta1  = std::abs(a1 / a);
+				beta2 = std::abs(a2 / a);
+
+				Vec3f normal = beta0 * vn[i0] + beta1 * vn[i1] + beta2 * vn[i2];
+
 				hInfo.front = true;
-				hInfo.N = n;
+				hInfo.N = normal;
 				hInfo.p = point;
 				hInfo.z = t;
 				hit = true;
