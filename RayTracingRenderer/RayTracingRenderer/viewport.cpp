@@ -948,52 +948,58 @@ bool Plane::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 
 bool TriObj::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 {
-	// n is a face normal with unnormalized value
-	Vec3f n = (v[2] - v[0]).Cross(v[1] - v[0]);
-	float h = -1 * n.Dot(v[0]);
-	float t = -1 * (ray.p.Dot(n) + h) / ray.dir.Dot(n);
-
-	if (t < 0)
-		return false;
-
-	Vec3f point = ray.p + t * ray.dir;
-
-	Vec2f v0, v1, v2, x;
-	if ( std::abs(n.x) >= std::abs(n.y) && std::abs(n.x) >= std::abs(n.z))
+	bool hit = false;
+	for (int i = 0; i <NF(); i++)
 	{
-		v0 = Vec2f(v[0].y, v[0].z); v1 = Vec2f(v[1].y, v[1].z); v2 = Vec2f(v[2].y, v[2].z);
-		x = Vec2f(point.y, point.z);
-	}
-	else if (std::abs(n.y) >= std::abs(n.x) && std::abs(n.y) >= std::abs(n.z))
-	{
-		v0 = Vec2f(v[0].x, v[0].z); v1 = Vec2f(v[1].x, v[1].z); v2 = Vec2f(v[2].x, v[2].z);
-		x = Vec2f(point.x, point.z);
-	}
-	else if (std::abs(n.z) >= std::abs(n.x) && std::abs(n.z) >= abs(n.y))
-	{
-		v0 = Vec2f(v[0].x, v[0].y); v1 = Vec2f(v[1].x, v[1].y); v2 = Vec2f(v[2].x, v[2].y);
-		x = Vec2f(point.x, point.y);
-	}
+		int i0 = F(i).v[0];
+		int i1 = F(i).v[1];
+		int i2 = F(i).v[2];
 
-	float a0, a1, a2;
-	a0 = (v1 - x).Cross(v2 - x);
-	a1 = (v2 - x).Cross(v0 - x);
-	a2 = (v0 - x).Cross(v1 - x);
+		Vec3f n = (v[i2] - v[i0]).Cross(v[i1] - v[i0]);
+		float h = -1 * n.Dot(v[i0]);
+		float t = -1 * (ray.p.Dot(n) + h) / ray.dir.Dot(n);
 
-	if (a0 >= 0 && a1 >= 0 && a2 >= 0)
-	{
-		if (CheckZbuffer(hInfo.z, t))
+		if (t < 0)
+			continue;
+
+		Vec3f point = ray.p + t * ray.dir;
+
+		Vec2f v0, v1, v2, x;
+		if ( std::abs(n.x) >= std::abs(n.y) && std::abs(n.x) >= std::abs(n.z))
 		{
-			hInfo.front = true;
-			hInfo.N = n;
-			hInfo.p = point;
-			hInfo.z = t;
+			v0 = Vec2f(v[i0].y, v[i0].z); v1 = Vec2f(v[i1].y, v[i1].z); v2 = Vec2f(v[i2].y, v[i2].z);
+			x = Vec2f(point.y, point.z);
+		}
+		else if (std::abs(n.y) >= std::abs(n.x) && std::abs(n.y) >= std::abs(n.z))
+		{
+			v0 = Vec2f(v[i0].x, v[i0].z); v1 = Vec2f(v[i1].x, v[i1].z); v2 = Vec2f(v[i2].x, v[i2].z);
+			x = Vec2f(point.x, point.z);
+		}
+		else if (std::abs(n.z) >= std::abs(n.x) && std::abs(n.z) >= abs(n.y))
+		{
+			v0 = Vec2f(v[i0].x, v[i0].y); v1 = Vec2f(v[i1].x, v[i1].y); v2 = Vec2f(v[i2].x, v[i2].y);
+			x = Vec2f(point.x, point.y);
+		}
+
+		float a0, a1, a2;
+		a0 = (v1 - x).Cross(v2 - x);
+		a1 = (v2 - x).Cross(v0 - x);
+		a2 = (v0 - x).Cross(v1 - x);
+
+		if (a0 >= 0 && a1 >= 0 && a2 >= 0)
+		{
+			if (CheckZbuffer(hInfo.z, t))
+			{
+				hInfo.front = true;
+				hInfo.N = n;
+				hInfo.p = point;
+				hInfo.z = t;
+				hit = true;
+			}
 		}
 	}
-	else
-	{
-		return false;
-	}
+
+	return hit;
 }
 
 bool TriObj::IntersectTriangle(Ray const & ray, HitInfo & hInfo, int hitSide, unsigned int faceID) const

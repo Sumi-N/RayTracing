@@ -23,9 +23,6 @@ std::vector<NodeMtl> nodeMtlList;
 
 int main()
 {
-	//LoadScene(".\\objfiles\\plane.obj");
-	//LoadScene(".\\objfiles\\teapot.obj");
-	//LoadScene(".\\objfiles\\teapot-low.obj");
 	LoadScene(".\\xmlfiles\\assignment5.xml");
 	//LoadScene(".\\xmlfiles\\SimpleTestScene.xml");
 	ShowViewport();
