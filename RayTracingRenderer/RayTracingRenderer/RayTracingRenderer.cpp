@@ -19,6 +19,7 @@ MaterialList materials;
 std::vector<NodeMtl> nodeMtlList;
 
 #define TIMEOFREFRECTION 1
+#define SHADOWBIAS 0.00005f
 
 
 int main()

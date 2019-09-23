@@ -769,6 +769,8 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 	return color;
 }
 
+#define SHADOWBIAS 0.00005f
+
 bool DetectShadow(Node * traversingnode, Node * node, Ray ray, float t_max)
 {
 	int numberofchild = traversingnode->GetNumChild();
@@ -779,52 +781,95 @@ bool DetectShadow(Node * traversingnode, Node * node, Ray ray, float t_max)
 		if (node->GetNodeObj() != nullptr)
 		{
 			Ray changedray = node->ToNodeCoords(currentray);
-
-			float a = changedray.dir.Dot(changedray.dir);
-			float b = 2 * changedray.dir.Dot(changedray.p);
-			float c = changedray.p.Dot(changedray.p) - 1;
-
-			if (b*b - 4 * a*c >= 0)
+			float delta = SHADOWBIAS;
+			if (dynamic_cast<Sphere*>(node->GetNodeObj()))
 			{
+				float a = changedray.dir.Dot(changedray.dir);
+				float b = 2 * changedray.dir.Dot(changedray.p);
+				float c = changedray.p.Dot(changedray.p) - 1;
 
-				float answer1 = (-1 * b + sqrt(b*b - 4 * a*c)) / (2 * a);
-				float answer2 = (-1 * b - sqrt(b*b - 4 * a*c)) / (2 * a);
-
-				float large;
-				float small;
-
-				float answer;
-
-				if (answer1 >= answer2)
+				if (b*b - 4 * a*c >= 0)
 				{
-					large = answer1;
-					small = answer2;
-				}
-				else
-				{
-					large = answer2;
-					small = answer1;
-				}
 
-				if (small < 0)
-				{
-					if (large > 0)
+					float answer1 = (-1 * b + sqrt(b*b - 4 * a*c)) / (2 * a);
+					float answer2 = (-1 * b - sqrt(b*b - 4 * a*c)) / (2 * a);
+
+					float large;
+					float small;
+
+					float answer;
+
+					if (answer1 >= answer2)
 					{
-						answer = large;
+						large = answer1;
+						small = answer2;
+					}
+					else
+					{
+						large = answer2;
+						small = answer1;
+					}
 
-						float delta = 0.00003f;
-						if (answer > delta && answer <= t_max)
+					if (small < 0)
+					{
+						if (large > 0)
+						{
+							answer = large;
+							if (answer > delta && answer <= t_max)
+							{
+								return true;
+							}
+						}
+					}
+					else
+					{
+						answer = small;
+						if (answer >= delta && answer <= t_max)
 						{
 							return true;
 						}
 					}
 				}
-				else
+			}
+			else if (TriMesh * tri = dynamic_cast<TriObj*>(node->GetNodeObj()))
+			{
+				for (int i = 0; i < (signed)(tri->NF()); i++)
 				{
-					answer = small;
+					int i0 = tri->F(i).v[0];
+					int i1 = tri->F(i).v[1];
+					int i2 = tri->F(i).v[2];
+					Vec3f n = (tri->V(i2) - tri->V(i0)).Cross(tri->V(i1) - tri->V(i0));
+					float h = -1 * n.Dot(tri->V(i0));
+					float t = -1 * (changedray.p.Dot(n) + h) / changedray.dir.Dot(n);
 
-					float delta = 0.00003f;
-					if (answer >= delta && answer <= t_max)
+					if (t - delta < 0 || t > t_max)
+						continue;
+
+					Vec3f point = changedray.p + t * changedray.dir;
+
+					Vec2f v0, v1, v2, x;
+					if (std::abs(n.x) >= std::abs(n.y) && std::abs(n.x) >= std::abs(n.z))
+					{
+						v0 = Vec2f(tri->V(i0).y, tri->V(i0).z); v1 = Vec2f(tri->V(i1).y, tri->V(i1).z); v2 = Vec2f(tri->V(i2).y, tri->V(i2).z);
+						x = Vec2f(point.y, point.z);
+					}
+					else if (std::abs(n.y) >= std::abs(n.x) && std::abs(n.y) >= std::abs(n.z))
+					{
+						v0 = Vec2f(tri->V(i0).x, tri->V(i0).z); v1 = Vec2f(tri->V(i1).x, tri->V(i1).z); v2 = Vec2f(tri->V(i2).x, tri->V(i2).z);
+						x = Vec2f(point.x, point.z);
+					}
+					else if (std::abs(n.z) >= std::abs(n.x) && std::abs(n.z) >= abs(n.y))
+					{
+						v0 = Vec2f(tri->V(i0).x, tri->V(i0).y); v1 = Vec2f(tri->V(i1).x, tri->V(i1).y); v2 = Vec2f(tri->V(i2).x, tri->V(i2).y);
+						x = Vec2f(point.x, point.y);
+					}
+
+					float a0, a1, a2;
+					a0 = (v1 - x).Cross(v2 - x);
+					a1 = (v2 - x).Cross(v0 - x);
+					a2 = (v0 - x).Cross(v1 - x);
+
+					if ((a0 >= 0 && a1 >= 0 && a2 >= 0) || (a0 < 0 && a1 < 0 && a2 < 0))
 					{
 						return true;
 					}
