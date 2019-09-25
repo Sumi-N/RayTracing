@@ -7,6 +7,7 @@
 #include <xmlload.h>
 #include <viewport.h>
 #include <objects.h>
+#include <omp.h>
 
 Node rootNode;
 Camera camera;
@@ -18,7 +19,7 @@ LightList lights;
 MaterialList materials;
 std::vector<NodeMtl> nodeMtlList;
 
-#define TIMEOFREFRECTION 1
+#define TIMEOFREFRECTION 3
 #define SHADOWBIAS 0.00005f
 
 
@@ -113,7 +114,7 @@ void BeginRender() {
 			cameraray[i * renderImage.GetWidth() + j].Normalize();
 		}
 	}
-
+#pragma omp parallel for
 	//test
 	//ConvertRayCordinationTest(startnode, node, cameraray[0], pixels[0], zbuffers[0]);
 	for (int i = 0; i < renderImage.GetHeight(); i++) {
