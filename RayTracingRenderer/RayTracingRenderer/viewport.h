@@ -19,6 +19,7 @@
 #include "materials.h"
 #include <stdlib.h>
 #include <time.h>
+#include <cyBVH.h>
 
 #ifdef USE_GLUT
 # ifdef __APPLE__
@@ -39,6 +40,9 @@ extern Node rootNode;
 extern Camera camera;
 extern RenderImage renderImage;
 extern LightList lights;
+extern BVHTriMesh builder;
+extern unsigned int nodecount;
+extern unsigned int const * nodeelementslist;
 
 //-------------------------------------------------------------------------------
 

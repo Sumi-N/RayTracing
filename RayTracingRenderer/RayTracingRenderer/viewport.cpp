@@ -993,12 +993,18 @@ bool Plane::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 
 bool TriObj::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 {
+	builder.SetMesh(this, 4);
+	return TraceBVHNode(ray, hInfo, hitSide, builder.GetRootNodeID);
+}
+
+bool TriObj::IntersectTriangle(Ray const & ray, HitInfo & hInfo, int hitSide, unsigned int faceID) const
+{
 	bool hit = false;
-	for (int i = 0; i <NF(); i++)
+	for (int i = 0; i < nodecount; i++)
 	{
-		int i0 = F(i).v[0];
-		int i1 = F(i).v[1];
-		int i2 = F(i).v[2];
+		int i0 = F(nodeelementslist[i]).v[0];
+		int i1 = F(nodeelementslist[i]).v[1];
+		int i2 = F(nodeelementslist[i]).v[2];
 
 		Vec3f n = (v[i2] - v[i0]).Cross(v[i1] - v[i0]);
 		float h = -1 * n.Dot(v[i0]);
@@ -1010,7 +1016,7 @@ bool TriObj::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 		Vec3f point = ray.p + t * ray.dir;
 
 		Vec2f v0, v1, v2, x;
-		if ( std::abs(n.x) >= std::abs(n.y) && std::abs(n.x) >= std::abs(n.z))
+		if (std::abs(n.x) >= std::abs(n.y) && std::abs(n.x) >= std::abs(n.z))
 		{
 			v0 = Vec2f(v[i0].y, v[i0].z); v1 = Vec2f(v[i1].y, v[i1].z); v2 = Vec2f(v[i2].y, v[i2].z);
 			x = Vec2f(point.y, point.z);
@@ -1038,7 +1044,7 @@ bool TriObj::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 				float a = (v1 - v0).Cross(v2 - v0);
 				float beta0, beta1, beta2;
 				beta0 = std::abs(a0 / a);
-				beta1  = std::abs(a1 / a);
+				beta1 = std::abs(a1 / a);
 				beta2 = std::abs(a2 / a);
 
 				Vec3f normal = beta0 * vn[i0] + beta1 * vn[i1] + beta2 * vn[i2];
@@ -1055,7 +1061,28 @@ bool TriObj::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 	return hit;
 }
 
-bool TriObj::IntersectTriangle(Ray const & ray, HitInfo & hInfo, int hitSide, unsigned int faceID) const
+bool TriObj::TraceBVHNode(Ray const & ray, HitInfo & hInfo, int hitSide, unsigned int nodeID) const
 {
+	if (builder.IsLeafNode(nodeID))
+	{
+		nodecount = builder.GetNodeElementCount(nodeID);
+		nodeelementslist = builder.GetNodeElements(nodeID);
+		return IntersectTriangle(ray, hInfo, hitSide, 0);
+	}
+	else
+	{
+		const float * vertices = builder.GetNodeBounds(nodeID);
+		float xmin, ymin, zmin;
+		float xmax, ymax, zmax;
+
+		xmin = (-1 * (((vertices[1] * ray.dir.y) + ray.p.y) + ((vertices[2] * ray.dir.z)) + ray.p.z) - ray.p.x) / ray.dir.x;
+		ymin = (-1 * (((vertices[0] * ray.dir.x) + ray.p.x) + ((vertices[2] * ray.dir.z)) + ray.p.z) - ray.p.y) / ray.dir.y;
+		zmin = (-1 * (((vertices[0] * ray.dir.x) + ray.p.x) + ((vertices[1] * ray.dir.y)) + ray.p.y) - ray.p.z) / ray.dir.z;
+
+		xmax = (-1 * (((vertices[4] * ray.dir.y) + ray.p.y) + ((vertices[5] * ray.dir.z)) + ray.p.z) - ray.p.x) / ray.dir.x;
+		ymax = (-1 * (((vertices[3] * ray.dir.x) + ray.p.x) + ((vertices[5] * ray.dir.z)) + ray.p.z) - ray.p.y) / ray.dir.y;
+		zmax = (-1 * (((vertices[3] * ray.dir.x) + ray.p.x) + ((vertices[4] * ray.dir.y)) + ray.p.y) - ray.p.z) / ray.dir.z;
+	}
+
 	return false;
 }

@@ -8,6 +8,7 @@
 #include <viewport.h>
 #include <objects.h>
 #include <omp.h>
+#include <cyBVH.h>
 
 Node rootNode;
 Camera camera;
@@ -18,6 +19,9 @@ ItemFileList<Object> objList;
 LightList lights;
 MaterialList materials;
 std::vector<NodeMtl> nodeMtlList;
+BVHTriMesh builder;
+int nodecount;
+int const * nodeelementslist;
 
 #define TIMEOFREFRECTION 3
 #define SHADOWBIAS 0.00005f
@@ -50,7 +54,7 @@ void RayTraversing(Node * traversingnode, Node * node, Ray ray, Color24 & pixel,
 		Ray changedray = node->ToNodeCoords(ray);
 
 		if (node->GetNodeObj() != nullptr) {
-			if (node->GetNodeObj()->IntersectRay(changedray, hitinfo, 0))
+			if(node->GetNodeObj()->IntersectRay(changedray, hitinfo, 0))
 			{
 				hitinfo.node = node;
 				node->FromNodeCoords(hitinfo);
