@@ -40,9 +40,6 @@ extern Node rootNode;
 extern Camera camera;
 extern RenderImage renderImage;
 extern LightList lights;
-extern BVHTriMesh builder;
-extern unsigned int nodecount;
-extern unsigned int const * nodeelementslist;
 
 //-------------------------------------------------------------------------------
 

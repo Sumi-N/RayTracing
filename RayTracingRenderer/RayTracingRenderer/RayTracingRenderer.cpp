@@ -19,9 +19,6 @@ ItemFileList<Object> objList;
 LightList lights;
 MaterialList materials;
 std::vector<NodeMtl> nodeMtlList;
-BVHTriMesh builder;
-int nodecount;
-int const * nodeelementslist;
 
 #define TIMEOFREFRECTION 3
 #define SHADOWBIAS 0.00005f
@@ -119,10 +116,12 @@ void BeginRender() {
 		}
 	}
 #pragma omp parallel for
-	//test
-	//ConvertRayCordinationTest(startnode, node, cameraray[0], pixels[0], zbuffers[0]);
 	for (int i = 0; i < renderImage.GetHeight(); i++) {
 		for (int j = 0; j < renderImage.GetWidth(); j++) {
+			if (i == 440 & j == 384)
+			{
+				printf("hellO");
+			}
 			HitInfo hit = HitInfo();
 			RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 		}

@@ -991,98 +991,186 @@ bool Plane::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 	return false;
 }
 
+bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
+{
+	float xmin, ymin, zmin;
+	float xmax, ymax, zmax;
+	float maxofmin, minofmax;
+
+	xmin = (-1 * (((vertices[1] * ray.dir.y) + ray.p.y) + ((vertices[2] * ray.dir.z)) + ray.p.z) - ray.p.x) / ray.dir.x;
+	ymin = (-1 * (((vertices[0] * ray.dir.x) + ray.p.x) + ((vertices[2] * ray.dir.z)) + ray.p.z) - ray.p.y) / ray.dir.y;
+	zmin = (-1 * (((vertices[0] * ray.dir.x) + ray.p.x) + ((vertices[1] * ray.dir.y)) + ray.p.y) - ray.p.z) / ray.dir.z;
+
+	xmax = (-1 * (((vertices[4] * ray.dir.y) + ray.p.y) + ((vertices[5] * ray.dir.z)) + ray.p.z) - ray.p.x) / ray.dir.x;
+	ymax = (-1 * (((vertices[3] * ray.dir.x) + ray.p.x) + ((vertices[5] * ray.dir.z)) + ray.p.z) - ray.p.y) / ray.dir.y;
+	zmax = (-1 * (((vertices[3] * ray.dir.x) + ray.p.x) + ((vertices[4] * ray.dir.y)) + ray.p.y) - ray.p.z) / ray.dir.z;
+
+	if (xmin >= ymin && xmin >= zmin)
+	{
+		maxofmin = xmin;
+	}
+	else if (ymin >= xmin && ymin >= zmin)
+	{
+		maxofmin = ymin;
+	}
+	else if (zmin >= xmin && zmin >= ymin)
+	{
+		maxofmin = zmin;
+	}
+
+	if (xmax <= ymax && xmax <= zmax)
+	{
+		minofmax = xmax;
+	}
+	else if (ymax <= xmax && ymax <= zmax)
+	{
+		minofmax = ymax;
+	}
+	else if (zmax <= xmax && zmax <= ymax)
+	{
+		minofmax = zmax;
+	}
+
+	if (maxofmin <= minofmax)
+	{
+		answer = minofmax;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 bool TriObj::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 {
-	builder.SetMesh(this, 4);
-	return TraceBVHNode(ray, hInfo, hitSide, builder.GetRootNodeID);
+	const float * vertices = bvh.GetNodeBounds(bvh.GetRootNodeID());
+
+
+	return TraceBVHNode(ray, hInfo, hitSide, bvh.GetRootNodeID());
 }
 
 bool TriObj::IntersectTriangle(Ray const & ray, HitInfo & hInfo, int hitSide, unsigned int faceID) const
 {
-	bool hit = false;
-	for (int i = 0; i < nodecount; i++)
+	int i0 = F(faceID).v[0];
+	int i1 = F(faceID).v[1];
+	int i2 = F(faceID).v[2];
+
+	Vec3f n = (v[i2] - v[i0]).Cross(v[i1] - v[i0]);
+	float h = -1 * n.Dot(v[i0]);
+	float t = -1 * (ray.p.Dot(n) + h) / ray.dir.Dot(n);
+
+	if (t < 0)
+		return false;
+
+	Vec3f point = ray.p + t * ray.dir;
+
+	Vec2f v0, v1, v2, x;
+	if (std::abs(n.x) >= std::abs(n.y) && std::abs(n.x) >= std::abs(n.z))
 	{
-		int i0 = F(nodeelementslist[i]).v[0];
-		int i1 = F(nodeelementslist[i]).v[1];
-		int i2 = F(nodeelementslist[i]).v[2];
-
-		Vec3f n = (v[i2] - v[i0]).Cross(v[i1] - v[i0]);
-		float h = -1 * n.Dot(v[i0]);
-		float t = -1 * (ray.p.Dot(n) + h) / ray.dir.Dot(n);
-
-		if (t < 0)
-			continue;
-
-		Vec3f point = ray.p + t * ray.dir;
-
-		Vec2f v0, v1, v2, x;
-		if (std::abs(n.x) >= std::abs(n.y) && std::abs(n.x) >= std::abs(n.z))
-		{
-			v0 = Vec2f(v[i0].y, v[i0].z); v1 = Vec2f(v[i1].y, v[i1].z); v2 = Vec2f(v[i2].y, v[i2].z);
-			x = Vec2f(point.y, point.z);
-		}
-		else if (std::abs(n.y) >= std::abs(n.x) && std::abs(n.y) >= std::abs(n.z))
-		{
-			v0 = Vec2f(v[i0].x, v[i0].z); v1 = Vec2f(v[i1].x, v[i1].z); v2 = Vec2f(v[i2].x, v[i2].z);
-			x = Vec2f(point.x, point.z);
-		}
-		else if (std::abs(n.z) >= std::abs(n.x) && std::abs(n.z) >= abs(n.y))
-		{
-			v0 = Vec2f(v[i0].x, v[i0].y); v1 = Vec2f(v[i1].x, v[i1].y); v2 = Vec2f(v[i2].x, v[i2].y);
-			x = Vec2f(point.x, point.y);
-		}
-
-		float a0, a1, a2;
-		a0 = (v1 - x).Cross(v2 - x);
-		a1 = (v2 - x).Cross(v0 - x);
-		a2 = (v0 - x).Cross(v1 - x);
-
-		if ((a0 >= 0 && a1 >= 0 && a2 >= 0) || (a0 < 0 && a1 < 0 && a2 < 0))
-		{
-			if (CheckZbuffer(hInfo.z, t))
-			{
-				float a = (v1 - v0).Cross(v2 - v0);
-				float beta0, beta1, beta2;
-				beta0 = std::abs(a0 / a);
-				beta1 = std::abs(a1 / a);
-				beta2 = std::abs(a2 / a);
-
-				Vec3f normal = beta0 * vn[i0] + beta1 * vn[i1] + beta2 * vn[i2];
-
-				hInfo.front = true;
-				hInfo.N = normal;
-				hInfo.p = point;
-				hInfo.z = t;
-				hit = true;
-			}
-		}
+		v0 = Vec2f(v[i0].y, v[i0].z); v1 = Vec2f(v[i1].y, v[i1].z); v2 = Vec2f(v[i2].y, v[i2].z);
+		x = Vec2f(point.y, point.z);
+	}
+	else if (std::abs(n.y) >= std::abs(n.x) && std::abs(n.y) >= std::abs(n.z))
+	{
+		v0 = Vec2f(v[i0].x, v[i0].z); v1 = Vec2f(v[i1].x, v[i1].z); v2 = Vec2f(v[i2].x, v[i2].z);
+		x = Vec2f(point.x, point.z);
+	}
+	else if (std::abs(n.z) >= std::abs(n.x) && std::abs(n.z) >= abs(n.y))
+	{
+		v0 = Vec2f(v[i0].x, v[i0].y); v1 = Vec2f(v[i1].x, v[i1].y); v2 = Vec2f(v[i2].x, v[i2].y);
+		x = Vec2f(point.x, point.y);
 	}
 
-	return hit;
+	float a0, a1, a2;
+	a0 = (v1 - x).Cross(v2 - x);
+	a1 = (v2 - x).Cross(v0 - x);
+	a2 = (v0 - x).Cross(v1 - x);
+
+	if ((a0 >= 0 && a1 >= 0 && a2 >= 0) || (a0 < 0 && a1 < 0 && a2 < 0))
+	{
+		if (CheckZbuffer(hInfo.z, t))
+		{
+			float a = (v1 - v0).Cross(v2 - v0);
+			float beta0, beta1, beta2;
+			beta0 = std::abs(a0 / a);
+			beta1 = std::abs(a1 / a);
+			beta2 = std::abs(a2 / a);
+
+			Vec3f normal = beta0 * vn[i0] + beta1 * vn[i1] + beta2 * vn[i2];
+
+			hInfo.front = true;
+			hInfo.N = normal;
+			hInfo.p = point;
+			hInfo.z = t;
+			return true;
+		}
+	}
+	return false;
 }
 
 bool TriObj::TraceBVHNode(Ray const & ray, HitInfo & hInfo, int hitSide, unsigned int nodeID) const
 {
-	if (builder.IsLeafNode(nodeID))
+	if (bvh.IsLeafNode(nodeID))
 	{
-		nodecount = builder.GetNodeElementCount(nodeID);
-		nodeelementslist = builder.GetNodeElements(nodeID);
-		return IntersectTriangle(ray, hInfo, hitSide, 0);
+		unsigned int nodecount = bvh.GetNodeElementCount(nodeID);
+		const unsigned int* nodeelementslist = bvh.GetNodeElements(nodeID);
+		bool hit = false;
+
+		for (int i = 0; i < nodecount; i++)
+		{
+			if (IntersectTriangle(ray, hInfo, hitSide, nodeelementslist[i]))
+				hit = true;
+		}
+		
+		return hit;
 	}
 	else
 	{
-		const float * vertices = builder.GetNodeBounds(nodeID);
-		float xmin, ymin, zmin;
-		float xmax, ymax, zmax;
+		unsigned int child1id = bvh.GetFirstChildNode(nodeID);
+		unsigned int child2id = bvh.GetSecondChildNode(nodeID);
+		const float * vertices1 = bvh.GetNodeBounds(child1id);
+		const float * vertices2 = bvh.GetNodeBounds(child2id);
+		
+		float child1answer, child2answer;
 
-		xmin = (-1 * (((vertices[1] * ray.dir.y) + ray.p.y) + ((vertices[2] * ray.dir.z)) + ray.p.z) - ray.p.x) / ray.dir.x;
-		ymin = (-1 * (((vertices[0] * ray.dir.x) + ray.p.x) + ((vertices[2] * ray.dir.z)) + ray.p.z) - ray.p.y) / ray.dir.y;
-		zmin = (-1 * (((vertices[0] * ray.dir.x) + ray.p.x) + ((vertices[1] * ray.dir.y)) + ray.p.y) - ray.p.z) / ray.dir.z;
+		CheckBoxCollision(vertices1, ray, child1answer);
+		CheckBoxCollision(vertices2, ray, child2answer);
 
-		xmax = (-1 * (((vertices[4] * ray.dir.y) + ray.p.y) + ((vertices[5] * ray.dir.z)) + ray.p.z) - ray.p.x) / ray.dir.x;
-		ymax = (-1 * (((vertices[3] * ray.dir.x) + ray.p.x) + ((vertices[5] * ray.dir.z)) + ray.p.z) - ray.p.y) / ray.dir.y;
-		zmax = (-1 * (((vertices[3] * ray.dir.x) + ray.p.x) + ((vertices[4] * ray.dir.y)) + ray.p.y) - ray.p.z) / ray.dir.z;
+		if (child1answer <= child2answer)
+		{
+			if (child1answer < hInfo.z)
+			{
+				if (TraceBVHNode(ray, hInfo, hitSide, child1id))
+				{
+					return true;
+				}
+				else
+				{
+					if (child2answer < hInfo.z)
+					{
+						return TraceBVHNode(ray, hInfo, hitSide, child2id);
+					}
+				}
+			}
+		}
+		else
+		{
+			if (child2answer < hInfo.z)
+			{
+				if (TraceBVHNode(ray, hInfo, hitSide, child2id))
+				{
+					return true;
+				}
+				else
+				{
+					if (child1answer < hInfo.z)
+					{
+						return TraceBVHNode(ray, hInfo, hitSide, child1id);
+					}
+				}
+			}
+		}
 	}
-
 	return false;
 }
