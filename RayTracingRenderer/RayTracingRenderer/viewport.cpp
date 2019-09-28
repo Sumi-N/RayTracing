@@ -993,61 +993,139 @@ bool Plane::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 
 bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 {
+	// The t value for each case
 	float xmin, ymin, zmin;
 	float xmax, ymax, zmax;
 	float maxofmin, minofmax;
+	bool detected = false;
 
-	xmin = (-1 * (((vertices[1] * ray.dir.y) + ray.p.y) + ((vertices[2] * ray.dir.z)) + ray.p.z) - ray.p.x) / ray.dir.x;
-	ymin = (-1 * (((vertices[0] * ray.dir.x) + ray.p.x) + ((vertices[2] * ray.dir.z)) + ray.p.z) - ray.p.y) / ray.dir.y;
-	zmin = (-1 * (((vertices[0] * ray.dir.x) + ray.p.x) + ((vertices[1] * ray.dir.y)) + ray.p.y) - ray.p.z) / ray.dir.z;
+	float x, y, z;
 
-	xmax = (-1 * (((vertices[4] * ray.dir.y) + ray.p.y) + ((vertices[5] * ray.dir.z)) + ray.p.z) - ray.p.x) / ray.dir.x;
-	ymax = (-1 * (((vertices[3] * ray.dir.x) + ray.p.x) + ((vertices[5] * ray.dir.z)) + ray.p.z) - ray.p.y) / ray.dir.y;
-	zmax = (-1 * (((vertices[3] * ray.dir.x) + ray.p.x) + ((vertices[4] * ray.dir.y)) + ray.p.y) - ray.p.z) / ray.dir.z;
-
-	if (xmin >= ymin && xmin >= zmin)
+	xmin = (vertices[0] - ray.p.x) / ray.dir.x;
+	y = xmin * ray.dir.y + ray.p.y;
+	z = xmin * ray.dir.z + ray.p.z;
+	if (y >= vertices[1] && y <= vertices[4] && z >= vertices[2] && z <= vertices[5])
 	{
-		maxofmin = xmin;
-	}
-	else if (ymin >= xmin && ymin >= zmin)
-	{
-		maxofmin = ymin;
-	}
-	else if (zmin >= xmin && zmin >= ymin)
-	{
-		maxofmin = zmin;
+		if (detected)
+		{
+			maxofmin = xmin;
+		}
+		else
+		{
+			minofmax = xmin;
+			detected = true;
+		}
 	}
 
-	if (xmax <= ymax && xmax <= zmax)
+	ymin = (vertices[1] - ray.p.y) / ray.dir.y;
+	x = ymin * ray.dir.x + ray.p.x;
+	z = ymin * ray.dir.z + ray.p.z;
+	if (x >= vertices[0] && x <= vertices[3] && z >= vertices[2] && z <= vertices[5])
 	{
-		minofmax = xmax;
+		if (detected)
+		{
+			maxofmin = ymin;
+		}
+		else
+		{
+			minofmax = ymin;
+			detected = true;
+		}
 	}
-	else if (ymax <= xmax && ymax <= zmax)
+
+	zmin = (vertices[2] - ray.p.z) / ray.dir.z;
+	x = zmin * ray.dir.x + ray.p.x;
+	y = zmin * ray.dir.y + ray.p.y;
+	if (x >= vertices[0] && x <= vertices[3] && y >= vertices[1] && y <= vertices[4])
 	{
-		minofmax = ymax;
+		if (detected)
+		{
+			maxofmin = zmin;
+		}
+		else
+		{
+			minofmax = zmin;
+			detected = true;
+		}
 	}
-	else if (zmax <= xmax && zmax <= ymax)
+
+	xmax = (vertices[3] - ray.p.x) / ray.dir.x;
+	y = xmax * ray.dir.y + ray.p.y;
+	z = xmax * ray.dir.z + ray.p.z;
+	if (y >= vertices[1] && y <= vertices[4] && z >= vertices[2] && z <= vertices[5])
 	{
-		minofmax = zmax;
+		if (detected)
+		{
+			maxofmin = xmax;
+		}
+		else
+		{
+			minofmax = xmax;
+			detected = true;
+		}
 	}
+
+	ymax = (vertices[4] - ray.p.y) / ray.dir.y;
+	x = ymax * ray.dir.x + ray.p.x;
+	if (x >= vertices[0] && x <= vertices[3] && z >= vertices[2] && z <= vertices[5])
+	{
+		if (detected)
+		{
+			maxofmin = ymax;
+		}
+		else
+		{
+			minofmax = ymax;
+			detected = true;
+		}
+	}
+
+	zmax = (vertices[5] - ray.p.z) / ray.dir.z;
+	x = zmax * ray.dir.x + ray.p.x;
+	y = zmax * ray.dir.y + ray.p.y;
+	if (x >= vertices[0] && x <= vertices[3] && y >= vertices[1] && y <= vertices[4])
+	{
+		if (detected)
+		{
+			maxofmin = zmax;
+		}
+		else
+		{
+			minofmax = zmax;
+			detected = true;
+		}
+	}
+
+	//if (!detected)
+	//{
+	//	return false;
+	//}
 
 	if (maxofmin <= minofmax)
 	{
-		answer = minofmax;
+		answer = maxofmin;
 		return true;
 	}
 	else
 	{
-		return false;
+		answer = minofmax;
+		return true;
 	}
+	return false;
 }
 
 bool TriObj::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 {
 	const float * vertices = bvh.GetNodeBounds(bvh.GetRootNodeID());
-
-
-	return TraceBVHNode(ray, hInfo, hitSide, bvh.GetRootNodeID());
+	float answer = 0.0f;
+	if (CheckBoxCollision(vertices, ray, answer))
+	{
+		return TraceBVHNode(ray, hInfo, hitSide, bvh.GetRootNodeID());
+	}
+	else
+	{
+		return false;
+	}
 }
 
 bool TriObj::IntersectTriangle(Ray const & ray, HitInfo & hInfo, int hitSide, unsigned int faceID) const
@@ -1115,12 +1193,16 @@ bool TriObj::TraceBVHNode(Ray const & ray, HitInfo & hInfo, int hitSide, unsigne
 	{
 		unsigned int nodecount = bvh.GetNodeElementCount(nodeID);
 		const unsigned int* nodeelementslist = bvh.GetNodeElements(nodeID);
-		bool hit = false;
 
+		bool hit = false;
 		for (int i = 0; i < nodecount; i++)
 		{
+			//printf("%d\n", nodeelementslist[i]);
 			if (IntersectTriangle(ray, hInfo, hitSide, nodeelementslist[i]))
+			{
+				//printf("hellO\n");
 				hit = true;
+			}
 		}
 		
 		return hit;
@@ -1134,6 +1216,10 @@ bool TriObj::TraceBVHNode(Ray const & ray, HitInfo & hInfo, int hitSide, unsigne
 		
 		float child1answer, child2answer;
 
+		//if (!CheckBoxCollision(vertices1, ray, child1answer) && !(CheckBoxCollision(vertices2, ray, child2answer)))
+		//{
+		//	return false;
+		//}
 		CheckBoxCollision(vertices1, ray, child1answer);
 		CheckBoxCollision(vertices2, ray, child2answer);
 

@@ -120,14 +120,14 @@ void BeginRender() {
 		for (int j = 0; j < renderImage.GetWidth(); j++) {
 			if (i == 440 & j == 384)
 			{
-				printf("hellO");
+				//printf("hellO\n");
 			}
 			HitInfo hit = HitInfo();
 			RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 		}
 	}
 
-	printf("Ready \n");
+	printf("Done \n");
 	renderImage.SaveImage("saveimage.png");
 	//renderImage.SaveZImage("savezimage.png");
 	delete node;
