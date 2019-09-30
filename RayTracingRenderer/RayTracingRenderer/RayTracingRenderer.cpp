@@ -9,6 +9,7 @@
 #include <objects.h>
 #include <omp.h>
 #include <cyBVH.h>
+#include <time.h>
 
 Node rootNode;
 Camera camera;
@@ -88,6 +89,12 @@ void RayTraversing(Node * traversingnode, Node * node, Ray ray, Color24 & pixel,
 
 void BeginRender() {
 
+	time_t time0;   // create timers.
+	time_t time1;
+
+	time(&time0);   // get current time.
+
+
 	Node * node = new Node();
 	Node * startnode = &rootNode;
 
@@ -127,9 +134,11 @@ void BeginRender() {
 		}
 	}
 
-	printf("Done \n");
+	time(&time1);
+	double seconds = time1 - time0;
+
+	printf("Done. Time was %f \n", seconds);
 	renderImage.SaveImage("saveimage.png");
-	//renderImage.SaveZImage("savezimage.png");
 	delete node;
 	delete cameraray;
 	return;

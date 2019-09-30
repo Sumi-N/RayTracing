@@ -1,4 +1,5 @@
 #include "viewport.h"
+#include "objects.h"
 #include <math.h>
 
 extern MaterialList materials;
@@ -781,100 +782,9 @@ bool DetectShadow(Node * traversingnode, Node * node, Ray ray, float t_max)
 		if (node->GetNodeObj() != nullptr)
 		{
 			Ray changedray = node->ToNodeCoords(currentray);
-			float delta = SHADOWBIAS;
-			if (dynamic_cast<Sphere*>(node->GetNodeObj()))
-			{
-				float a = changedray.dir.Dot(changedray.dir);
-				float b = 2 * changedray.dir.Dot(changedray.p);
-				float c = changedray.p.Dot(changedray.p) - 1;
-
-				if (b*b - 4 * a*c >= 0)
-				{
-
-					float answer1 = (-1 * b + sqrt(b*b - 4 * a*c)) / (2 * a);
-					float answer2 = (-1 * b - sqrt(b*b - 4 * a*c)) / (2 * a);
-
-					float large;
-					float small;
-
-					float answer;
-
-					if (answer1 >= answer2)
-					{
-						large = answer1;
-						small = answer2;
-					}
-					else
-					{
-						large = answer2;
-						small = answer1;
-					}
-
-					if (small < 0)
-					{
-						if (large > 0)
-						{
-							answer = large;
-							if (answer > delta && answer <= t_max)
-							{
-								return true;
-							}
-						}
-					}
-					else
-					{
-						answer = small;
-						if (answer >= delta && answer <= t_max)
-						{
-							return true;
-						}
-					}
-				}
-			}
-			else if (TriMesh * tri = dynamic_cast<TriObj*>(node->GetNodeObj()))
-			{
-				for (int i = 0; i < (signed)(tri->NF()); i++)
-				{
-					int i0 = tri->F(i).v[0];
-					int i1 = tri->F(i).v[1];
-					int i2 = tri->F(i).v[2];
-					Vec3f n = (tri->V(i2) - tri->V(i0)).Cross(tri->V(i1) - tri->V(i0));
-					float h = -1 * n.Dot(tri->V(i0));
-					float t = -1 * (changedray.p.Dot(n) + h) / changedray.dir.Dot(n);
-
-					if (t - delta < 0 || t > t_max)
-						continue;
-
-					Vec3f point = changedray.p + t * changedray.dir;
-
-					Vec2f v0, v1, v2, x;
-					if (std::abs(n.x) >= std::abs(n.y) && std::abs(n.x) >= std::abs(n.z))
-					{
-						v0 = Vec2f(tri->V(i0).y, tri->V(i0).z); v1 = Vec2f(tri->V(i1).y, tri->V(i1).z); v2 = Vec2f(tri->V(i2).y, tri->V(i2).z);
-						x = Vec2f(point.y, point.z);
-					}
-					else if (std::abs(n.y) >= std::abs(n.x) && std::abs(n.y) >= std::abs(n.z))
-					{
-						v0 = Vec2f(tri->V(i0).x, tri->V(i0).z); v1 = Vec2f(tri->V(i1).x, tri->V(i1).z); v2 = Vec2f(tri->V(i2).x, tri->V(i2).z);
-						x = Vec2f(point.x, point.z);
-					}
-					else if (std::abs(n.z) >= std::abs(n.x) && std::abs(n.z) >= abs(n.y))
-					{
-						v0 = Vec2f(tri->V(i0).x, tri->V(i0).y); v1 = Vec2f(tri->V(i1).x, tri->V(i1).y); v2 = Vec2f(tri->V(i2).x, tri->V(i2).y);
-						x = Vec2f(point.x, point.y);
-					}
-
-					float a0, a1, a2;
-					a0 = (v1 - x).Cross(v2 - x);
-					a1 = (v2 - x).Cross(v0 - x);
-					a2 = (v0 - x).Cross(v1 - x);
-
-					if ((a0 >= 0 && a1 >= 0 && a2 >= 0) || (a0 < 0 && a1 < 0 && a2 < 0))
-					{
-						return true;
-					}
-				}
-			}
+			HitInfo fake; fake.z = t_max;
+			if (node->GetNodeObj()->IntersectRay(changedray, fake, 1))
+				return true;
 		}
 
 		if (node != nullptr)
@@ -927,6 +837,8 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 		float large;
 		float small;
 
+		float answer;
+
 		if (answer1 >= answer2)
 		{
 			large = answer1;
@@ -942,25 +854,49 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 		{
 			if (large > 0)
 			{
-				if (CheckZbuffer(hInfo.z, large))
+
+				// this is for shadowprocess
+				if (hitSide == 1)
 				{
-					hInfo.z = large;
-					hInfo.front = false;
-					hInfo.p = ray.p + large * ray.dir;
-					hInfo.N = hInfo.p;
-					return true;
+					answer = large;
+					if (answer > SHADOWBIAS & answer <= hInfo.z)
+					{
+						return true;
+					}
+				}
+				else
+				{
+					if (CheckZbuffer(hInfo.z, large))
+					{
+						hInfo.z = large;
+						hInfo.front = false;
+						hInfo.p = ray.p + large * ray.dir;
+						hInfo.N = hInfo.p;
+						return true;
+					}
 				}
 			}
 		}
 		else
 		{
-			if (CheckZbuffer(hInfo.z, small))
+			// this is for shadowprocess
+			if (hitSide == 1)
 			{
-				hInfo.z = small;
-				hInfo.front = true;
-				hInfo.p = ray.p + small * ray.dir;
-				hInfo.N = hInfo.p;
-				return true;
+				answer = small;
+				if (answer > SHADOWBIAS & answer <= hInfo.z)
+				{
+					return true;
+				}
+			}else
+			{
+				if (CheckZbuffer(hInfo.z, small))
+				{
+					hInfo.z = small;
+					hInfo.front = true;
+					hInfo.p = ray.p + small * ray.dir;
+					hInfo.N = hInfo.p;
+					return true;
+				}
 			}
 		}
 
@@ -1067,6 +1003,7 @@ bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 
 	ymax = (vertices[4] - ray.p.y) / ray.dir.y;
 	x = ymax * ray.dir.x + ray.p.x;
+	z = ymax * ray.dir.z + ray.p.z;
 	if (x >= vertices[0] && x <= vertices[3] && z >= vertices[2] && z <= vertices[5])
 	{
 		if (detected)
@@ -1078,6 +1015,11 @@ bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 			minofmax = ymax;
 			detected = true;
 		}
+	}
+
+	if (!detected)
+	{
+		return false;
 	}
 
 	zmax = (vertices[5] - ray.p.z) / ray.dir.z;
@@ -1095,11 +1037,6 @@ bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 			detected = true;
 		}
 	}
-
-	//if (!detected)
-	//{
-	//	return false;
-	//}
 
 	if (maxofmin <= minofmax)
 	{
@@ -1138,6 +1075,13 @@ bool TriObj::IntersectTriangle(Ray const & ray, HitInfo & hInfo, int hitSide, un
 	float h = -1 * n.Dot(v[i0]);
 	float t = -1 * (ray.p.Dot(n) + h) / ray.dir.Dot(n);
 
+	// This is for shadow process
+	if (hitSide == 1)
+	{
+		if (t - SHADOWBIAS < 0 || t > hInfo.z)
+			return false;
+	}
+
 	if (t < 0)
 		return false;
 
@@ -1167,6 +1111,12 @@ bool TriObj::IntersectTriangle(Ray const & ray, HitInfo & hInfo, int hitSide, un
 
 	if ((a0 >= 0 && a1 >= 0 && a2 >= 0) || (a0 < 0 && a1 < 0 && a2 < 0))
 	{
+		// This is for shadow process
+		if (hitSide == 1)
+		{
+			return true;
+		}
+
 		if (CheckZbuffer(hInfo.z, t))
 		{
 			float a = (v1 - v0).Cross(v2 - v0);
@@ -1197,10 +1147,8 @@ bool TriObj::TraceBVHNode(Ray const & ray, HitInfo & hInfo, int hitSide, unsigne
 		bool hit = false;
 		for (int i = 0; i < nodecount; i++)
 		{
-			//printf("%d\n", nodeelementslist[i]);
 			if (IntersectTriangle(ray, hInfo, hitSide, nodeelementslist[i]))
 			{
-				//printf("hellO\n");
 				hit = true;
 			}
 		}
@@ -1216,46 +1164,77 @@ bool TriObj::TraceBVHNode(Ray const & ray, HitInfo & hInfo, int hitSide, unsigne
 		
 		float child1answer, child2answer;
 
-		//if (!CheckBoxCollision(vertices1, ray, child1answer) && !(CheckBoxCollision(vertices2, ray, child2answer)))
-		//{
-		//	return false;
-		//}
-		CheckBoxCollision(vertices1, ray, child1answer);
-		CheckBoxCollision(vertices2, ray, child2answer);
-
-		if (child1answer <= child2answer)
+		if (!CheckBoxCollision(vertices1, ray, child1answer) & !(CheckBoxCollision(vertices2, ray, child2answer)))
 		{
-			if (child1answer < hInfo.z)
+			return false;
+		}
+
+		if (child1answer < child2answer)
+		{
+			if (child1answer <= hInfo.z)
 			{
+				bool hit2 = false;
 				if (TraceBVHNode(ray, hInfo, hitSide, child1id))
 				{
-					return true;
-				}
-				else
-				{
-					if (child2answer < hInfo.z)
+					hit2 = true;
+
+					if (child2answer <= hInfo.z)
 					{
-						return TraceBVHNode(ray, hInfo, hitSide, child2id);
+						if (TraceBVHNode(ray, hInfo, hitSide, child1id))
+						{
+							hit2 = true;
+						}
 					}
 				}
+				else if(child2answer <= hInfo.z)
+				{
+					if (TraceBVHNode(ray, hInfo, hitSide, child2id))
+					{
+						hit2 = true;
+					}
+				}
+				return hit2;
 			}
 		}
-		else
+		else if (child1answer > child2answer)
 		{
-			if (child2answer < hInfo.z)
+			if (child2answer <= hInfo.z)
 			{
+				bool hit2 = false;
 				if (TraceBVHNode(ray, hInfo, hitSide, child2id))
 				{
-					return true;
-				}
-				else
-				{
-					if (child1answer < hInfo.z)
+					hit2 = true;
+
+					if (child2answer <= hInfo.z)
 					{
-						return TraceBVHNode(ray, hInfo, hitSide, child1id);
+						if (TraceBVHNode(ray, hInfo, hitSide, child1id))
+						{
+							hit2 = true;
+						}
 					}
 				}
+				else if(child2answer <= hInfo.z)
+				{
+					if (TraceBVHNode(ray, hInfo, hitSide, child1id))
+					{
+						hit2 = true;
+					}
+				}
+				return hit2;
 			}
+		}
+		else if (child1answer == child2answer)
+		{
+			bool hit2 = false;
+			if (TraceBVHNode(ray, hInfo, hitSide, child1id))
+			{
+				hit2 = true;
+			}
+			if (TraceBVHNode(ray, hInfo, hitSide, child2id))
+			{
+				hit2 = true;
+			}
+			return hit2;
 		}
 	}
 	return false;
