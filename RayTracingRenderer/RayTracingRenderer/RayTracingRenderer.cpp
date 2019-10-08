@@ -125,10 +125,6 @@ void BeginRender() {
 #pragma omp parallel for
 	for (int i = 0; i < renderImage.GetHeight(); i++) {
 		for (int j = 0; j < renderImage.GetWidth(); j++) {
-			if (i == 440 & j == 384)
-			{
-				//printf("hellO\n");
-			}
 			HitInfo hit = HitInfo();
 			RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 		}
