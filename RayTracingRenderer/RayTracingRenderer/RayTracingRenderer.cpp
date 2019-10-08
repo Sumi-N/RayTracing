@@ -20,6 +20,9 @@ ItemFileList<Object> objList;
 LightList lights;
 MaterialList materials;
 std::vector<NodeMtl> nodeMtlList;
+TexturedColor background;
+TexturedColor environment;
+TextureList textureList;
 
 #define TIMEOFREFRECTION 3
 #define SHADOWBIAS 0.00005f

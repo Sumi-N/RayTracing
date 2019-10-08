@@ -496,6 +496,7 @@ void GenLight::SetViewportParam(int lightID, ColorA ambient, ColorA intensity, V
 	glLightfv(GL_LIGHT0 + lightID, GL_SPECULAR, &intensity.r);
 	glLightfv(GL_LIGHT0 + lightID, GL_POSITION, &pos.x);
 }
+
 bool TextureFile::SetViewportTexture() const
 {
 	if (viewportTextureID == 0) {
@@ -510,6 +511,7 @@ bool TextureFile::SetViewportTexture() const
 	glBindTexture(GL_TEXTURE_2D, viewportTextureID);
 	return true;
 }
+
 bool TextureChecker::SetViewportTexture() const
 {
 	if (viewportTextureID == 0) {
@@ -536,6 +538,19 @@ bool TextureChecker::SetViewportTexture() const
 //-------------------------------------------------------------------------------
 // Custom class I made
 //-------------------------------------------------------------------------------
+
+bool TextureFile::Load()
+{
+	return false;
+}
+Color TextureFile::Sample(Vec3f const & uvw) const
+{
+	return Color();
+}
+Color TextureChecker::Sample(Vec3f const & uvw) const
+{
+	return Color();
+}
 
 Color FindReflection(Node * traversingnode, Node * node, Ray originalray, Ray ray, HitInfo & hit, int bounce)
 {
@@ -791,7 +806,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 	{
 		if ((*light)->IsAmbient()) 
 		{
-			color += (*light)->Illuminate(hInfo.p, N) * this->diffuse;
+			color += (*light)->Illuminate(hInfo.p, N) * this->diffuse.GetColor();
 		}
 		else if(strcmp((*light)->GetName(), "directionalLight") == 0)
 		{
@@ -811,8 +826,8 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			}
 
 			float oneofcos = 1/hInfo.N.Dot(L);
-			Color specularpart = oneofcos * pow(H.Dot(hInfo.N), this->glossiness) * this->specular;
-			Color diffusepart = this->diffuse;
+			Color specularpart = oneofcos * pow(H.Dot(hInfo.N), this->glossiness) * this->specular.GetColor();
+			Color diffusepart = this->diffuse.GetColor();
 			color += (diffusepart + specularpart) * IR;
 		}
 		else if (strcmp((*light)->GetName(), "pointLight") == 0)
@@ -833,27 +848,27 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			}
 
 			float oneofcos = 1/hInfo.N.Dot(L);
-			Color specularpart = oneofcos * pow(H.Dot(hInfo.N), this->glossiness) * this->specular;
-			Color diffusepart = this->diffuse;
+			Color specularpart = oneofcos * pow(H.Dot(hInfo.N), this->glossiness) * this->specular.GetColor();
+			Color diffusepart = this->diffuse.GetColor();
 			color += (diffusepart + specularpart) * IR;
 		}
 	}
 
 	// Caluculate only relfection part for reflection
-	if (this->reflection != Color(0, 0, 0))
+	if (this->reflection.GetColor() != Color(0, 0, 0))
 	{
-		color += this->reflection * Reflection(ray, hInfo, bounce);
+		color += this->reflection.GetColor() * Reflection(ray, hInfo, bounce);
 	}
 
 	// Caluculate refraction part
-	if (this->refraction != Color(0, 0, 0))
+	if (this->refraction.GetColor() != Color(0, 0, 0))
 	{
 		// When it is a back side hit, it means that absorption gonna happen during inside the material the light go through
 		if (!hInfo.front)
 		{
 			color += CalculateAbsorption(color, absorption, hInfo.z);
 		}
-		color += Refraction(ray, hInfo, bounce, ior, refraction);
+		color += Refraction(ray, hInfo, bounce, ior, refraction.GetColor());
 	}
 
 	return color;
