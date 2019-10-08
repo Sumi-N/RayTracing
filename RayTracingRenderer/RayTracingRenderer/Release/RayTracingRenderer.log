@@ -1,1 +1,27 @@
-﻿  RayTracingRenderer.vcxproj -> C:\Users\Sumi\Documents\RayTracing\RayTracingRenderer\Release\RayTracingRenderer.exe
+﻿  viewport.cpp
+c1xx : warning C4199: two-phase name lookup is not supported for C++/CLI, C++/CX, or OpenMP; use /Zc:twoPhase-
+c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(794): error C2678: binary '*': no operator found which takes a left-hand operand of type 'cy::Color' (or there is no acceptable conversion)
+  c:\users\sumi\documents\raytracing\raytracingrenderer\cycodebase\cycolor.h(106): note: could be 'cy::Color cy::Color::operator *(const float &) const'
+  c:\users\sumi\documents\raytracing\raytracingrenderer\cycodebase\cycolor.h(102): note: or       'cy::Color cy::Color::operator *(const cy::Color &) const'
+  c:\users\sumi\documents\raytracing\raytracingrenderer\cycodebase\cycolor.h(57): note: or       'cy::Color cy::operator *(const float &,const cy::Color &)' [found using argument-dependent lookup]
+  c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(794): note: while trying to match the argument list '(cy::Color, const TexturedColor)'
+c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(814): error C2677: binary '*': no global operator found which takes type 'const TexturedColor' (or there is no acceptable conversion)
+c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(815): error C2440: 'initializing': cannot convert from 'const TexturedColor' to 'cy::Color'
+  c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(815): note: No user-defined-conversion operator available that can perform this conversion, or the operator cannot be called
+c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(836): error C2677: binary '*': no global operator found which takes type 'const TexturedColor' (or there is no acceptable conversion)
+c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(837): error C2440: 'initializing': cannot convert from 'const TexturedColor' to 'cy::Color'
+  c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(837): note: No user-defined-conversion operator available that can perform this conversion, or the operator cannot be called
+c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(843): error C2678: binary '!=': no operator found which takes a left-hand operand of type 'const TexturedColor' (or there is no acceptable conversion)
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\shared\guiddef.h(197): note: could be 'bool operator !=(const GUID &,const GUID &)'
+  c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(843): note: while trying to match the argument list '(const TexturedColor, cy::Color)'
+c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(845): error C2678: binary '*': no operator found which takes a left-hand operand of type 'const TexturedColor' (or there is no acceptable conversion)
+  c:\users\sumi\documents\raytracing\raytracingrenderer\cycodebase\cycolor.h(57): note: could be 'cy::Color cy::operator *(const float &,const cy::Color &)' [found using argument-dependent lookup]
+  c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(845): note: while trying to match the argument list '(const TexturedColor, cy::Color)'
+c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(849): error C2678: binary '!=': no operator found which takes a left-hand operand of type 'const TexturedColor' (or there is no acceptable conversion)
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\shared\guiddef.h(197): note: could be 'bool operator !=(const GUID &,const GUID &)'
+  c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(849): note: while trying to match the argument list '(const TexturedColor, cy::Color)'
+c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(856): error C2664: 'cy::Color Refraction(const Ray &,const HitInfo &,int,float,cy::Color)': cannot convert argument 5 from 'const TexturedColor' to 'cy::Color'
+  c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(856): note: No user-defined-conversion operator available that can perform this conversion, or the operator cannot be called
+c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(951): warning C4554: '&': check operator precedence for possible error; use parentheses to clarify precedence
+c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(975): warning C4554: '&': check operator precedence for possible error; use parentheses to clarify precedence
+c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(1237): warning C4018: '<': signed/unsigned mismatch

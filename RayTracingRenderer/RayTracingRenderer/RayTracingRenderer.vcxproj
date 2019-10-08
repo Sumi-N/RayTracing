@@ -164,6 +164,7 @@
     <ClInclude Include="objects.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="scene.h" />
+    <ClInclude Include="texture.h" />
     <ClInclude Include="viewport.h" />
     <ClInclude Include="xmlload.h" />
   </ItemGroup>
@@ -172,11 +173,6 @@
     <ClCompile Include="RayTracingRenderer.cpp" />
     <ClCompile Include="viewport.cpp" />
     <ClCompile Include="xmlload.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="test.xml">
-      <SubType>Designer</SubType>
-    </Xml>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RayTracingRenderer.rc" />

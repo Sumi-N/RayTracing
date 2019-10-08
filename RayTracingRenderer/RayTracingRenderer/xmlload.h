@@ -2,7 +2,7 @@
 ///
 /// \file       xmlload.cpp 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    5.0
+/// \version    7.0
 /// \date       August 21, 2019
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -13,6 +13,7 @@
 #include "objects.h"
 #include "materials.h"
 #include "lights.h"
+#include "texture.h"
 #include "tinyxml/tinyxml.h"
 
 //-------------------------------------------------------------------------------
@@ -23,6 +24,9 @@ extern RenderImage renderImage;
 extern MaterialList materials;
 extern LightList lights;
 extern ObjFileList objList;
+extern TexturedColor background;
+extern TexturedColor environment;
+extern TextureList textureList;
 
 //-------------------------------------------------------------------------------
 
@@ -33,7 +37,7 @@ extern ObjFileList objList;
 #endif
 
 //-------------------------------------------------------------------------------
-int LoadScene(char const *filename);
+
 void LoadScene(TiXmlElement *element);
 void LoadNode(Node *node, TiXmlElement *element, int level = 0);
 void LoadTransform(Transformation *trans, TiXmlElement *element, int level);
@@ -42,6 +46,8 @@ void LoadLight(TiXmlElement *element);
 void ReadVector(TiXmlElement *element, Vec3f &v);
 void ReadColor(TiXmlElement *element, Color  &c);
 void ReadFloat(TiXmlElement *element, float  &f, char const *name = "value");
+TextureMap* ReadTexture(TiXmlElement *element);
+Texture* ReadTexture(char const *filename);
 
 //-------------------------------------------------------------------------------
 
@@ -53,4 +59,6 @@ struct NodeMtl
 
 extern std::vector<NodeMtl> nodeMtlList;
 
-//-------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+
+int LoadScene(char const *filename);

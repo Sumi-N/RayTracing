@@ -2,7 +2,7 @@
 ///
 /// \file       scene.h 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    5.0
+/// \version    7.0
 /// \date       August 21, 2019
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -11,6 +11,10 @@
 
 #ifndef _SCENE_H_INCLUDED_
 #define _SCENE_H_INCLUDED_
+
+//-------------------------------------------------------------------------------
+
+#define TEXTURE_SAMPLE_COUNT 32
 
 //-------------------------------------------------------------------------------
 
@@ -77,7 +81,7 @@ public:
 	// 2:(x_min,y_max,z_min), 3:(x_max,y_max,z_min)
 	// 4:(x_min,y_min,z_max), 5:(x_max,y_min,z_max)
 	// 6:(x_min,y_max,z_max), 7:(x_max,y_max,z_max)
-	Vec3f Corner(int i) const // 8 corners of the box
+	Vec3f Corner(int i) const	// 8 corners of the box
 	{
 		Vec3f p;
 		p.x = (i & 1) ? pmax.x : pmin.x;
@@ -89,8 +93,7 @@ public:
 	// Enlarges the box such that it includes the given point p.
 	void operator += (Vec3f const &p)
 	{
-		for (int i = 0; i < 3; i++)
-		{
+		for (int i = 0; i < 3; i++) {
 			if (pmin[i] > p[i]) pmin[i] = p[i];
 			if (pmax[i] < p[i]) pmax[i] = p[i];
 		}
@@ -99,8 +102,7 @@ public:
 	// Enlarges the box such that it includes the given box b.
 	void operator += (const Box &b)
 	{
-		for (int i = 0; i < 3; i++)
-		{
+		for (int i = 0; i < 3; i++) {
 			if (pmin[i] > b.pmin[i]) pmin[i] = b.pmin[i];
 			if (pmax[i] < b.pmax[i]) pmax[i] = b.pmax[i];
 		}
@@ -117,21 +119,24 @@ public:
 
 class Node;
 
-#define HIT_NONE            0
-#define HIT_FRONT           1
-#define HIT_BACK            2
-#define HIT_FRONT_AND_BACK  (HIT_FRONT|HIT_BACK)
+#define HIT_NONE			0
+#define HIT_FRONT			1
+#define HIT_BACK			2
+#define HIT_FRONT_AND_BACK	(HIT_FRONT|HIT_BACK)
 
 struct HitInfo
 {
-	float       z;      // the distance from the ray center to the hit point
-	Vec3f       p;      // position of the hit point
-	Vec3f       N;      // surface normal at the hit point
-	Node const *node;   // the object node that was hit
-	bool        front;  // true if the ray hits the front side, false if the ray hits the back side
+	float       z;		// the distance from the ray center to the hit point
+	Vec3f       p;		// position of the hit point
+	Vec3f       N;		// surface normal at the hit point
+	Vec3f       uvw;	// texture coordinate at the hit point
+	Vec3f       duvw[2];// derivatives of the texture coordinate
+	Node const *node;	// the object node that was hit
+	bool        front;	// true if the ray hits the front side, false if the ray hits the back side
+	int         mtlID;	// sub-material index
 
 	HitInfo() { Init(); }
-	void Init() { z = BIGFLOAT; node = nullptr; front = true; }
+	void Init() { z = BIGFLOAT; node = nullptr; front = true; uvw.Set(0.5f, 0.5f, 0.5f); duvw[0].Zero(); duvw[1].Zero(); mtlID = 0; }
 };
 
 //-------------------------------------------------------------------------------
@@ -139,7 +144,7 @@ struct HitInfo
 class ItemBase
 {
 private:
-	char *name;                 // The name of the item
+	char *name;					// The name of the item
 
 public:
 	ItemBase() : name(nullptr) {}
@@ -149,8 +154,7 @@ public:
 	void SetName(char const *newName)
 	{
 		if (name) delete[] name;
-		if (newName)
-		{
+		if (newName) {
 			int n = strlen(newName);
 			name = new char[n + 1];
 			for (int i = 0; i < n; i++) name[i] = newName[i];
@@ -197,17 +201,17 @@ private:
 class Transformation
 {
 private:
-	Matrix3f tm;            // Transformation matrix to the local space
-	Vec3f    pos;           // Translation part of the transformation matrix
-	mutable Matrix3f itm;   // Inverse of the transformation matrix (cached)
+	Matrix3f tm;			// Transformation matrix to the local space
+	Vec3f    pos;			// Translation part of the transformation matrix
+	mutable Matrix3f itm;	// Inverse of the transformation matrix (cached)
 public:
 	Transformation() : pos(0, 0, 0) { tm.SetIdentity(); itm.SetIdentity(); }
 	Matrix3f const& GetTransform() const { return tm; }
 	Vec3f    const& GetPosition() const { return pos; }
-	Matrix3f const& GetInverseTransform() const { return itm; }
+	Matrix3f const&	GetInverseTransform() const { return itm; }
 
-	Vec3f TransformTo(Vec3f const &p) const { return itm * (p - pos); } // Transform to the local coordinate system
-	Vec3f TransformFrom(Vec3f const &p) const { return tm * p + pos; }  // Transform from the local coordinate system
+	Vec3f TransformTo(Vec3f const &p) const { return itm * (p - pos); }	// Transform to the local coordinate system
+	Vec3f TransformFrom(Vec3f const &p) const { return tm * p + pos; }	// Transform from the local coordinate system
 
 	// Transforms a vector to the local coordinate system (same as multiplication with the inverse transpose of the transformation)
 	Vec3f VectorTransformTo(Vec3f const &dir) const { return TransposeMult(tm, dir); }
@@ -244,7 +248,7 @@ class Object
 public:
 	virtual bool IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide = HIT_FRONT) const = 0;
 	virtual Box  GetBoundBox() const = 0;
-	virtual void ViewportDisplay(const Material *mtl) const {}  // used for OpenGL display
+	virtual void ViewportDisplay(const Material *mtl) const {}	// used for OpenGL display
 };
 
 typedef ItemFileList<Object> ObjFileList;
@@ -257,7 +261,7 @@ public:
 	virtual Color Illuminate(Vec3f const &p, Vec3f const &N) const = 0;
 	virtual Vec3f Direction(Vec3f const &p) const = 0;
 	virtual bool  IsAmbient() const { return false; }
-	virtual void  SetViewportLight(int lightID) const {}    // used for OpenGL display
+	virtual void  SetViewportLight(int lightID) const {}	// used for OpenGL display
 };
 
 class LightList : public ItemList<Light> {};
@@ -273,7 +277,7 @@ public:
 	// bounceCount: permitted number of additional bounces for reflection and refraction.
 	virtual Color Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lights, int bounceCount) const = 0;
 
-	virtual void SetViewportMaterial(int subMtlID = 0) const {}   // used for OpenGL display
+	virtual void SetViewportMaterial(int subMtlID = 0) const {}	// used for OpenGL display
 };
 
 class MaterialList : public ItemList<Material>
@@ -284,14 +288,131 @@ public:
 
 //-------------------------------------------------------------------------------
 
+class Texture : public ItemBase
+{
+public:
+	// Evaluates the color at the given uvw location.
+	virtual Color Sample(Vec3f const &uvw) const = 0;
+
+	// Evaluates the color around the given uvw location using the derivatives duvw
+	// by calling the Sample function multiple times.
+	virtual Color Sample(Vec3f const &uvw, Vec3f const duvw[2], bool elliptic = true) const
+	{
+		Color c = Sample(uvw);
+		if (duvw[0].LengthSquared() + duvw[1].LengthSquared() == 0) return c;
+		for (int i = 1; i < TEXTURE_SAMPLE_COUNT; i++) {
+			float x = 0, y = 0, fx = 0.5f, fy = 1.0f / 3.0f;
+			for (int ix = i; ix > 0; ix /= 2) { x += fx * (ix % 2); fx /= 2; }	// Halton sequence (base 2)
+			for (int iy = i; iy > 0; iy /= 3) { y += fy * (iy % 3); fy /= 3; }	// Halton sequence (base 3)
+			if (elliptic) {
+				float r = sqrtf(x)*0.5f;
+				x = r * sinf(y*(float)M_PI * 2);
+				y = r * cosf(y*(float)M_PI * 2);
+			}
+			else {
+				if (x > 0.5f) x -= 1;
+				if (y > 0.5f) y -= 1;
+			}
+			c += Sample(uvw + x * duvw[0] + y * duvw[1]);
+		}
+		return c / float(TEXTURE_SAMPLE_COUNT);
+	}
+
+	virtual bool SetViewportTexture() const { return false; }	// used for OpenGL display
+
+protected:
+
+	// Clamps the uvw values for tiling textures, such that all values fall between 0 and 1.
+	static Vec3f TileClamp(Vec3f const &uvw)
+	{
+		Vec3f u;
+		u.x = uvw.x - (int)uvw.x;
+		u.y = uvw.y - (int)uvw.y;
+		u.z = uvw.z - (int)uvw.z;
+		if (u.x < 0) u.x += 1;
+		if (u.y < 0) u.y += 1;
+		if (u.z < 0) u.z += 1;
+		return u;
+	}
+};
+
+typedef ItemFileList<Texture> TextureList;
+
+//-------------------------------------------------------------------------------
+
+// This class handles textures with texture transformations.
+// The uvw values passed to the Sample methods are transformed
+// using the texture transformation.
+class TextureMap : public Transformation
+{
+public:
+	TextureMap() : texture(nullptr) {}
+	TextureMap(Texture *tex) : texture(tex) {}
+	void SetTexture(Texture *tex) { texture = tex; }
+
+	virtual Color Sample(Vec3f const &uvw) const { return texture ? texture->Sample(TransformTo(uvw)) : Color(0, 0, 0); }
+	virtual Color Sample(Vec3f const &uvw, Vec3f const duvw[2], bool elliptic = true) const
+	{
+		if (texture == nullptr) return Color(0, 0, 0);
+		Vec3f u = TransformTo(uvw);
+		Vec3f d[2];
+		d[0] = TransformTo(duvw[0] + uvw) - u;
+		d[1] = TransformTo(duvw[1] + uvw) - u;
+		return texture->Sample(u, d, elliptic);
+	}
+
+	bool SetViewportTexture() const { if (texture) return texture->SetViewportTexture(); return false; }	// used for OpenGL display
+
+private:
+	Texture *texture;
+};
+
+//-------------------------------------------------------------------------------
+
+// This class keeps a TextureMap and a color. This is useful for keeping material
+// color parameters that can also be textures. If no texture is specified, it
+// automatically uses the color value. Otherwise, the texture value is multiplied
+// by the color value.
+class TexturedColor
+{
+private:
+	Color color;
+	TextureMap *map;
+public:
+	TexturedColor() : color(0, 0, 0), map(nullptr) {}
+	TexturedColor(float r, float g, float b) : color(r, g, b), map(nullptr) {}
+	virtual ~TexturedColor() { if (map) delete map; }
+
+	void SetColor(const Color &c) { color = c; }
+	void SetTexture(TextureMap *m) { if (map) delete map; map = m; }
+
+	Color GetColor() const { return color; }
+	const TextureMap* GetTexture() const { return map; }
+
+	Color Sample(Vec3f const &uvw) const { return (map) ? color * map->Sample(uvw) : color; }
+	Color Sample(Vec3f const &uvw, Vec3f const duvw[2], bool elliptic = true) const { return (map) ? color * map->Sample(uvw, duvw, elliptic) : color; }
+
+	// Returns the color value at the given direction for environment mapping.
+	Color SampleEnvironment(Vec3f const &dir) const
+	{
+		float z = asinf(-dir.z) / float(M_PI) + 0.5f;
+		float x = dir.x / (fabs(dir.x) + fabs(dir.y));
+		float y = dir.y / (fabs(dir.x) + fabs(dir.y));
+		return Sample(Vec3f(0.5f, 0.5f, 0.0f) + z * (x*Vec3f(0.5f, 0.5f, 0) + y * Vec3f(-0.5f, 0.5f, 0)));
+	}
+
+};
+
+//-------------------------------------------------------------------------------
+
 class Node : public ItemBase, public Transformation
 {
 private:
-	Node **child;               // Child nodes
-	int numChild;               // The number of child nodes
-	Object *obj;                // Object reference (merely points to the object, but does not own the object, so it doesn't get deleted automatically)
-	Material *mtl;              // Material used for shading the object
-	Box childBoundBox;          // Bounding box of the child nodes, which does not include the object of this node, but includes the objects of the child nodes
+	Node **child;				// Child nodes
+	int numChild;				// The number of child nodes
+	Object *obj;				// Object reference (merely points to the object, but does not own the object, so it doesn't get deleted automatically)
+	Material *mtl;				// Material used for shading the object
+	Box childBoundBox;			// Bounding box of the child nodes, which does not include the object of this node, but includes the objects of the child nodes
 public:
 	Node() : child(nullptr), numChild(0), obj(nullptr), mtl(nullptr) {}
 	virtual ~Node() { DeleteAllChildNodes(); }
@@ -299,15 +420,14 @@ public:
 	void Init() { DeleteAllChildNodes(); obj = nullptr; mtl = nullptr; childBoundBox.Init(); SetName(nullptr); InitTransform(); } // Initialize the node deleting all child nodes
 
 	// Hierarchy management
-	int  GetNumChild() const { return numChild; }
+	int	 GetNumChild() const { return numChild; }
 	void SetNumChild(int n, int keepOld = false)
 	{
-		if (n < 0) n = 0;    // just to be sure
-		Node **nc = nullptr;    // new child pointer
+		if (n < 0) n = 0;	// just to be sure
+		Node **nc = nullptr;	// new child pointer
 		if (n > 0) nc = new Node*[n];
 		for (int i = 0; i < n; i++) nc[i] = nullptr;
-		if (keepOld)
-		{
+		if (keepOld) {
 			int sn = Min(n, numChild);
 			for (int i = 0; i < sn; i++) nc[i] = child[i];
 		}
@@ -326,13 +446,11 @@ public:
 	const Box& ComputeChildBoundBox()
 	{
 		childBoundBox.Init();
-		for (int i = 0; i < numChild; i++)
-		{
+		for (int i = 0; i < numChild; i++) {
 			Box childBox = child[i]->ComputeChildBoundBox();
 			Object *cobj = child[i]->GetNodeObj();
 			if (cobj) childBox += cobj->GetBoundBox();
-			if (!childBox.IsEmpty())
-			{
+			if (!childBox.IsEmpty()) {
 				// transform the box from child coordinates
 				for (int j = 0; j < 8; j++) childBoundBox += child[i]->TransformFrom(childBox.Corner(j));
 			}
@@ -428,17 +546,14 @@ public:
 		zbufferImg = new uint8_t[size];
 
 		float zmin = BIGFLOAT, zmax = 0;
-		for (int i = 0; i < size; i++)
-		{
+		for (int i = 0; i < size; i++) {
 			if (zbuffer[i] == BIGFLOAT) continue;
 			if (zmin > zbuffer[i]) zmin = zbuffer[i];
 			if (zmax < zbuffer[i]) zmax = zbuffer[i];
 		}
-		for (int i = 0; i < size; i++)
-		{
+		for (int i = 0; i < size; i++) {
 			if (zbuffer[i] == BIGFLOAT) zbufferImg[i] = 0;
-			else
-			{
+			else {
 				float f = (zmax - zbuffer[i]) / (zmax - zmin);
 				int c = int(f * 255);
 				if (c < 0) c = 0;
@@ -455,8 +570,7 @@ private:
 	bool SavePNG(char const *filename, uint8_t *data, int compCount) const
 	{
 		LodePNGColorType colortype;
-		switch (compCount)
-		{
+		switch (compCount) {
 		case 1: colortype = LCT_GREY; break;
 		case 3: colortype = LCT_RGB;  break;
 		default: return false;

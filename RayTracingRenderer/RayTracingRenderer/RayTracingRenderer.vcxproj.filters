@@ -39,6 +39,9 @@
     <ClInclude Include="lights.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RayTracingRenderer.cpp">
@@ -53,11 +56,6 @@
     <ClCompile Include="lodepng.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="test.xml">
-      <Filter>Resource Files</Filter>
-    </Xml>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RayTracingRenderer.rc">
