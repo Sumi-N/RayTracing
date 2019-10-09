@@ -541,7 +541,30 @@ bool TextureChecker::SetViewportTexture() const
 
 bool TextureFile::Load()
 {
-	return false;
+	unsigned int * width = new unsigned int[2000];
+	unsigned int * height = new unsigned int[2000];
+	unsigned char * data = new unsigned char[4000000 * 3];
+    unsigned char ** out = &data;
+
+	/*Same as lodepng_decode_file, but always decodes to 24-bit RGB raw image.*/
+	lodepng_decode24_file(out, width, height, this->GetName());
+	//return false;
+	this->width = *width;
+	this->height = *height;
+	for (int i = 0; i < this->height; i++) {
+		for (int j = 0; j < this->width; j++) {
+			unsigned char red   = data[(i * this->width + j) * 3 + 0];
+			unsigned char green = data[(i * this->width + j) * 3 + 1];
+			unsigned char blue  = data[(i * this->width + j) * 3 + 2];
+			Color24 tmp = Color24(red, green, blue);
+			this->data.push_back(tmp);
+		}
+	}
+	delete[] width;
+	delete[] height;
+	delete[] data;
+
+	return true;
 }
 Color TextureFile::Sample(Vec3f const & uvw) const
 {
