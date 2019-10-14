@@ -30,8 +30,8 @@ TextureList textureList;
 
 int main()
 {
-	LoadScene(".\\xmlfiles\\assignment5.xml");
-	//LoadScene(".\\xmlfiles\\assignment6.xml");
+	//LoadScene(".\\xmlfiles\\assignment5.xml");
+	LoadScene(".\\xmlfiles\\assignment6.xml");
 	//LoadScene(".\\xmlfiles\\SimpleTestScene.xml");
 	ShowViewport();
 }

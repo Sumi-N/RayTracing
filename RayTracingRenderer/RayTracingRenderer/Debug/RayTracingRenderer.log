@@ -1,5 +1,5 @@
 ﻿  viewport.cpp
-c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(988): warning C4554: '&': check operator precedence for possible error; use parentheses to clarify precedence
-c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(1012): warning C4554: '&': check operator precedence for possible error; use parentheses to clarify precedence
-c:\users\sumi\documents\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(1274): warning C4018: '<': signed/unsigned mismatch
-  RayTracingRenderer.vcxproj -> C:\Users\Sumi\Documents\RayTracing\RayTracingRenderer\Debug\RayTracingRenderer.exe
+f:\schoolstuff\raytracing_school\raytracing\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(999): warning C4554: '&': check operator precedence for possible error; use parentheses to clarify precedence
+f:\schoolstuff\raytracing_school\raytracing\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(1023): warning C4554: '&': check operator precedence for possible error; use parentheses to clarify precedence
+f:\schoolstuff\raytracing_school\raytracing\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(1286): warning C4018: '<': signed/unsigned mismatch
+  RayTracingRenderer.vcxproj -> F:\SchoolStuff\RayTracing_school\RayTracing\RayTracing\RayTracingRenderer\Debug\RayTracingRenderer.exe

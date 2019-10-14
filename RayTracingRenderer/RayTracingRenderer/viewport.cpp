@@ -568,11 +568,27 @@ bool TextureFile::Load()
 }
 Color TextureFile::Sample(Vec3f const & uvw) const
 {
-	return Color();
+	return Color(0, 100, 0);
 }
 Color TextureChecker::Sample(Vec3f const & uvw) const
 {
-	return Color();
+	Vec3f clampeduvw = this->TileClamp(uvw);
+	if (clampeduvw.x > 0.5f && clampeduvw.y > 0.5f)
+	{
+		return this->color1;
+	}
+	else if (clampeduvw.x > 0.5f && clampeduvw.y <= 0.5f)
+	{
+		return this->color2;
+	}
+	else if (clampeduvw.x <= 0.5f && clampeduvw.y > 0.5f)
+	{
+		return this->color2;
+	}
+	else
+	{
+		return this->color1;
+	}
 }
 
 Color FindReflection(Node * traversingnode, Node * node, Ray originalray, Ray ray, HitInfo & hit, int bounce)
@@ -825,6 +841,21 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 {
 	Vec3f N = hInfo.N;
 	Color color = Color();
+
+	// If there is a texturering then use texturing
+	if (const TextureMap * texturemap = this->diffuse.GetTexture())
+	{
+		Color texturecolor = texturemap->Sample(hInfo.uvw);
+		const TexturedColor * tmp = &(this->diffuse);
+		const_cast<TexturedColor *>(tmp)->SetColor(texturecolor);
+	}
+	if (const TextureMap * texturemap = this->specular.GetTexture())
+	{
+		Color texturecolor = texturemap->Sample(hInfo.uvw);
+		const TexturedColor * tmp = &(this->specular);
+		const_cast<TexturedColor *>(tmp)->SetColor(texturecolor);
+	}
+
 	for (auto light = lights.begin(); light != lights.end(); ++light) 
 	{
 		if ((*light)->IsAmbient()) 
@@ -1047,6 +1078,7 @@ bool Plane::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 				hInfo.p = point;
 				hInfo.z = t;
 				hInfo.N = Vec3f(0, 0, 1);
+				hInfo.uvw = Vec3f(point.x, point.y, point.z);
 				return true;
 			}
 		}
