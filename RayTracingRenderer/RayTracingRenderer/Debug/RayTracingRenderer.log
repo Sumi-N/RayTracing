@@ -1,5 +1,15 @@
-﻿  viewport.cpp
-f:\schoolstuff\raytracing_school\raytracing\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(999): warning C4554: '&': check operator precedence for possible error; use parentheses to clarify precedence
-f:\schoolstuff\raytracing_school\raytracing\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(1023): warning C4554: '&': check operator precedence for possible error; use parentheses to clarify precedence
-f:\schoolstuff\raytracing_school\raytracing\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(1286): warning C4018: '<': signed/unsigned mismatch
+﻿  RayTracingRenderer.cpp
+f:\schoolstuff\raytracing_school\raytracing\raytracing\raytracingrenderer\raytracingrenderer\raytracingrenderer.cpp(137): warning C4244: 'initializing': conversion from 'time_t' to 'double', possible loss of data
+  viewport.cpp
+f:\schoolstuff\raytracing_school\raytracing\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(572): warning C4244: 'argument': conversion from 'T' to 'const unsigned int', possible loss of data
+          with
+          [
+              T=float
+          ]
+f:\schoolstuff\raytracing_school\raytracing\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(1022): warning C4554: '&': check operator precedence for possible error; use parentheses to clarify precedence
+f:\schoolstuff\raytracing_school\raytracing\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(1036): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+f:\schoolstuff\raytracing_school\raytracing\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(1049): warning C4554: '&': check operator precedence for possible error; use parentheses to clarify precedence
+f:\schoolstuff\raytracing_school\raytracing\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(1062): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+f:\schoolstuff\raytracing_school\raytracing\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(1319): warning C4018: '<': signed/unsigned mismatch
+  Generating Code...
   RayTracingRenderer.vcxproj -> F:\SchoolStuff\RayTracing_school\RayTracing\RayTracing\RayTracingRenderer\Debug\RayTracingRenderer.exe

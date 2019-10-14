@@ -568,7 +568,11 @@ bool TextureFile::Load()
 }
 Color TextureFile::Sample(Vec3f const & uvw) const
 {
-	return Color(0, 100, 0);
+	Vec3f clampeduvw = this->TileClamp(uvw);
+	int W = (int)(clampeduvw.x * width);
+	int H = (int)(clampeduvw.y * height);
+	Color24 returncolor = data.at(W * height + H);
+	return static_cast<Color>(returncolor);
 }
 Color TextureChecker::Sample(Vec3f const & uvw) const
 {
@@ -849,12 +853,6 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		const TexturedColor * tmp = &(this->diffuse);
 		const_cast<TexturedColor *>(tmp)->SetColor(texturecolor);
 	}
-	if (const TextureMap * texturemap = this->specular.GetTexture())
-	{
-		Color texturecolor = texturemap->Sample(hInfo.uvw);
-		const TexturedColor * tmp = &(this->specular);
-		const_cast<TexturedColor *>(tmp)->SetColor(texturecolor);
-	}
 
 	for (auto light = lights.begin(); light != lights.end(); ++light) 
 	{
@@ -928,7 +926,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 	return color;
 }
 
-#define SHADOWBIAS 0.00005f
+#define SHADOWBIAS 0.0005f
 
 bool DetectShadow(Node * traversingnode, Node * node, Ray ray, float t_max)
 {
@@ -1030,6 +1028,9 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 						hInfo.front = false;
 						hInfo.p = ray.p + large * ray.dir;
 						hInfo.N = hInfo.p;
+						float u = (1 / 2 * 3.14f) * atan2f(hInfo.p.y, hInfo.p.x) + .5f;
+						float v = (1 / 3.14) * asinf(hInfo.p.z) + 0.5f;
+						hInfo.uvw = Vec3f(u, v, 0.0f);
 						return true;
 					}
 				}
@@ -1053,6 +1054,9 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 					hInfo.front = true;
 					hInfo.p = ray.p + small * ray.dir;
 					hInfo.N = hInfo.p;
+					float u = (1 / (2 * 3.14f)) * atan2f(hInfo.p.y, hInfo.p.x) + .5f;
+					float v = (1 / 3.14) * asinf(hInfo.p.z) + 0.5f;
+					hInfo.uvw = Vec3f(u, v, 0.0f);
 					return true;
 				}
 			}
@@ -1078,7 +1082,7 @@ bool Plane::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 				hInfo.p = point;
 				hInfo.z = t;
 				hInfo.N = Vec3f(0, 0, 1);
-				hInfo.uvw = Vec3f(point.x, point.y, point.z);
+				hInfo.uvw = Vec3f(0.5f * point.x + 0.5f, 0.5f * point.y + 0.5f, point.z);
 				return true;
 			}
 		}
@@ -1290,6 +1294,10 @@ bool TriObj::IntersectTriangle(Ray const & ray, HitInfo & hInfo, int hitSide, un
 			hInfo.N = normal;
 			hInfo.p = point;
 			hInfo.z = t;
+			// This is for texturing
+			{
+				hInfo.uvw = beta0 * VT(i0) + beta1 * VT(i1) + beta2 * VT(i2);
+			}
 			return true;
 		}
 	}

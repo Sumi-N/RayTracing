@@ -25,14 +25,11 @@ TexturedColor environment;
 TextureList textureList;
 
 #define TIMEOFREFRECTION 3
-#define SHADOWBIAS 0.00005f
 
 
 int main()
 {
-	//LoadScene(".\\xmlfiles\\assignment5.xml");
 	LoadScene(".\\xmlfiles\\assignment6.xml");
-	//LoadScene(".\\xmlfiles\\SimpleTestScene.xml");
 	ShowViewport();
 }
 
