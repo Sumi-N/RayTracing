@@ -3,6 +3,7 @@
 #include <math.h>
 
 extern MaterialList materials;
+extern TexturedColor environment;
 
 //-------------------------------------------------------------------------------
 
@@ -539,62 +540,6 @@ bool TextureChecker::SetViewportTexture() const
 // Custom class I made
 //-------------------------------------------------------------------------------
 
-//bool TextureFile::Load()
-//{
-//	unsigned int * width = new unsigned int[2000];
-//	unsigned int * height = new unsigned int[2000];
-//	unsigned char * data = new unsigned char[4000000 * 3];
-//    unsigned char ** out = &data;
-//
-//	/*Same as lodepng_decode_file, but always decodes to 24-bit RGB raw image.*/
-//	lodepng_decode24_file(out, width, height, this->GetName());
-//	//return false;
-//	this->width = *width;
-//	this->height = *height;
-//	for (int i = 0; i < this->height; i++) {
-//		for (int j = 0; j < this->width; j++) {
-//			unsigned char red   = data[(i * this->width + j) * 3 + 0];
-//			unsigned char green = data[(i * this->width + j) * 3 + 1];
-//			unsigned char blue  = data[(i * this->width + j) * 3 + 2];
-//			Color24 tmp = Color24(red, green, blue);
-//			this->data.push_back(tmp);
-//		}
-//	}
-//	delete[] width;
-//	delete[] height;
-//	delete[] data;
-//
-//	return true;
-//}
-//Color TextureFile::Sample(Vec3f const & uvw) const
-//{
-//	Vec3f clampeduvw = this->TileClamp(uvw);
-//	int W = (int)(clampeduvw.x * width);
-//	int H = (int)(clampeduvw.y * height);
-//	Color24 returncolor = data.at(H * width + W);
-//	return static_cast<Color>(returncolor);
-//}
-//Color TextureChecker::Sample(Vec3f const & uvw) const
-//{
-//	Vec3f clampeduvw = this->TileClamp(uvw);
-//	if (clampeduvw.x > 0.5f && clampeduvw.y > 0.5f)
-//	{
-//		return this->color1;
-//	}
-//	else if (clampeduvw.x > 0.5f && clampeduvw.y <= 0.5f)
-//	{
-//		return this->color2;
-//	}
-//	else if (clampeduvw.x <= 0.5f && clampeduvw.y > 0.5f)
-//	{
-//		return this->color2;
-//	}
-//	else
-//	{
-//		return this->color1;
-//	}
-//}
-
 Color FindReflection(Node * traversingnode, Node * node, Ray originalray, Ray ray, HitInfo & hit, int bounce)
 {
 	int numberofchild = traversingnode->GetNumChild();
@@ -635,11 +580,11 @@ Color FindReflection(Node * traversingnode, Node * node, Ray originalray, Ray ra
 				return materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, bounce);
 			}
 		}
-		return Color(0, 0, 0);
+		return environment.SampleEnvironment(originalray.dir);
 	}
 	else
 	{
-		return Color(0, 0, 0);
+		return environment.SampleEnvironment(originalray.dir);
 	}
 }
 
@@ -717,11 +662,11 @@ Color FindRefraction(Node * traversingnode, Node * node, Ray originalray, Ray ra
 				return returnColor;
 			}
 		}
-		return Color(0, 0, 0);
+		return environment.SampleEnvironment(originalray.dir);
 	}
 	else
 	{
-		return Color(0, 0, 0);
+		return environment.SampleEnvironment(originalray.dir);
 	}
 }
 
@@ -850,7 +795,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 	{
 		if ((*light)->IsAmbient()) 
 		{
-			color += (*light)->Illuminate(hInfo.p, N) * this->diffuse.Sample(hInfo.uvw);
+			color += (*light)->Illuminate(hInfo.p, N) * this->diffuse.Sample(hInfo.uvw, hInfo.duvw);
 		}
 		else if(strcmp((*light)->GetName(), "directLight") == 0)
 		{
@@ -870,8 +815,8 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			}
 
 			float oneofcos = 1/hInfo.N.Dot(L);
-			Color specularpart = oneofcos * pow(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw);
-			Color diffusepart = this->diffuse.Sample(hInfo.uvw);
+			Color specularpart = oneofcos * pow(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
+			Color diffusepart = this->diffuse.Sample(hInfo.uvw, hInfo.duvw);
 			color += (diffusepart + specularpart) * IR;
 		}
 		else if (strcmp((*light)->GetName(), "pointLight") == 0)
@@ -892,8 +837,8 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			}
 
 			float oneofcos = 1/hInfo.N.Dot(L);
-			Color specularpart = oneofcos * pow(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw);
-			Color diffusepart = this->diffuse.Sample(hInfo.uvw);
+			Color specularpart = oneofcos * pow(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
+			Color diffusepart = this->diffuse.Sample(hInfo.uvw, hInfo.duvw);
 			color += (diffusepart + specularpart) * IR;
 		}
 	}
@@ -1088,6 +1033,17 @@ bool Plane::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 				hInfo.z = t;
 				hInfo.N = Vec3f(0, 0, 1);
 				hInfo.uvw = Vec3f(0.5f * point.x + 0.5f, 0.5f * point.y + 0.5f, point.z);
+
+				//hInfo.duvw[0] = Vec3f(t * ray.dir.x, 0.0f, 0.0f);
+				//hInfo.duvw[1] = Vec3f(0.0f, t * ray.dir.y, 0.0f);
+				//float t2 = -1 * ((ray.p + hInfo.duvw[0]).Dot(Vec3f(0, 0, 1))) / (ray.p + hInfo.duvw[0]).Dot(Vec3f(0, 0, 1));
+				//Vec3f point2 = ray.p + t2 * (ray.dir + hInfo.duvw[0]);
+				//hInfo.duvw[0] = point2 - point;
+
+				//float t3 = -1 * ((ray.p + hInfo.duvw[1]).Dot(Vec3f(0, 0, 1))) / (ray.p + hInfo.duvw[1]).Dot(Vec3f(0, 0, 1));
+				//Vec3f point3 = ray.p + t3 * (ray.dir + hInfo.duvw[1]);
+				//hInfo.duvw[1] = point3 - point;
+
 				return true;
 			}
 		}
@@ -1412,3 +1368,5 @@ bool TriObj::TraceBVHNode(Ray const & ray, HitInfo & hInfo, int hitSide, unsigne
 	}
 	return false;
 }
+
+

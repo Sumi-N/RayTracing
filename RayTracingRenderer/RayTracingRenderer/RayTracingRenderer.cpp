@@ -53,11 +53,16 @@ void RayTraversing(Node * traversingnode, Node * node, Ray ray, Color24 & pixel,
 		node = traversingnode->GetChild(i);
 		Ray changedray = node->ToNodeCoords(ray);
 
+		//hitinfo.duvw[0] = node->TransformTo(hit.duvw[0]);
+		//hitinfo.duvw[1] = node->TransformTo(hit.duvw[1]);
+
 		if (node->GetNodeObj() != nullptr) {
 			if(node->GetNodeObj()->IntersectRay(changedray, hitinfo, 0))
 			{
 				hitinfo.node = node;
 				node->FromNodeCoords(hitinfo);
+				//hitinfo.duvw[0] = node->TransformFrom(hitinfo.duvw[0]);
+				//hitinfo.duvw[1] = node->TransformFrom(hitinfo.duvw[1]);
 			}
 			hit = hitinfo;
 		}
@@ -84,6 +89,10 @@ void RayTraversing(Node * traversingnode, Node * node, Ray ray, Color24 & pixel,
 			if (materials.Find(node->GetMaterial()->GetName()) != nullptr)
 			{
 				pixel = (Color24)materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, TIMEOFREFRECTION);
+			}
+			else
+			{
+				pixel = (Color24)environment.SampleEnvironment(originalray.dir);
 			}
 		}
 	}
@@ -128,6 +137,8 @@ void BeginRender() {
 	for (int i = 0; i < renderImage.GetHeight(); i++) {
 		for (int j = 0; j < renderImage.GetWidth(); j++) {
 			HitInfo hit = HitInfo();
+			//hit.duvw[0] = (w / W) * x;
+			//hit.duvw[1] = (h / H) * y;
 			RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 		}
 	}

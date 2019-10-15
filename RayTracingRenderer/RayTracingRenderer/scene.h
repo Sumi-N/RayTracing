@@ -389,7 +389,7 @@ public:
 	Color GetColor() const { return color; }
 	const TextureMap* GetTexture() const { return map; }
 
-	Color Sample(Vec3f const &uvw) const { return (map) ? color * map->Sample(uvw) : color; }
+	Color Sample(Vec3f const &uvw) const { return (map) ? color * map->Sample(uvw): color; }
 	Color Sample(Vec3f const &uvw, Vec3f const duvw[2], bool elliptic = true) const { return (map) ? color * map->Sample(uvw, duvw, elliptic) : color; }
 
 	// Returns the color value at the given direction for environment mapping.
