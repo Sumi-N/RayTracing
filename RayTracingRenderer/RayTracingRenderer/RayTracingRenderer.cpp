@@ -24,11 +24,12 @@ TexturedColor background;
 TexturedColor environment;
 TextureList textureList;
 
-#define TIMEOFREFRECTION 3
+#define TIMEOFREFRECTION 5
 
 
 int main()
 {
+	//LoadScene(".\\xmlfiles\\assignment5.xml");
 	LoadScene(".\\xmlfiles\\assignment6.xml");
 	ShowViewport();
 }

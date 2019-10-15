@@ -171,6 +171,7 @@
   <ItemGroup>
     <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="RayTracingRenderer.cpp" />
+    <ClCompile Include="texture.cpp" />
     <ClCompile Include="viewport.cpp" />
     <ClCompile Include="xmlload.cpp" />
   </ItemGroup>

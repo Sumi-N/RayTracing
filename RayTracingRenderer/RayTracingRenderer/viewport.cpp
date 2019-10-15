@@ -539,61 +539,61 @@ bool TextureChecker::SetViewportTexture() const
 // Custom class I made
 //-------------------------------------------------------------------------------
 
-bool TextureFile::Load()
-{
-	unsigned int * width = new unsigned int[2000];
-	unsigned int * height = new unsigned int[2000];
-	unsigned char * data = new unsigned char[4000000 * 3];
-    unsigned char ** out = &data;
-
-	/*Same as lodepng_decode_file, but always decodes to 24-bit RGB raw image.*/
-	lodepng_decode24_file(out, width, height, this->GetName());
-	//return false;
-	this->width = *width;
-	this->height = *height;
-	for (int i = 0; i < this->height; i++) {
-		for (int j = 0; j < this->width; j++) {
-			unsigned char red   = data[(i * this->width + j) * 3 + 0];
-			unsigned char green = data[(i * this->width + j) * 3 + 1];
-			unsigned char blue  = data[(i * this->width + j) * 3 + 2];
-			Color24 tmp = Color24(red, green, blue);
-			this->data.push_back(tmp);
-		}
-	}
-	delete[] width;
-	delete[] height;
-	delete[] data;
-
-	return true;
-}
-Color TextureFile::Sample(Vec3f const & uvw) const
-{
-	Vec3f clampeduvw = this->TileClamp(uvw);
-	int W = (int)(clampeduvw.x * width);
-	int H = (int)(clampeduvw.y * height);
-	Color24 returncolor = data.at(W * height + H);
-	return static_cast<Color>(returncolor);
-}
-Color TextureChecker::Sample(Vec3f const & uvw) const
-{
-	Vec3f clampeduvw = this->TileClamp(uvw);
-	if (clampeduvw.x > 0.5f && clampeduvw.y > 0.5f)
-	{
-		return this->color1;
-	}
-	else if (clampeduvw.x > 0.5f && clampeduvw.y <= 0.5f)
-	{
-		return this->color2;
-	}
-	else if (clampeduvw.x <= 0.5f && clampeduvw.y > 0.5f)
-	{
-		return this->color2;
-	}
-	else
-	{
-		return this->color1;
-	}
-}
+//bool TextureFile::Load()
+//{
+//	unsigned int * width = new unsigned int[2000];
+//	unsigned int * height = new unsigned int[2000];
+//	unsigned char * data = new unsigned char[4000000 * 3];
+//    unsigned char ** out = &data;
+//
+//	/*Same as lodepng_decode_file, but always decodes to 24-bit RGB raw image.*/
+//	lodepng_decode24_file(out, width, height, this->GetName());
+//	//return false;
+//	this->width = *width;
+//	this->height = *height;
+//	for (int i = 0; i < this->height; i++) {
+//		for (int j = 0; j < this->width; j++) {
+//			unsigned char red   = data[(i * this->width + j) * 3 + 0];
+//			unsigned char green = data[(i * this->width + j) * 3 + 1];
+//			unsigned char blue  = data[(i * this->width + j) * 3 + 2];
+//			Color24 tmp = Color24(red, green, blue);
+//			this->data.push_back(tmp);
+//		}
+//	}
+//	delete[] width;
+//	delete[] height;
+//	delete[] data;
+//
+//	return true;
+//}
+//Color TextureFile::Sample(Vec3f const & uvw) const
+//{
+//	Vec3f clampeduvw = this->TileClamp(uvw);
+//	int W = (int)(clampeduvw.x * width);
+//	int H = (int)(clampeduvw.y * height);
+//	Color24 returncolor = data.at(H * width + W);
+//	return static_cast<Color>(returncolor);
+//}
+//Color TextureChecker::Sample(Vec3f const & uvw) const
+//{
+//	Vec3f clampeduvw = this->TileClamp(uvw);
+//	if (clampeduvw.x > 0.5f && clampeduvw.y > 0.5f)
+//	{
+//		return this->color1;
+//	}
+//	else if (clampeduvw.x > 0.5f && clampeduvw.y <= 0.5f)
+//	{
+//		return this->color2;
+//	}
+//	else if (clampeduvw.x <= 0.5f && clampeduvw.y > 0.5f)
+//	{
+//		return this->color2;
+//	}
+//	else
+//	{
+//		return this->color1;
+//	}
+//}
 
 Color FindReflection(Node * traversingnode, Node * node, Ray originalray, Ray ray, HitInfo & hit, int bounce)
 {
@@ -654,7 +654,7 @@ Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce)
 	{
 		//P is a surface point, 0.00003f is a bias
 		Vec3f P = hInfo.N;
-		P.Normalize(); P = 0.00008f * P; P += hInfo.p;
+		P.Normalize(); P = 0.001f * P; P += hInfo.p;
 
 		Vec3f V = -1 * ray.dir;
 		Vec3f R = 2 * (hInfo.N.Dot(V)) * hInfo.N - V;
@@ -846,21 +846,13 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 	Vec3f N = hInfo.N;
 	Color color = Color();
 
-	// If there is a texturering then use texturing
-	if (const TextureMap * texturemap = this->diffuse.GetTexture())
-	{
-		Color texturecolor = texturemap->Sample(hInfo.uvw);
-		const TexturedColor * tmp = &(this->diffuse);
-		const_cast<TexturedColor *>(tmp)->SetColor(texturecolor);
-	}
-
 	for (auto light = lights.begin(); light != lights.end(); ++light) 
 	{
 		if ((*light)->IsAmbient()) 
 		{
-			color += (*light)->Illuminate(hInfo.p, N) * this->diffuse.GetColor();
+			color += (*light)->Illuminate(hInfo.p, N) * this->diffuse.Sample(hInfo.uvw);
 		}
-		else if(strcmp((*light)->GetName(), "directionalLight") == 0)
+		else if(strcmp((*light)->GetName(), "directLight") == 0)
 		{
 			Vec3f L = -1 * (*light)->Direction(hInfo.p);
 			L.Normalize();
@@ -878,8 +870,8 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			}
 
 			float oneofcos = 1/hInfo.N.Dot(L);
-			Color specularpart = oneofcos * pow(H.Dot(hInfo.N), this->glossiness) * this->specular.GetColor();
-			Color diffusepart = this->diffuse.GetColor();
+			Color specularpart = oneofcos * pow(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw);
+			Color diffusepart = this->diffuse.Sample(hInfo.uvw);
 			color += (diffusepart + specularpart) * IR;
 		}
 		else if (strcmp((*light)->GetName(), "pointLight") == 0)
@@ -900,27 +892,27 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			}
 
 			float oneofcos = 1/hInfo.N.Dot(L);
-			Color specularpart = oneofcos * pow(H.Dot(hInfo.N), this->glossiness) * this->specular.GetColor();
-			Color diffusepart = this->diffuse.GetColor();
+			Color specularpart = oneofcos * pow(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw);
+			Color diffusepart = this->diffuse.Sample(hInfo.uvw);
 			color += (diffusepart + specularpart) * IR;
 		}
 	}
 
 	// Caluculate only relfection part for reflection
-	if (this->reflection.GetColor() != Color(0, 0, 0))
+	if (this->reflection.Sample(hInfo.uvw) != Color(0, 0, 0))
 	{
-		color += this->reflection.GetColor() * Reflection(ray, hInfo, bounce);
+		color += this->reflection.Sample(hInfo.uvw) * Reflection(ray, hInfo, bounce);
 	}
 
 	// Caluculate refraction part
-	if (this->refraction.GetColor() != Color(0, 0, 0))
+	if (this->refraction.Sample(hInfo.uvw) != Color(0, 0, 0))
 	{
 		// When it is a back side hit, it means that absorption gonna happen during inside the material the light go through
 		if (!hInfo.front)
 		{
 			color += CalculateAbsorption(color, absorption, hInfo.z);
 		}
-		color += Refraction(ray, hInfo, bounce, ior, refraction.GetColor());
+		color += Refraction(ray, hInfo, bounce, ior, refraction.Sample(hInfo.uvw));
 	}
 
 	return color;
@@ -1076,6 +1068,19 @@ bool Plane::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 	{
 		if (point.y >= -1 && point.y <= 1)
 		{
+			// this is for shadowprocess
+			if (hitSide == 1)
+			{
+				if (t > SHADOWBIAS & t <= hInfo.z)
+				{
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+
 			if (CheckZbuffer(hInfo.z, t))
 			{
 				hInfo.front = true;
@@ -1296,7 +1301,8 @@ bool TriObj::IntersectTriangle(Ray const & ray, HitInfo & hInfo, int hitSide, un
 			hInfo.z = t;
 			// This is for texturing
 			{
-				hInfo.uvw = beta0 * VT(i0) + beta1 * VT(i1) + beta2 * VT(i2);
+				Vec3f bc = Vec3f(beta0, beta1, beta2);
+				hInfo.uvw = GetTexCoord(faceID, bc);
 			}
 			return true;
 		}
