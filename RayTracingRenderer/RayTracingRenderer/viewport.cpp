@@ -1034,8 +1034,7 @@ bool Plane::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 				hInfo.N = Vec3f(0, 0, 1);
 				hInfo.uvw = Vec3f(0.5f * point.x + 0.5f, 0.5f * point.y + 0.5f, point.z);
 
-				//hInfo.duvw[0] = Vec3f(t * ray.dir.x, 0.0f, 0.0f);
-				//hInfo.duvw[1] = Vec3f(0.0f, t * ray.dir.y, 0.0f);
+
 				//float t2 = -1 * ((ray.p + hInfo.duvw[0]).Dot(Vec3f(0, 0, 1))) / (ray.p + hInfo.duvw[0]).Dot(Vec3f(0, 0, 1));
 				//Vec3f point2 = ray.p + t2 * (ray.dir + hInfo.duvw[0]);
 				//hInfo.duvw[0] = point2 - point;

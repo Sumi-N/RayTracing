@@ -1,11 +1,3 @@
 ﻿  RayTracingRenderer.cpp
-c:\users\u1217224\documents\graphicprojects\raytracing\raytracingrenderer\raytracingrenderer\raytracingrenderer.cpp(148): warning C4244: 'initializing': conversion from 'time_t' to 'double', possible loss of data
-  viewport.cpp
-c:\users\u1217224\documents\graphicprojects\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(958): warning C4554: '&': check operator precedence for possible error; use parentheses to clarify precedence
-c:\users\u1217224\documents\graphicprojects\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(972): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-c:\users\u1217224\documents\graphicprojects\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(985): warning C4554: '&': check operator precedence for possible error; use parentheses to clarify precedence
-c:\users\u1217224\documents\graphicprojects\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(998): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-c:\users\u1217224\documents\graphicprojects\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(1022): warning C4554: '&': check operator precedence for possible error; use parentheses to clarify precedence
-c:\users\u1217224\documents\graphicprojects\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(1273): warning C4018: '<': signed/unsigned mismatch
-  Generating Code...
+c:\users\u1217224\documents\graphicprojects\raytracing\raytracingrenderer\raytracingrenderer\raytracingrenderer.cpp(153): warning C4244: 'initializing': conversion from 'time_t' to 'double', possible loss of data
   RayTracingRenderer.vcxproj -> C:\Users\u1217224\Documents\GraphicProjects\RayTracing\RayTracingRenderer\Debug\RayTracingRenderer.exe
