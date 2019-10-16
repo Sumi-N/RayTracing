@@ -590,6 +590,21 @@ Color FindReflectionAndRefraction(Node * traversingnode, Node * node, Ray origin
 	}
 }
 
+float FresnelReflections(const HitInfo & hInfo, float refractionIndex, float cos1)
+{
+	float R0;
+	if (hInfo.front)
+	{
+		R0 = (1 - refractionIndex) / (1 + refractionIndex) * (1 - refractionIndex) / (1 + refractionIndex);
+	}
+	else
+	{
+		R0 = (refractionIndex - 1) / (1 + refractionIndex) * (refractionIndex - 1) / (1 + refractionIndex);
+	}
+
+	return R0 + (1 - R0) * pow(1 - cos1, 5);
+}
+
 Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce) 
 {
 	// bounce 1 is reflect 1 time
@@ -622,20 +637,6 @@ Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce)
 	}
 }
 
-float FresnelReflections(const HitInfo & hInfo, float refractionIndex, float cos1)
-{
-	float R0;
-	if (hInfo.front)
-	{
-		R0 = (1 - refractionIndex) / (1 + refractionIndex) * (1 - refractionIndex) / (1 + refractionIndex);
-	}
-	else
-	{
-		R0 = (refractionIndex -1) / (1 + refractionIndex) * (refractionIndex - 1) / (1 + refractionIndex);
-	}
-
-	return R0 + (1 - R0) * pow(1 - cos1,5);
-}
 
 Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refractionIndex, Color refraction)
 {
