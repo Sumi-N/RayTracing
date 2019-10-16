@@ -5,6 +5,8 @@
 extern MaterialList materials;
 extern TexturedColor environment;
 
+#define SHADOWBIAS 0.0005f
+
 //-------------------------------------------------------------------------------
 
 void ShowViewport()
@@ -597,9 +599,8 @@ Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce)
 	}
 	else
 	{
-		//P is a surface point, 0.00003f is a bias
 		Vec3f P = hInfo.N;
-		P.Normalize(); P = 0.001f * P; P += hInfo.p;
+		P.Normalize(); P = SHADOWBIAS * P; P += hInfo.p;
 
 		Vec3f V = -1 * ray.dir;
 		Vec3f R = 2 * (hInfo.N.Dot(V)) * hInfo.N - V;
@@ -695,7 +696,6 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 	}
 	else
 	{
-		// P is a surface point, 0.0001f is a bias
 		Vec3f P = hInfo.N;
 		P.Normalize();
 
@@ -709,12 +709,12 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 
 		if (hInfo.front)
 		{
-			P = -0.0001f * P;  P += hInfo.p;
+			P = - 1 * SHADOWBIAS * P;  P += hInfo.p;
 			cos1 = V.Dot(N); sin1 = sqrt(1 - (cos1 * cos1));
 		}
 		else
 		{
-			P = 0.0001f * P;  P += hInfo.p;
+			P = SHADOWBIAS * P;  P += hInfo.p;
 			cos1 = V.Dot(-N); sin1 = sqrt(1 - (cos1 * cos1));
 		}
 
@@ -862,8 +862,6 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 
 	return color;
 }
-
-#define SHADOWBIAS 0.0005f
 
 bool DetectShadow(Node * traversingnode, Node * node, Ray ray, float t_max)
 {
