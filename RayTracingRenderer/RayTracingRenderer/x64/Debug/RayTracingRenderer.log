@@ -1,9 +1,0 @@
-﻿  RayTracingRenderer.cpp
-c:\users\sumil\source\repos\raytracing\raytracingrenderer\raytracingrenderer\raytracingrenderer.cpp(27): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "pch.h"' to your source?
-  viewport.cpp
-c:\users\sumil\source\repos\raytracing\raytracingrenderer\raytracingrenderer\viewport.cpp(432): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "pch.h"' to your source?
-  xmlload.cpp
-c:\users\sumil\source\repos\raytracing\raytracingrenderer\raytracingrenderer\xmlload.cpp(27): warning C4005: 'COMPARE': macro redefinition
-  c:\users\sumil\source\repos\raytracing\raytracingrenderer\raytracingrenderer\xmlload.cpp(25): note: see previous definition of 'COMPARE'
-c:\users\sumil\source\repos\raytracing\raytracingrenderer\raytracingrenderer\xmlload.cpp(209): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "pch.h"' to your source?
-  Generating Code...

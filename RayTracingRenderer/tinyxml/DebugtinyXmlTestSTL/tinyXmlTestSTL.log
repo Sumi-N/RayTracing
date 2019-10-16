@@ -1,4 +1,0 @@
-﻿cl : Command line warning D9035: option 'Gm' has been deprecated and will be removed in a future release
-  xmltest.cpp
-xmltest.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/INCREMENTAL:NO' specification
-  tinyXmlTestSTL.vcxproj -> C:\Users\u1217224\Downloads\tinyxml_2_6_2\tinyxml\DebugtinyXmlTestSTL\tinyXmlTestSTL.exe

@@ -1,3 +1,0 @@
-﻿  RayTracingRenderer.cpp
-c:\users\u1217224\documents\graphicprojects\raytracing\raytracingrenderer\raytracingrenderer\raytracingrenderer.cpp(153): warning C4244: 'initializing': conversion from 'time_t' to 'double', possible loss of data
-  RayTracingRenderer.vcxproj -> C:\Users\u1217224\Documents\GraphicProjects\RayTracing\RayTracingRenderer\Debug\RayTracingRenderer.exe
