@@ -481,8 +481,8 @@ public:
 		hInfo.p = TransformFrom(hInfo.p);
 		hInfo.N = VectorTransformFrom(hInfo.N).GetNormalized();
 
-		//hInfo.duvw[0] = VectorTransformFrom(hInfo.duvw[0]);
-		//hInfo.duvw[1] = VectorTransformFrom(hInfo.duvw[1]);
+		hInfo.duvw[0] = VectorTransformFrom(hInfo.duvw[0]);
+		hInfo.duvw[1] = VectorTransformFrom(hInfo.duvw[1]);
 	}
 };
 

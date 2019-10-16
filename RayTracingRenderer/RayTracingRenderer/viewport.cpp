@@ -5,8 +5,6 @@
 extern MaterialList materials;
 extern TexturedColor environment;
 
-#define SHADOWBIAS 0.0005f
-
 //-------------------------------------------------------------------------------
 
 void ShowViewport()
@@ -542,7 +540,7 @@ bool TextureChecker::SetViewportTexture() const
 // Custom class I made
 //-------------------------------------------------------------------------------
 
-Color FindReflectionAndRefraction(Node * traversingnode, Node * node, Ray originalray, Ray ray, HitInfo & hit, int bounce)
+Color FindReflection(Node * traversingnode, Node * node, Ray originalray, Ray ray, HitInfo & hit, int bounce)
 {
 	int numberofchild = traversingnode->GetNumChild();
 	HitInfo hitinfo = HitInfo();
@@ -562,7 +560,7 @@ Color FindReflectionAndRefraction(Node * traversingnode, Node * node, Ray origin
 		if (node != nullptr)
 		{
 			Node * childnode = new Node();
-			FindReflectionAndRefraction(node, childnode, originalray, changedray, hit, bounce);
+			FindReflection(node, childnode, originalray, changedray, hit, bounce);
 			if (hit.node != nullptr && hit.node != hitinfo.node)
 			{
 				node->FromNodeCoords(hit);
@@ -582,8 +580,12 @@ Color FindReflectionAndRefraction(Node * traversingnode, Node * node, Ray origin
 				return materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, bounce);
 			}
 		}
+		return environment.SampleEnvironment(originalray.dir);
 	}
-	return environment.SampleEnvironment(originalray.dir);
+	else
+	{
+		return environment.SampleEnvironment(originalray.dir);
+	}
 }
 
 Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce) 
@@ -595,8 +597,9 @@ Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce)
 	}
 	else
 	{
+		//P is a surface point, 0.00003f is a bias
 		Vec3f P = hInfo.N;
-		P.Normalize(); P = SHADOWBIAS * P; P += hInfo.p;
+		P.Normalize(); P = 0.001f * P; P += hInfo.p;
 
 		Vec3f V = -1 * ray.dir;
 		Vec3f R = 2 * (hInfo.N.Dot(V)) * hInfo.N - V;
@@ -612,9 +615,58 @@ Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce)
 		Node * startnode = &rootNode;
 		HitInfo hitinfo;
 
-		Color returnColor = FindReflectionAndRefraction(startnode, node, S, S, hitinfo, bounce - 1);
+		Color returnColor = FindReflection(startnode, node, S, S, hitinfo, bounce - 1);
 		delete node;
 		return returnColor;
+	}
+}
+
+Color FindRefraction(Node * traversingnode, Node * node, Ray originalray, Ray ray, HitInfo & hit, int bounce)
+{
+	int numberofchild = traversingnode->GetNumChild();
+	HitInfo hitinfo = HitInfo();
+	for (int i = 0; i < numberofchild; i++)
+	{
+		node = traversingnode->GetChild(i);
+		Ray changedray = node->ToNodeCoords(ray);
+
+		if (node->GetNodeObj() != nullptr)
+			if (node->GetNodeObj()->IntersectRay(changedray, hitinfo, 0))
+			{
+				hitinfo.node = node;
+				node->FromNodeCoords(hitinfo);
+			}
+		hit = hitinfo;
+
+		if (node != nullptr)
+		{
+			Node * childnode = new Node();
+			FindRefraction(node, childnode, originalray, changedray, hit, bounce);
+			if (hit.node != nullptr && hit.node != hitinfo.node)
+			{
+				node->FromNodeCoords(hit);
+				hitinfo = hit;
+			}
+			delete childnode;
+		}
+	}
+
+	//Shading
+	if (node->GetNodeObj() != nullptr)
+	{
+		if (hitinfo.node != nullptr)
+		{
+			if (materials.Find(node->GetMaterial()->GetName()) != nullptr)
+			{
+				Color returnColor = materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, bounce);
+				return returnColor;
+			}
+		}
+		return environment.SampleEnvironment(originalray.dir);
+	}
+	else
+	{
+		return environment.SampleEnvironment(originalray.dir);
 	}
 }
 
@@ -643,6 +695,7 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 	}
 	else
 	{
+		// P is a surface point, 0.0001f is a bias
 		Vec3f P = hInfo.N;
 		P.Normalize();
 
@@ -656,12 +709,12 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 
 		if (hInfo.front)
 		{
-			P = -1 * SHADOWBIAS * P;  P += hInfo.p;
+			P = -0.0001f * P;  P += hInfo.p;
 			cos1 = V.Dot(N); sin1 = sqrt(1 - (cos1 * cos1));
 		}
 		else
 		{
-			P = SHADOWBIAS * P;  P += hInfo.p;
+			P = 0.0001f * P;  P += hInfo.p;
 			cos1 = V.Dot(-N); sin1 = sqrt(1 - (cos1 * cos1));
 		}
 
@@ -717,7 +770,7 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 		HitInfo hitinfo;
 
 		// Refraction part
-		Color returnColor = (1-R) * refraction * FindReflectionAndRefraction(startnode, node, S, S, hitinfo, bounce -1);
+		Color returnColor = (1-R) * refraction * FindRefraction(startnode, node, S, S, hitinfo, bounce -1);
 		// Reflection part
 		returnColor += R * refraction * Reflection(ray, hInfo, bounce);
 		delete node;
@@ -809,6 +862,8 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 
 	return color;
 }
+
+#define SHADOWBIAS 0.0005f
 
 bool DetectShadow(Node * traversingnode, Node * node, Ray ray, float t_max)
 {
