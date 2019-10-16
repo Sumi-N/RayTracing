@@ -637,7 +637,6 @@ Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce)
 	}
 }
 
-
 Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refractionIndex, Color refraction)
 {
 	float R;
@@ -984,14 +983,13 @@ bool Plane::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 				hInfo.N = Vec3f(0, 0, 1);
 				hInfo.uvw = Vec3f(0.5f * point.x + 0.5f, 0.5f * point.y + 0.5f, point.z);
 
+				//float t2 = -1 * (ray.p + hInfo.duvw[0]).Dot(Vec3f(0, 0, 1)) / ray.dir.Dot(Vec3f(0, 0, 1));
+				//Vec3f point2 = ray.p + hInfo.duvw[0] + t2 * (ray.dir);
+				//hInfo.duvw[0] = (1/2) * (0.5f * (point2 - point) + 0.5f);
 
-				//float t2 = -1 * ((ray.p + hInfo.duvw[0]).Dot(Vec3f(0, 0, 1))) / (ray.p + hInfo.duvw[0]).Dot(Vec3f(0, 0, 1));
-				//Vec3f point2 = ray.p + t2 * (ray.dir + hInfo.duvw[0]);
-				//hInfo.duvw[0] = point2 - point;
-
-				//float t3 = -1 * ((ray.p + hInfo.duvw[1]).Dot(Vec3f(0, 0, 1))) / (ray.p + hInfo.duvw[1]).Dot(Vec3f(0, 0, 1));
-				//Vec3f point3 = ray.p + t3 * (ray.dir + hInfo.duvw[1]);
-				//hInfo.duvw[1] = point3 - point;
+				//float t3 = -1 * (ray.p + hInfo.duvw[1]).Dot(Vec3f(0, 0, 1)) / ray.dir.Dot(Vec3f(0, 0, 1));
+				//Vec3f point3 = ray.p + hInfo.duvw[1] + t3 * (ray.dir);
+				//hInfo.duvw[1] = (1/2) * (0.5f * (point3 - point) + 0.5f);
 
 				return true;
 			}

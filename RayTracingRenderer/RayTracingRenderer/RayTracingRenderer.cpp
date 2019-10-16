@@ -49,12 +49,13 @@ void RayTraversing(Node * traversingnode, Node * node, Ray ray, Color24 & pixel,
 
 	int numberofchild = traversingnode->GetNumChild();
 	HitInfo hitinfo = HitInfo();
+
+	//hitinfo.duvw[0] = node->VectorTransformTo(hit.duvw[0]);
+	//hitinfo.duvw[1] = node->VectorTransformTo(hit.duvw[1]);
+
 	for (int i = 0; i < numberofchild; i++) {
 		node = traversingnode->GetChild(i);
 		Ray changedray = node->ToNodeCoords(ray);
-
-		//hitinfo.duvw[0] = node->VectorTransformTo(hit.duvw[0]);
-		//hitinfo.duvw[1] = node->VectorTransformTo(hit.duvw[1]);
 
 		if (node->GetNodeObj() != nullptr) {
 			if(node->GetNodeObj()->IntersectRay(changedray, hitinfo, 0))
@@ -77,6 +78,8 @@ void RayTraversing(Node * traversingnode, Node * node, Ray ray, Color24 & pixel,
 		}
 	}
 
+	//hitinfo.duvw[0] = node->VectorTransformFrom(hitinfo.duvw[0]);
+	//hitinfo.duvw[1] = node->VectorTransformFrom(hitinfo.duvw[1]);
 
 	if (node->GetNodeObj() != nullptr)
 	{
