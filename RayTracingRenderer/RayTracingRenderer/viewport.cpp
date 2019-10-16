@@ -540,7 +540,7 @@ bool TextureChecker::SetViewportTexture() const
 // Custom class I made
 //-------------------------------------------------------------------------------
 
-Color FindReflection(Node * traversingnode, Node * node, Ray originalray, Ray ray, HitInfo & hit, int bounce)
+Color FindReflectionAndRefraction(Node * traversingnode, Node * node, Ray originalray, Ray ray, HitInfo & hit, int bounce)
 {
 	int numberofchild = traversingnode->GetNumChild();
 	HitInfo hitinfo = HitInfo();
@@ -560,7 +560,7 @@ Color FindReflection(Node * traversingnode, Node * node, Ray originalray, Ray ra
 		if (node != nullptr)
 		{
 			Node * childnode = new Node();
-			FindReflection(node, childnode, originalray, changedray, hit, bounce);
+			FindReflectionAndRefraction(node, childnode, originalray, changedray, hit, bounce);
 			if (hit.node != nullptr && hit.node != hitinfo.node)
 			{
 				node->FromNodeCoords(hit);
@@ -580,12 +580,8 @@ Color FindReflection(Node * traversingnode, Node * node, Ray originalray, Ray ra
 				return materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, bounce);
 			}
 		}
-		return environment.SampleEnvironment(originalray.dir);
 	}
-	else
-	{
-		return environment.SampleEnvironment(originalray.dir);
-	}
+	return environment.SampleEnvironment(originalray.dir);
 }
 
 Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce) 
@@ -615,58 +611,9 @@ Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce)
 		Node * startnode = &rootNode;
 		HitInfo hitinfo;
 
-		Color returnColor = FindReflection(startnode, node, S, S, hitinfo, bounce - 1);
+		Color returnColor = FindReflectionAndRefraction(startnode, node, S, S, hitinfo, bounce - 1);
 		delete node;
 		return returnColor;
-	}
-}
-
-Color FindRefraction(Node * traversingnode, Node * node, Ray originalray, Ray ray, HitInfo & hit, int bounce)
-{
-	int numberofchild = traversingnode->GetNumChild();
-	HitInfo hitinfo = HitInfo();
-	for (int i = 0; i < numberofchild; i++)
-	{
-		node = traversingnode->GetChild(i);
-		Ray changedray = node->ToNodeCoords(ray);
-
-		if (node->GetNodeObj() != nullptr)
-			if (node->GetNodeObj()->IntersectRay(changedray, hitinfo, 0))
-			{
-				hitinfo.node = node;
-				node->FromNodeCoords(hitinfo);
-			}
-		hit = hitinfo;
-
-		if (node != nullptr)
-		{
-			Node * childnode = new Node();
-			FindRefraction(node, childnode, originalray, changedray, hit, bounce);
-			if (hit.node != nullptr && hit.node != hitinfo.node)
-			{
-				node->FromNodeCoords(hit);
-				hitinfo = hit;
-			}
-			delete childnode;
-		}
-	}
-
-	//Shading
-	if (node->GetNodeObj() != nullptr)
-	{
-		if (hitinfo.node != nullptr)
-		{
-			if (materials.Find(node->GetMaterial()->GetName()) != nullptr)
-			{
-				Color returnColor = materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, bounce);
-				return returnColor;
-			}
-		}
-		return environment.SampleEnvironment(originalray.dir);
-	}
-	else
-	{
-		return environment.SampleEnvironment(originalray.dir);
 	}
 }
 
@@ -770,7 +717,7 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 		HitInfo hitinfo;
 
 		// Refraction part
-		Color returnColor = (1-R) * refraction * FindRefraction(startnode, node, S, S, hitinfo, bounce -1);
+		Color returnColor = (1-R) * refraction * FindReflectionAndRefraction(startnode, node, S, S, hitinfo, bounce -1);
 		// Reflection part
 		returnColor += R * refraction * Reflection(ray, hInfo, bounce);
 		delete node;
