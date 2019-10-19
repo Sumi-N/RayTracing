@@ -901,7 +901,7 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 				if (hitSide == 1)
 				{
 					answer = large;
-					if (answer > SHADOWBIAS & answer <= hInfo.z)
+					if ((answer > SHADOWBIAS) & (answer <= hInfo.z))
 					{
 						return true;
 					}
@@ -915,7 +915,7 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 						hInfo.p = ray.p + large * ray.dir;
 						hInfo.N = hInfo.p;
 						float u = (1 / 2 * 3.14f) * atan2f(hInfo.p.y, hInfo.p.x) + .5f;
-						float v = (1 / 3.14) * asinf(hInfo.p.z) + 0.5f;
+						float v = (1 / 3.14f) * asinf(hInfo.p.z) + 0.5f;
 						hInfo.uvw = Vec3f(u, v, 0.0f);
 						return true;
 					}
@@ -928,7 +928,7 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 			if (hitSide == 1)
 			{
 				answer = small;
-				if (answer > SHADOWBIAS & answer <= hInfo.z)
+				if ((answer > SHADOWBIAS) & (answer <= hInfo.z))
 				{
 					return true;
 				}
@@ -941,7 +941,7 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 					hInfo.p = ray.p + small * ray.dir;
 					hInfo.N = hInfo.p;
 					float u = (1 / (2 * 3.14f)) * atan2f(hInfo.p.y, hInfo.p.x) + .5f;
-					float v = (1 / 3.14) * asinf(hInfo.p.z) + 0.5f;
+					float v = (1 / 3.14f) * asinf(hInfo.p.z) + 0.5f;
 					hInfo.uvw = Vec3f(u, v, 0.0f);
 					return true;
 				}
@@ -965,7 +965,7 @@ bool Plane::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 			// this is for shadowprocess
 			if (hitSide == 1)
 			{
-				if (t > SHADOWBIAS & t <= hInfo.z)
+				if ((t > SHADOWBIAS) & (t <= hInfo.z))
 				{
 					return true;
 				}
@@ -983,13 +983,13 @@ bool Plane::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 				hInfo.N = Vec3f(0, 0, 1);
 				hInfo.uvw = Vec3f(0.5f * point.x + 0.5f, 0.5f * point.y + 0.5f, point.z);
 
-				//float t2 = -1 * (ray.p + hInfo.duvw[0]).Dot(Vec3f(0, 0, 1)) / ray.dir.Dot(Vec3f(0, 0, 1));
-				//Vec3f point2 = ray.p + hInfo.duvw[0] + t2 * (ray.dir);
-				//hInfo.duvw[0] = (1/2) * (0.5f * (point2 - point) + 0.5f);
+				float t2 = -1 * (ray.p + hInfo.duvw[0]).Dot(Vec3f(0, 0, 1)) / ray.dir.Dot(Vec3f(0, 0, 1));
+				Vec3f point2 = ray.p + hInfo.duvw[0] + t2 * (ray.dir);
+				hInfo.duvw[0] = 1.0f * (point2 - point);
 
-				//float t3 = -1 * (ray.p + hInfo.duvw[1]).Dot(Vec3f(0, 0, 1)) / ray.dir.Dot(Vec3f(0, 0, 1));
-				//Vec3f point3 = ray.p + hInfo.duvw[1] + t3 * (ray.dir);
-				//hInfo.duvw[1] = (1/2) * (0.5f * (point3 - point) + 0.5f);
+				float t3 = -1 * (ray.p + hInfo.duvw[1]).Dot(Vec3f(0, 0, 1)) / ray.dir.Dot(Vec3f(0, 0, 1));
+				Vec3f point3 = ray.p + hInfo.duvw[1] + t3 * (ray.dir);
+				hInfo.duvw[1] = 1.0f * (point3 - point);
 
 				return true;
 			}
@@ -1005,6 +1005,7 @@ bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 	float xmax, ymax, zmax;
 	float maxofmin, minofmax;
 	bool detected = false;
+	bool secondcheck = false;
 
 	float x, y, z;
 
@@ -1016,6 +1017,7 @@ bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 		if (detected)
 		{
 			maxofmin = xmin;
+			secondcheck = true;
 		}
 		else
 		{
@@ -1032,6 +1034,7 @@ bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 		if (detected)
 		{
 			maxofmin = ymin;
+			secondcheck = true;
 		}
 		else
 		{
@@ -1048,6 +1051,7 @@ bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 		if (detected)
 		{
 			maxofmin = zmin;
+			secondcheck = true;
 		}
 		else
 		{
@@ -1064,6 +1068,7 @@ bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 		if (detected)
 		{
 			maxofmin = xmax;
+			secondcheck = true;
 		}
 		else
 		{
@@ -1080,17 +1085,13 @@ bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 		if (detected)
 		{
 			maxofmin = ymax;
+			secondcheck = true;
 		}
 		else
 		{
 			minofmax = ymax;
 			detected = true;
 		}
-	}
-
-	if (!detected)
-	{
-		return false;
 	}
 
 	zmax = (vertices[5] - ray.p.z) / ray.dir.z;
@@ -1101,12 +1102,18 @@ bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 		if (detected)
 		{
 			maxofmin = zmax;
+			secondcheck = true;
 		}
 		else
 		{
 			minofmax = zmax;
 			detected = true;
 		}
+	}
+
+	if (!detected | !secondcheck)
+	{
+		return false;
 	}
 
 	if (maxofmin <= minofmax)
@@ -1221,7 +1228,7 @@ bool TriObj::TraceBVHNode(Ray const & ray, HitInfo & hInfo, int hitSide, unsigne
 		const unsigned int* nodeelementslist = bvh.GetNodeElements(nodeID);
 
 		bool hit = false;
-		for (int i = 0; i < nodecount; i++)
+		for (int i = 0; i < (signed)nodecount; i++)
 		{
 			if (IntersectTriangle(ray, hInfo, hitSide, nodeelementslist[i]))
 			{

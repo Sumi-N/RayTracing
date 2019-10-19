@@ -50,8 +50,8 @@ void RayTraversing(Node * traversingnode, Node * node, Ray ray, Color24 & pixel,
 	int numberofchild = traversingnode->GetNumChild();
 	HitInfo hitinfo = HitInfo();
 
-	//hitinfo.duvw[0] = node->VectorTransformTo(hit.duvw[0]);
-	//hitinfo.duvw[1] = node->VectorTransformTo(hit.duvw[1]);
+	hitinfo.duvw[0] = node->VectorTransformTo(hit.duvw[0]);
+	hitinfo.duvw[1] = node->VectorTransformTo(hit.duvw[1]);
 
 	for (int i = 0; i < numberofchild; i++) {
 		node = traversingnode->GetChild(i);
@@ -78,8 +78,8 @@ void RayTraversing(Node * traversingnode, Node * node, Ray ray, Color24 & pixel,
 		}
 	}
 
-	//hitinfo.duvw[0] = node->VectorTransformFrom(hitinfo.duvw[0]);
-	//hitinfo.duvw[1] = node->VectorTransformFrom(hitinfo.duvw[1]);
+	hitinfo.duvw[0] = node->VectorTransformFrom(hitinfo.duvw[0]);
+	hitinfo.duvw[1] = node->VectorTransformFrom(hitinfo.duvw[1]);
 
 	if (node->GetNodeObj() != nullptr)
 	{
@@ -141,12 +141,22 @@ void BeginRender() {
 			HitInfo hit = HitInfo();
 			hit.duvw[0] = (w / W) * x;
 			hit.duvw[1] = (h / H) * y;
+			if (i == 125 && j == 22)
+			{
+				RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+			}
+
+			if (i == 432 && j == 6)
+			{
+				RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+			}
+
 			RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 		}
 	}
 
 	time(&time1);
-	double seconds = time1 - time0;
+	double seconds = (double)(time1 - time0);
 
 	printf("Done. Time was %f \n", seconds);
 	renderImage.SaveImage("saveimage.png");
