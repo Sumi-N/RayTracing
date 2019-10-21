@@ -28,7 +28,7 @@ TextureList textureList;
 #define RAYPERPIXEL 4
 #define SHADOWBIAS 0.0005f
 #define MAXSAMPLECOUNT 32
-#define SAMPLEVARIENCE 0.05f
+#define SAMPLEVARIENCE 0.005f
 
 
 int main()
@@ -142,7 +142,7 @@ Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node
 
 	for (int i = 0; i < RAYPERPIXEL; i++)
 	{
-		if (abs(variance.r) >= 0.005f || abs(variance.g) >= 0.005f || abs(variance.b) >= 0.005f)
+		if (abs(variance.r) >= SAMPLEVARIENCE || abs(variance.g) >= SAMPLEVARIENCE || abs(variance.b) >= SAMPLEVARIENCE)
 		{
 			if (samplecount < MAXSAMPLECOUNT)
 			{
@@ -945,79 +945,79 @@ bool TriObj::TraceBVHNode(Ray const & ray, HitInfo & hInfo, int hitSide, unsigne
 		const float * vertices1 = bvh.GetNodeBounds(child1id);
 		const float * vertices2 = bvh.GetNodeBounds(child2id);
 
-		float child1answer, child2answer;
+		float t_child1, t_child2;
 
-		if (!CheckBoxCollision(vertices1, ray, child1answer) & !(CheckBoxCollision(vertices2, ray, child2answer)))
+		if (!CheckBoxCollision(vertices1, ray, t_child1) & !(CheckBoxCollision(vertices2, ray, t_child2)))
 		{
 			return false;
 		}
 
-		if (child1answer < child2answer)
+		if (t_child1 < t_child2)
 		{
-			if (child1answer <= hInfo.z)
+			if (t_child1 <= hInfo.z)
 			{
-				bool hit2 = false;
+				bool hitcheck = false;
 				if (TraceBVHNode(ray, hInfo, hitSide, child1id))
 				{
-					hit2 = true;
+					hitcheck = true;
 
-					if (child2answer <= hInfo.z)
+					if (t_child2 <= hInfo.z)
 					{
-						if (TraceBVHNode(ray, hInfo, hitSide, child1id))
+						if (TraceBVHNode(ray, hInfo, hitSide, child2id))
 						{
-							hit2 = true;
+							hitcheck = true;
 						}
 					}
 				}
-				else if (child2answer <= hInfo.z)
+				else if (t_child2 <= hInfo.z)
 				{
 					if (TraceBVHNode(ray, hInfo, hitSide, child2id))
 					{
-						hit2 = true;
+						hitcheck = true;
 					}
 				}
-				return hit2;
+				return hitcheck;
 			}
 		}
-		else if (child1answer > child2answer)
+		else if (t_child1 > t_child2)
 		{
-			if (child2answer <= hInfo.z)
+			if (t_child2 <= hInfo.z)
 			{
-				bool hit2 = false;
+				bool hitcheck = false;
 				if (TraceBVHNode(ray, hInfo, hitSide, child2id))
 				{
-					hit2 = true;
+					hitcheck = true;
 
-					if (child2answer <= hInfo.z)
+					if (t_child1 <= hInfo.z)
 					{
 						if (TraceBVHNode(ray, hInfo, hitSide, child1id))
 						{
-							hit2 = true;
+							hitcheck = true;
 						}
 					}
 				}
-				else if (child2answer <= hInfo.z)
+				else if (t_child1 <= hInfo.z)
 				{
 					if (TraceBVHNode(ray, hInfo, hitSide, child1id))
 					{
-						hit2 = true;
+						hitcheck = true;
 					}
 				}
-				return hit2;
+				return hitcheck;
 			}
 		}
-		else if (child1answer == child2answer)
+		else if (t_child1 == t_child2)
 		{
-			bool hit2 = false;
+			bool hitcheck = false;
 			if (TraceBVHNode(ray, hInfo, hitSide, child1id))
 			{
-				hit2 = true;
+				hitcheck = true;
 			}
 			if (TraceBVHNode(ray, hInfo, hitSide, child2id))
 			{
-				hit2 = true;
+				hitcheck = true;
 			}
-			return hit2;
+			return hitcheck;
 		}
 	}
 	return false;
