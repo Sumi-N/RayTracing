@@ -27,6 +27,8 @@ TextureList textureList;
 #define TIMEOFREFRECTION 5
 #define RAYPERPIXEL 4
 #define SHADOWBIAS 0.0005f
+#define MAXSAMPLECOUNT 32
+#define SAMPLEVARIENCE 0.05f
 
 
 int main()
@@ -103,8 +105,9 @@ Color RayTraversing(Node * traversingnode, Node * node, Ray ray, float & zbuffer
 	}
 }
 
-Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node * traversingnode, Node * node, float & zbuffer, Ray originalray)
+Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node * traversingnode, Node * node, float & zbuffer, Ray originalray, uint8_t & samplecount)
 {
+	samplecount++;
 	Ray cameraraies[RAYPERPIXEL];
 	HitInfo hits[RAYPERPIXEL];
 	
@@ -114,17 +117,49 @@ Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node
 	cameraraies[2].dir = ray.dir - radiusrate * xaxis + radiusrate * yaxis;
 	cameraraies[3].dir = ray.dir - radiusrate * xaxis - radiusrate * yaxis;
 
-	Color pixelcolor = Color(0, 0, 0);
+	Color averagepixelcolor = Color(0, 0, 0);
+	Color pixelcolors[RAYPERPIXEL];
 
 	for (int i = 0; i < RAYPERPIXEL; i++)
 	{
 		cameraraies[i].p = ray.p;
 		cameraraies[i].Normalize();
 
-		pixelcolor += RayTraversing(traversingnode, node, cameraraies[i], zbuffer, cameraraies[i], hits[i]);
+		pixelcolors[i] = RayTraversing(traversingnode, node, cameraraies[i], zbuffer, cameraraies[i], hits[i]);
+		averagepixelcolor += RayTraversing(traversingnode, node, cameraraies[i], zbuffer, cameraraies[i], hits[i]);
 	}
-	pixelcolor /= 4;
-	return pixelcolor;
+
+	averagepixelcolor /= RAYPERPIXEL;
+	Color variance = Color(0, 0, 0);
+	
+	for (int i = 0; i < RAYPERPIXEL; i++)
+	{
+		variance += ((pixelcolors[i] - averagepixelcolor) * (pixelcolors[i] - averagepixelcolor));
+	}
+	variance /= RAYPERPIXEL;
+
+	Color answercolor = Color(0, 0, 0);
+
+	for (int i = 0; i < RAYPERPIXEL; i++)
+	{
+		if (abs(variance.r) >= 0.005f || abs(variance.g) >= 0.005f || abs(variance.b) >= 0.005f)
+		{
+			if (samplecount < MAXSAMPLECOUNT)
+			{
+				answercolor += AdaptiveSampling(cameraraies[i], radiusrate / 2.0f, xaxis, yaxis, traversingnode, node, zbuffer, originalray, samplecount);
+			}
+			else
+			{
+				answercolor += pixelcolors[i];
+			}
+		}
+		else
+		{
+			answercolor += pixelcolors[i];
+		}
+	}
+
+	return answercolor / RAYPERPIXEL;
 }
 
 void BeginRender() {
@@ -139,6 +174,7 @@ void BeginRender() {
 	Node * startnode = &rootNode;
 
 	float * zbuffers = renderImage.GetZBuffer();
+	uint8_t * samplecount = renderImage.GetSampleCount();
 	Color24* pixels = renderImage.GetPixels();
 	Ray * cameraray = new Ray[renderImage.GetHeight() * renderImage.GetWidth()];
 
@@ -161,6 +197,7 @@ void BeginRender() {
 			cameraray[i * renderImage.GetWidth() + j].dir = f + (j + 0.5f) * (w / W)*x - (i + 0.5f) * (h / H)*y - camera.pos;
 			cameraray[i * renderImage.GetWidth() + j].p = camera.pos;
 			zbuffers[i * renderImage.GetWidth() + j] = BIGFLOAT;
+			samplecount[i * renderImage.GetWidth() + j] = 0;
 			cameraray[i * renderImage.GetWidth() + j].Normalize();
 		}
 	}
@@ -171,7 +208,7 @@ void BeginRender() {
 			//hit.duvw[0] = (w / W) * x;
 			//hit.duvw[1] = (h / H) * y;
 
-			pixels[i * renderImage.GetWidth() + j] = (Color24)AdaptiveSampling(cameraray[i * renderImage.GetWidth() + j], 0.25f, (w / W)*x, (h / H)*y, startnode, node, zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j]);
+			pixels[i * renderImage.GetWidth() + j] = (Color24)AdaptiveSampling(cameraray[i * renderImage.GetWidth() + j], 0.25f, (w / W)*x, (h / H)*y, startnode, node, zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], samplecount[i * renderImage.GetWidth() + j]);
 
 
 			//HitInfo hit = HitInfo();
