@@ -27,8 +27,8 @@ TextureList textureList;
 #define TIMEOFREFRECTION 5
 #define RAYPERPIXEL 4
 #define SHADOWBIAS 0.0005f
-#define MAXSAMPLECOUNT 32
-#define SAMPLEVARIENCE 0.005f
+#define MAXSAMPLECOUNT 16
+#define SAMPLEVARIENCE 0.001f
 
 
 int main()
@@ -100,7 +100,7 @@ Color RayTraversing(Node * traversingnode, Node * node, Ray ray, float & zbuffer
 		}
 		else
 		{
-			return environment.SampleEnvironment(originalray.dir);
+			return Color(0, 0, 0);
 		}
 	}
 }
@@ -209,7 +209,11 @@ void BeginRender() {
 			//hit.duvw[1] = (h / H) * y;
 
 			pixels[i * renderImage.GetWidth() + j] = (Color24)AdaptiveSampling(cameraray[i * renderImage.GetWidth() + j], 0.25f, (w / W)*x, (h / H)*y, startnode, node, zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], samplecount[i * renderImage.GetWidth() + j]);
-
+			if (pixels[i * renderImage.GetWidth() + j] == (Color24)Color(0, 0, 0))
+			{
+				Vec3f v((float)j / renderImage.GetWidth(), (float)i / renderImage.GetHeight(), 0.0f);
+				pixels[i * renderImage.GetWidth() + j] = (Color24)background.Sample(v);
+			}
 
 			//HitInfo hit = HitInfo();
 			//if (i == 125 && j == 22)
