@@ -26,7 +26,6 @@ TextureList textureList;
 
 #define TIMEOFREFRECTION 5
 #define RAYPERPIXEL 4
-int rayperpixel = 4;
 
 
 int main()
@@ -118,8 +117,8 @@ void BeginRender() {
 	Color24* pixels = renderImage.GetPixels();
 	Ray * cameraray = new Ray[renderImage.GetHeight() * renderImage.GetWidth()];
 
-	Ray ** cameraraies = new Ray*[rayperpixel];
-	for (int i = 0; i < rayperpixel; i++) {
+	Ray ** cameraraies = new Ray*[RAYPERPIXEL];
+	for (int i = 0; i < RAYPERPIXEL; i++) {
 		cameraraies[i] = new Ray[renderImage.GetHeight() * renderImage.GetWidth()];
 	}
 
@@ -144,7 +143,7 @@ void BeginRender() {
 			zbuffers[i * renderImage.GetWidth() + j] = BIGFLOAT;
 			cameraray[i * renderImage.GetWidth() + j].Normalize();
 
-			for (int k = 0; k < rayperpixel; k++) 
+			for (int k = 0; k < RAYPERPIXEL; k++)
 			{
 				if (k == 0)
 				{
@@ -171,11 +170,36 @@ void BeginRender() {
 #pragma omp parallel for
 	for (int i = 0; i < renderImage.GetHeight(); i++) {
 		for (int j = 0; j < renderImage.GetWidth(); j++) {
-
-			HitInfo hit = HitInfo();
-
 			//hit.duvw[0] = (w / W) * x;
 			//hit.duvw[1] = (h / H) * y;
+
+			HitInfo hits[RAYPERPIXEL];
+			Vec3f tmp;
+			for (int k = 0; k < RAYPERPIXEL; k++)
+			{
+				hits[k] = HitInfo();
+				Color24 tmp2;
+				tmp2 =  (Color24)RayTraversing(startnode, node, cameraraies[k][i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraraies[k][i * renderImage.GetWidth() + j], hits[k]);
+				tmp = Vec3f(tmp.x + tmp2.r, tmp.y + tmp2.g, tmp.z + tmp2.b);
+			}
+			tmp = Vec3f(tmp.x / RAYPERPIXEL, tmp.y / RAYPERPIXEL, tmp.z / RAYPERPIXEL);
+
+			if (tmp.x > 255)
+			{
+				tmp.x = 255;
+			}
+			if (tmp.y > 255)
+			{
+				tmp.y = 255;
+			}
+			if (tmp.z > 255)
+			{
+				tmp.z = 255;
+			}
+
+			pixels[i * renderImage.GetWidth() + j] = Color24(tmp.x, tmp.y, tmp.z);
+
+			//HitInfo hit = HitInfo();
 			//if (i == 125 && j == 22)
 			//{
 			//	RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
@@ -185,15 +209,6 @@ void BeginRender() {
 			//{
 			//	RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 			//}
-
-			HitInfo hits[RAYPERPIXEL];
-			for (int k = 0; k < rayperpixel; k++)
-			{
-				hits[k] = HitInfo();
-
-				pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraraies[k][i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraraies[k][i * renderImage.GetWidth() + j], hits[k]);
-			}
-
 			//pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j],  zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 		}
 	}
@@ -206,7 +221,7 @@ void BeginRender() {
 	delete node;
 	delete cameraray;
 
-	for (int i = 0; i < rayperpixel; i++) {
+	for (int i = 0; i < RAYPERPIXEL; i++) {
 		delete[] cameraraies[i];
 	}
 
