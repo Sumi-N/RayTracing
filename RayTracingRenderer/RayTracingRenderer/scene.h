@@ -2,7 +2,7 @@
 ///
 /// \file       scene.h 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    7.0
+/// \version    8.0
 /// \date       August 21, 2019
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -81,7 +81,7 @@ public:
 	// 2:(x_min,y_max,z_min), 3:(x_max,y_max,z_min)
 	// 4:(x_min,y_min,z_max), 5:(x_max,y_min,z_max)
 	// 6:(x_min,y_max,z_max), 7:(x_max,y_max,z_max)
-	Vec3f Corner(int i) const	// 8 corners of the box
+	Vec3f Corner(int i) const // 8 corners of the box
 	{
 		Vec3f p;
 		p.x = (i & 1) ? pmax.x : pmin.x;
@@ -117,23 +117,36 @@ public:
 
 //-------------------------------------------------------------------------------
 
+inline float Halton(int index, int base)
+{
+	float r = 0;
+	float f = 1.0f / (float)base;
+	for (int i = index; i > 0; i /= base) {
+		r += f * (i%base);
+		f /= (float)base;
+	}
+	return r;
+}
+
+//-------------------------------------------------------------------------------
+
 class Node;
 
-#define HIT_NONE			0
-#define HIT_FRONT			1
-#define HIT_BACK			2
-#define HIT_FRONT_AND_BACK	(HIT_FRONT|HIT_BACK)
+#define HIT_NONE            0
+#define HIT_FRONT           1
+#define HIT_BACK            2
+#define HIT_FRONT_AND_BACK  (HIT_FRONT|HIT_BACK)
 
 struct HitInfo
 {
-	float       z;		// the distance from the ray center to the hit point
-	Vec3f       p;		// position of the hit point
-	Vec3f       N;		// surface normal at the hit point
-	Vec3f       uvw;	// texture coordinate at the hit point
+	float       z;      // the distance from the ray center to the hit point
+	Vec3f       p;      // position of the hit point
+	Vec3f       N;      // surface normal at the hit point
+	Vec3f       uvw;    // texture coordinate at the hit point
 	Vec3f       duvw[2];// derivatives of the texture coordinate
-	Node const *node;	// the object node that was hit
-	bool        front;	// true if the ray hits the front side, false if the ray hits the back side
-	int         mtlID;	// sub-material index
+	Node const *node;   // the object node that was hit
+	bool        front;  // true if the ray hits the front side, false if the ray hits the back side
+	int         mtlID;  // sub-material index
 
 	HitInfo() { Init(); }
 	void Init() { z = BIGFLOAT; node = nullptr; front = true; uvw.Set(0.5f, 0.5f, 0.5f); duvw[0].Zero(); duvw[1].Zero(); mtlID = 0; }
@@ -144,7 +157,7 @@ struct HitInfo
 class ItemBase
 {
 private:
-	char *name;					// The name of the item
+	char *name;                 // The name of the item
 
 public:
 	ItemBase() : name(nullptr) {}
@@ -201,17 +214,17 @@ private:
 class Transformation
 {
 private:
-	Matrix3f tm;			// Transformation matrix to the local space
-	Vec3f    pos;			// Translation part of the transformation matrix
-	mutable Matrix3f itm;	// Inverse of the transformation matrix (cached)
+	Matrix3f tm;            // Transformation matrix to the local space
+	Vec3f    pos;           // Translation part of the transformation matrix
+	mutable Matrix3f itm;   // Inverse of the transformation matrix (cached)
 public:
 	Transformation() : pos(0, 0, 0) { tm.SetIdentity(); itm.SetIdentity(); }
 	Matrix3f const& GetTransform() const { return tm; }
 	Vec3f    const& GetPosition() const { return pos; }
-	Matrix3f const&	GetInverseTransform() const { return itm; }
+	Matrix3f const& GetInverseTransform() const { return itm; }
 
-	Vec3f TransformTo(Vec3f const &p) const { return itm * (p - pos); }	// Transform to the local coordinate system
-	Vec3f TransformFrom(Vec3f const &p) const { return tm * p + pos; }	// Transform from the local coordinate system
+	Vec3f TransformTo(Vec3f const &p) const { return itm * (p - pos); } // Transform to the local coordinate system
+	Vec3f TransformFrom(Vec3f const &p) const { return tm * p + pos; }  // Transform from the local coordinate system
 
 	// Transforms a vector to the local coordinate system (same as multiplication with the inverse transpose of the transformation)
 	Vec3f VectorTransformTo(Vec3f const &dir) const { return TransposeMult(tm, dir); }
@@ -248,7 +261,7 @@ class Object
 public:
 	virtual bool IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide = HIT_FRONT) const = 0;
 	virtual Box  GetBoundBox() const = 0;
-	virtual void ViewportDisplay(const Material *mtl) const {}	// used for OpenGL display
+	virtual void ViewportDisplay(const Material *mtl) const {}  // used for OpenGL display
 };
 
 typedef ItemFileList<Object> ObjFileList;
@@ -261,7 +274,7 @@ public:
 	virtual Color Illuminate(Vec3f const &p, Vec3f const &N) const = 0;
 	virtual Vec3f Direction(Vec3f const &p) const = 0;
 	virtual bool  IsAmbient() const { return false; }
-	virtual void  SetViewportLight(int lightID) const {}	// used for OpenGL display
+	virtual void  SetViewportLight(int lightID) const {}    // used for OpenGL display
 };
 
 class LightList : public ItemList<Light> {};
@@ -277,7 +290,7 @@ public:
 	// bounceCount: permitted number of additional bounces for reflection and refraction.
 	virtual Color Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lights, int bounceCount) const = 0;
 
-	virtual void SetViewportMaterial(int subMtlID = 0) const {}	// used for OpenGL display
+	virtual void SetViewportMaterial(int subMtlID = 0) const {}   // used for OpenGL display
 };
 
 class MaterialList : public ItemList<Material>
@@ -301,9 +314,8 @@ public:
 		Color c = Sample(uvw);
 		if (duvw[0].LengthSquared() + duvw[1].LengthSquared() == 0) return c;
 		for (int i = 1; i < TEXTURE_SAMPLE_COUNT; i++) {
-			float x = 0, y = 0, fx = 0.5f, fy = 1.0f / 3.0f;
-			for (int ix = i; ix > 0; ix /= 2) { x += fx * (ix % 2); fx /= 2; }	// Halton sequence (base 2)
-			for (int iy = i; iy > 0; iy /= 3) { y += fy * (iy % 3); fy /= 3; }	// Halton sequence (base 3)
+			float x = Halton(i, 2);
+			float y = Halton(i, 3);
 			if (elliptic) {
 				float r = sqrtf(x)*0.5f;
 				x = r * sinf(y*(float)M_PI * 2);
@@ -318,7 +330,7 @@ public:
 		return c / float(TEXTURE_SAMPLE_COUNT);
 	}
 
-	virtual bool SetViewportTexture() const { return false; }	// used for OpenGL display
+	virtual bool SetViewportTexture() const { return false; }   // used for OpenGL display
 
 protected:
 
@@ -361,7 +373,7 @@ public:
 		return texture->Sample(u, d, elliptic);
 	}
 
-	bool SetViewportTexture() const { if (texture) return texture->SetViewportTexture(); return false; }	// used for OpenGL display
+	bool SetViewportTexture() const { if (texture) return texture->SetViewportTexture(); return false; }   // used for OpenGL display
 
 private:
 	Texture *texture;
@@ -389,7 +401,7 @@ public:
 	Color GetColor() const { return color; }
 	const TextureMap* GetTexture() const { return map; }
 
-	Color Sample(Vec3f const &uvw) const { return (map) ? color * map->Sample(uvw): color; }
+	Color Sample(Vec3f const &uvw) const { return (map) ? color * map->Sample(uvw) : color; }
 	Color Sample(Vec3f const &uvw, Vec3f const duvw[2], bool elliptic = true) const { return (map) ? color * map->Sample(uvw, duvw, elliptic) : color; }
 
 	// Returns the color value at the given direction for environment mapping.
@@ -408,11 +420,11 @@ public:
 class Node : public ItemBase, public Transformation
 {
 private:
-	Node **child;				// Child nodes
-	int numChild;				// The number of child nodes
-	Object *obj;				// Object reference (merely points to the object, but does not own the object, so it doesn't get deleted automatically)
-	Material *mtl;				// Material used for shading the object
-	Box childBoundBox;			// Bounding box of the child nodes, which does not include the object of this node, but includes the objects of the child nodes
+	Node **child;               // Child nodes
+	int numChild;               // The number of child nodes
+	Object *obj;                // Object reference (merely points to the object, but does not own the object, so it doesn't get deleted automatically)
+	Material *mtl;              // Material used for shading the object
+	Box childBoundBox;          // Bounding box of the child nodes, which does not include the object of this node, but includes the objects of the child nodes
 public:
 	Node() : child(nullptr), numChild(0), obj(nullptr), mtl(nullptr) {}
 	virtual ~Node() { DeleteAllChildNodes(); }
@@ -420,11 +432,11 @@ public:
 	void Init() { DeleteAllChildNodes(); obj = nullptr; mtl = nullptr; childBoundBox.Init(); SetName(nullptr); InitTransform(); } // Initialize the node deleting all child nodes
 
 	// Hierarchy management
-	int	 GetNumChild() const { return numChild; }
+	int  GetNumChild() const { return numChild; }
 	void SetNumChild(int n, int keepOld = false)
 	{
-		if (n < 0) n = 0;	// just to be sure
-		Node **nc = nullptr;	// new child pointer
+		if (n < 0) n = 0;    // just to be sure
+		Node **nc = nullptr;    // new child pointer
 		if (n > 0) nc = new Node*[n];
 		for (int i = 0; i < n; i++) nc[i] = nullptr;
 		if (keepOld) {
@@ -511,10 +523,12 @@ private:
 	Color24 *img;
 	float   *zbuffer;
 	uint8_t *zbufferImg;
+	uint8_t *sampleCount;
+	uint8_t *sampleCountImg;
 	int      width, height;
 	std::atomic<int> numRenderedPixels;
 public:
-	RenderImage() : img(nullptr), zbuffer(nullptr), zbufferImg(nullptr), width(0), height(0), numRenderedPixels(0) {}
+	RenderImage() : img(nullptr), zbuffer(nullptr), zbufferImg(nullptr), sampleCount(nullptr), sampleCountImg(nullptr), width(0), height(0), numRenderedPixels(0) {}
 	void Init(int w, int h)
 	{
 		width = w;
@@ -525,6 +539,10 @@ public:
 		zbuffer = new float[width*height];
 		if (zbufferImg) delete[] zbufferImg;
 		zbufferImg = nullptr;
+		if (sampleCount) delete[] sampleCount;
+		sampleCount = new uint8_t[width*height];
+		if (sampleCountImg) delete[] sampleCountImg;
+		sampleCountImg = nullptr;
 		ResetNumRenderedPixels();
 	}
 
@@ -533,6 +551,8 @@ public:
 	Color24* GetPixels() { return img; }
 	float*   GetZBuffer() { return zbuffer; }
 	uint8_t* GetZBufferImage() { return zbufferImg; }
+	uint8_t* GetSampleCount() { return sampleCount; }
+	uint8_t* GetSampleCountImage() { return sampleCountImg; }
 
 	void ResetNumRenderedPixels() { numRenderedPixels = 0; }
 	int  GetNumRenderedPixels() const { return numRenderedPixels; }
@@ -563,8 +583,34 @@ public:
 		}
 	}
 
+	int ComputeSampleCountImage()
+	{
+		int size = width * height;
+		if (sampleCountImg) delete[] sampleCountImg;
+		sampleCountImg = new uint8_t[size];
+
+		uint8_t smin = 255, smax = 0;
+		for (int i = 0; i < size; i++) {
+			if (smin > sampleCount[i]) smin = sampleCount[i];
+			if (smax < sampleCount[i]) smax = sampleCount[i];
+		}
+		if (smax == smin) {
+			for (int i = 0; i < size; i++) sampleCountImg[i] = 0;
+		}
+		else {
+			for (int i = 0; i < size; i++) {
+				int c = (255 * (sampleCount[i] - smin)) / (smax - smin);
+				if (c < 0) c = 0;
+				if (c > 255) c = 255;
+				sampleCountImg[i] = c;
+			}
+		}
+		return smax;
+	}
+
 	bool SaveImage(char const *filename) const { return SavePNG(filename, &img[0].r, 3); }
 	bool SaveZImage(char const *filename) const { return SavePNG(filename, zbufferImg, 1); }
+	bool SaveSampleCountImage(char const *filename) const { return SavePNG(filename, sampleCountImg, 1); }
 
 private:
 	bool SavePNG(char const *filename, uint8_t *data, int compCount) const

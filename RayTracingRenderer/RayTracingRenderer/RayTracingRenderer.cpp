@@ -25,6 +25,8 @@ TexturedColor environment;
 TextureList textureList;
 
 #define TIMEOFREFRECTION 5
+#define RAYPERPIXEL 4
+int rayperpixel = 4;
 
 
 int main()
@@ -45,13 +47,13 @@ int main()
 //   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
 //   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
 
-void RayTraversing(Node * traversingnode, Node * node, Ray ray, Color24 & pixel, float & zbuffer, Ray originalray, HitInfo & hit) {
+Color RayTraversing(Node * traversingnode, Node * node, Ray ray, float & zbuffer, Ray originalray, HitInfo & hit) {
 
 	int numberofchild = traversingnode->GetNumChild();
 	HitInfo hitinfo = HitInfo();
 
-	hitinfo.duvw[0] = node->VectorTransformTo(hit.duvw[0]);
-	hitinfo.duvw[1] = node->VectorTransformTo(hit.duvw[1]);
+	//hitinfo.duvw[0] = node->VectorTransformTo(hit.duvw[0]);
+	//hitinfo.duvw[1] = node->VectorTransformTo(hit.duvw[1]);
 
 	for (int i = 0; i < numberofchild; i++) {
 		node = traversingnode->GetChild(i);
@@ -68,7 +70,7 @@ void RayTraversing(Node * traversingnode, Node * node, Ray ray, Color24 & pixel,
 
 		if (node != nullptr) {
 			Node * childnode = new Node();
-			RayTraversing(node, childnode, changedray, pixel, zbuffer, originalray, hit);
+			RayTraversing(node, childnode, changedray, zbuffer, originalray, hit);
 			if (hit.node != nullptr && hit.node != hitinfo.node)
 			{
 				node->FromNodeCoords(hit);
@@ -78,8 +80,8 @@ void RayTraversing(Node * traversingnode, Node * node, Ray ray, Color24 & pixel,
 		}
 	}
 
-	hitinfo.duvw[0] = node->VectorTransformFrom(hitinfo.duvw[0]);
-	hitinfo.duvw[1] = node->VectorTransformFrom(hitinfo.duvw[1]);
+	//hitinfo.duvw[0] = node->VectorTransformFrom(hitinfo.duvw[0]);
+	//hitinfo.duvw[1] = node->VectorTransformFrom(hitinfo.duvw[1]);
 
 	if (node->GetNodeObj() != nullptr)
 	{
@@ -90,12 +92,13 @@ void RayTraversing(Node * traversingnode, Node * node, Ray ray, Color24 & pixel,
 			//Shading
 			if (materials.Find(node->GetMaterial()->GetName()) != nullptr)
 			{
-				pixel = (Color24)materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, TIMEOFREFRECTION);
+				//pixel = (Color24)materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, TIMEOFREFRECTION);
+				return materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, TIMEOFREFRECTION);
 			}
-			else
-			{
-				pixel = (Color24)environment.SampleEnvironment(originalray.dir);
-			}
+		}
+		else
+		{
+			return environment.SampleEnvironment(originalray.dir);
 		}
 	}
 }
@@ -115,6 +118,11 @@ void BeginRender() {
 	Color24* pixels = renderImage.GetPixels();
 	Ray * cameraray = new Ray[renderImage.GetHeight() * renderImage.GetWidth()];
 
+	Ray ** cameraraies = new Ray*[rayperpixel];
+	for (int i = 0; i < rayperpixel; i++) {
+		cameraraies[i] = new Ray[renderImage.GetHeight() * renderImage.GetWidth()];
+	}
+
 	float l = 1.0f;
 	float h = 2 * l * tanf((camera.fov / 2) * 3.14f / 180);
 	float w = camera.imgWidth * (h / camera.imgHeight);
@@ -127,31 +135,66 @@ void BeginRender() {
 
 	Vec3f f = camera.pos + l * camera.dir + (h / 2) * y - (w / 2) * x;
 
-	for (int i = 0; i < renderImage.GetHeight(); i++) {
-		for (int j = 0; j < renderImage.GetWidth(); j++) {
+	for (int i = 0; i < renderImage.GetHeight(); i++) 
+	{
+		for (int j = 0; j < renderImage.GetWidth(); j++) 
+		{
 			cameraray[i * renderImage.GetWidth() + j].dir = f + (j + 0.5f) * (w / W)*x - (i + 0.5f) * (h / H)*y - camera.pos;
 			cameraray[i * renderImage.GetWidth() + j].p = camera.pos;
 			zbuffers[i * renderImage.GetWidth() + j] = BIGFLOAT;
 			cameraray[i * renderImage.GetWidth() + j].Normalize();
+
+			for (int k = 0; k < rayperpixel; k++) 
+			{
+				if (k == 0)
+				{
+					cameraraies[k][i * renderImage.GetWidth() + j].dir = cameraray[i * renderImage.GetWidth() + j].dir - 0.25f * (w / W)*x + 0.25f * (h / H)*y;
+				}
+				else if (k == 1)
+				{
+					cameraraies[k][i * renderImage.GetWidth() + j].dir = cameraray[i * renderImage.GetWidth() + j].dir + 0.25f * (w / W)*x + 0.25f * (h / H)*y;
+				}
+				else if (k == 2)
+				{
+					cameraraies[k][i * renderImage.GetWidth() + j].dir = cameraray[i * renderImage.GetWidth() + j].dir - 0.25f * (w / W)*x - 0.25f * (h / H)*y;
+				}
+				else if (k == 3)
+				{
+					cameraraies[k][i * renderImage.GetWidth() + j].dir = cameraray[i * renderImage.GetWidth() + j].dir + 0.25f * (w / W)*x - 0.25f * (h / H)*y;
+				}
+
+				cameraraies[k][i * renderImage.GetWidth() + j].p = camera.pos;
+				cameraraies[k][i * renderImage.GetWidth() + j].Normalize();
+			}
 		}
 	}
 #pragma omp parallel for
 	for (int i = 0; i < renderImage.GetHeight(); i++) {
 		for (int j = 0; j < renderImage.GetWidth(); j++) {
+
 			HitInfo hit = HitInfo();
-			hit.duvw[0] = (w / W) * x;
-			hit.duvw[1] = (h / H) * y;
-			if (i == 125 && j == 22)
+
+			//hit.duvw[0] = (w / W) * x;
+			//hit.duvw[1] = (h / H) * y;
+			//if (i == 125 && j == 22)
+			//{
+			//	RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+			//}
+
+			//if (i == 432 && j == 6)
+			//{
+			//	RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+			//}
+
+			HitInfo hits[RAYPERPIXEL];
+			for (int k = 0; k < rayperpixel; k++)
 			{
-				RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+				hits[k] = HitInfo();
+
+				pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraraies[k][i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraraies[k][i * renderImage.GetWidth() + j], hits[k]);
 			}
 
-			if (i == 432 && j == 6)
-			{
-				RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
-			}
-
-			RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+			//pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j],  zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 		}
 	}
 
@@ -162,6 +205,11 @@ void BeginRender() {
 	renderImage.SaveImage("saveimage.png");
 	delete node;
 	delete cameraray;
+
+	for (int i = 0; i < rayperpixel; i++) {
+		delete[] cameraraies[i];
+	}
+
 	return;
 }
 

@@ -2,7 +2,7 @@
 ///
 /// \file       viewport.cpp 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    7.0
+/// \version    8.0
 /// \date       August 21, 2019
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -33,8 +33,8 @@
 
 //-------------------------------------------------------------------------------
 
-void BeginRender();	// Called to start rendering (renderer must run in a separate thread)
-void StopRender();	// Called to end rendering (if it is not already finished)
+void BeginRender(); // Called to start rendering (renderer must run in a separate thread)
+void StopRender();  // Called to end rendering (if it is not already finished)
 
 extern Node rootNode;
 extern Camera camera;
@@ -45,9 +45,9 @@ extern TexturedColor background;
 //-------------------------------------------------------------------------------
 
 enum Mode {
-	MODE_READY,			// Ready to render
-	MODE_RENDERING,		// Rendering the image
-	MODE_RENDER_DONE	// Rendering is finished
+	MODE_READY,         // Ready to render
+	MODE_RENDERING,     // Rendering the image
+	MODE_RENDER_DONE    // Rendering is finished
 };
 
 enum ViewMode
@@ -55,6 +55,7 @@ enum ViewMode
 	VIEWMODE_OPENGL,
 	VIEWMODE_IMAGE,
 	VIEWMODE_Z,
+	VIEWMODE_SAMPLECOUNT,
 };
 
 enum MouseMode {
@@ -63,10 +64,10 @@ enum MouseMode {
 	MOUSEMODE_ROTATE,
 };
 
-static Mode		mode = MODE_READY;		// Rendering mode
-static ViewMode	viewMode = VIEWMODE_OPENGL;	// Display mode
-static MouseMode mouseMode = MOUSEMODE_NONE;	// Mouse mode
-static int		startTime;						// Start time of rendering
+static Mode     mode = MODE_READY;       // Rendering mode
+static ViewMode viewMode = VIEWMODE_OPENGL;  // Display mode
+static MouseMode mouseMode = MOUSEMODE_NONE;   // Mouse mode
+static int      startTime;                      // Start time of rendering
 static int mouseX = 0, mouseY = 0;
 static float viewAngle1 = 0, viewAngle2 = 0;
 static GLuint viewTexture;

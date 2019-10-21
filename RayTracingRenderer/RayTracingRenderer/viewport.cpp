@@ -258,9 +258,12 @@ void GlutDisplay()
 		DrawRenderProgressBar();
 		break;
 	case VIEWMODE_Z:
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		if (!renderImage.GetZBufferImage()) renderImage.ComputeZBufferImage();
 		DrawImage(renderImage.GetZBufferImage(), GL_UNSIGNED_BYTE, GL_LUMINANCE);
+		break;
+	case VIEWMODE_SAMPLECOUNT:
+		if (!renderImage.GetSampleCountImage()) renderImage.ComputeSampleCountImage();
+		DrawImage(renderImage.GetSampleCountImage(), GL_UNSIGNED_BYTE, GL_LUMINANCE);
 		break;
 	}
 
@@ -295,7 +298,7 @@ void GlutIdle()
 void GlutKeyboard(unsigned char key, int x, int y)
 {
 	switch (key) {
-	case 27:	// ESC
+	case 27:    // ESC
 		exit(0);
 		break;
 	case ' ':
@@ -341,6 +344,10 @@ void GlutKeyboard(unsigned char key, int x, int y)
 		break;
 	case '3':
 		viewMode = VIEWMODE_Z;
+		glutPostRedisplay();
+		break;
+	case '4':
+		viewMode = VIEWMODE_SAMPLECOUNT;
 		glutPostRedisplay();
 		break;
 	}
@@ -499,7 +506,6 @@ void GenLight::SetViewportParam(int lightID, ColorA ambient, ColorA intensity, V
 	glLightfv(GL_LIGHT0 + lightID, GL_SPECULAR, &intensity.r);
 	glLightfv(GL_LIGHT0 + lightID, GL_POSITION, &pos.x);
 }
-
 bool TextureFile::SetViewportTexture() const
 {
 	if (viewportTextureID == 0) {
@@ -514,7 +520,6 @@ bool TextureFile::SetViewportTexture() const
 	glBindTexture(GL_TEXTURE_2D, viewportTextureID);
 	return true;
 }
-
 bool TextureChecker::SetViewportTexture() const
 {
 	if (viewportTextureID == 0) {
@@ -983,13 +988,13 @@ bool Plane::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 				hInfo.N = Vec3f(0, 0, 1);
 				hInfo.uvw = Vec3f(0.5f * point.x + 0.5f, 0.5f * point.y + 0.5f, point.z);
 
-				float t2 = -1 * (ray.p + hInfo.duvw[0]).Dot(Vec3f(0, 0, 1)) / ray.dir.Dot(Vec3f(0, 0, 1));
-				Vec3f point2 = ray.p + hInfo.duvw[0] + t2 * (ray.dir);
-				hInfo.duvw[0] = 1.0f * (point2 - point);
+				//float t2 = -1 * (ray.p + hInfo.duvw[0]).Dot(Vec3f(0, 0, 1)) / ray.dir.Dot(Vec3f(0, 0, 1));
+				//Vec3f point2 = ray.p + hInfo.duvw[0] + t2 * (ray.dir);
+				//hInfo.duvw[0] = 1.0f * (point2 - point);
 
-				float t3 = -1 * (ray.p + hInfo.duvw[1]).Dot(Vec3f(0, 0, 1)) / ray.dir.Dot(Vec3f(0, 0, 1));
-				Vec3f point3 = ray.p + hInfo.duvw[1] + t3 * (ray.dir);
-				hInfo.duvw[1] = 1.0f * (point3 - point);
+				//float t3 = -1 * (ray.p + hInfo.duvw[1]).Dot(Vec3f(0, 0, 1)) / ray.dir.Dot(Vec3f(0, 0, 1));
+				//Vec3f point3 = ray.p + hInfo.duvw[1] + t3 * (ray.dir);
+				//hInfo.duvw[1] = 1.0f * (point3 - point);
 
 				return true;
 			}
