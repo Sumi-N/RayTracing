@@ -102,6 +102,31 @@ Color RayTraversing(Node * traversingnode, Node * node, Ray ray, float & zbuffer
 	}
 }
 
+Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node * traversingnode, Node * node, float & zbuffer, Ray originalray)
+{
+	Ray cameraraies[RAYPERPIXEL];
+	HitInfo hits[RAYPERPIXEL];
+	
+	// Assuming RAYPERPIXEL is 4
+	cameraraies[0].dir = ray.dir + radiusrate * xaxis + radiusrate * yaxis;
+	cameraraies[1].dir = ray.dir + radiusrate * xaxis - radiusrate * yaxis;
+	cameraraies[2].dir = ray.dir - radiusrate * xaxis + radiusrate * yaxis;
+	cameraraies[3].dir = ray.dir - radiusrate * xaxis - radiusrate * yaxis;
+
+	Color pixelcolor = Color(0, 0, 0);
+
+	for (int i = 0; i < RAYPERPIXEL; i++)
+	{
+		cameraraies[i].p = ray.p;
+		cameraraies[i].Normalize();
+
+		Color tmp2;
+		pixelcolor += RayTraversing(traversingnode, node, cameraraies[i], zbuffer, cameraraies[i], hits[i]);
+	}
+	pixelcolor /= 4;
+	return pixelcolor;
+}
+
 void BeginRender() {
 
 	time_t time0;   // create timers.
@@ -173,31 +198,34 @@ void BeginRender() {
 			//hit.duvw[0] = (w / W) * x;
 			//hit.duvw[1] = (h / H) * y;
 
-			HitInfo hits[RAYPERPIXEL];
-			Vec3f tmp;
-			for (int k = 0; k < RAYPERPIXEL; k++)
-			{
-				hits[k] = HitInfo();
-				Color24 tmp2;
-				tmp2 =  (Color24)RayTraversing(startnode, node, cameraraies[k][i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraraies[k][i * renderImage.GetWidth() + j], hits[k]);
-				tmp = Vec3f(tmp.x + tmp2.r, tmp.y + tmp2.g, tmp.z + tmp2.b);
-			}
-			tmp = Vec3f(tmp.x / RAYPERPIXEL, tmp.y / RAYPERPIXEL, tmp.z / RAYPERPIXEL);
+			//HitInfo hits[RAYPERPIXEL];
+			//Vec3f tmp;
+			//for (int k = 0; k < RAYPERPIXEL; k++)
+			//{
+			//	hits[k] = HitInfo();
+			//	Color24 tmp2;
+			//	tmp2 =  (Color24)RayTraversing(startnode, node, cameraraies[k][i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraraies[k][i * renderImage.GetWidth() + j], hits[k]);
+			//	tmp = Vec3f(tmp.x + tmp2.r, tmp.y + tmp2.g, tmp.z + tmp2.b);
+			//}
+			//tmp = Vec3f(tmp.x / RAYPERPIXEL, tmp.y / RAYPERPIXEL, tmp.z / RAYPERPIXEL);
 
-			if (tmp.x > 255)
-			{
-				tmp.x = 255;
-			}
-			if (tmp.y > 255)
-			{
-				tmp.y = 255;
-			}
-			if (tmp.z > 255)
-			{
-				tmp.z = 255;
-			}
+			//if (tmp.x > 255)
+			//{
+			//	tmp.x = 255;
+			//}
+			//if (tmp.y > 255)
+			//{
+			//	tmp.y = 255;
+			//}
+			//if (tmp.z > 255)
+			//{
+			//	tmp.z = 255;
+			//}
 
-			pixels[i * renderImage.GetWidth() + j] = Color24(tmp.x, tmp.y, tmp.z);
+			//pixels[i * renderImage.GetWidth() + j] = Color24(tmp.x, tmp.y, tmp.z);
+
+			pixels[i * renderImage.GetWidth() + j] = (Color24)AdaptiveSampling(cameraray[i * renderImage.GetWidth() + j], 0.25f, (w / W)*x, (h / H)*y, startnode, node, zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j]);
+
 
 			//HitInfo hit = HitInfo();
 			//if (i == 125 && j == 22)
