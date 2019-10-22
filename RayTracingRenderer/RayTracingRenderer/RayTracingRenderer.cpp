@@ -27,7 +27,7 @@ TextureList textureList;
 #define TIMEOFREFRECTION 5
 #define RAYPERPIXEL 4
 #define SHADOWBIAS 0.0005f
-#define MAXSAMPLECOUNT 16
+#define MAXSAMPLECOUNT 8
 #define SAMPLEVARIENCE 0.001f
 
 
