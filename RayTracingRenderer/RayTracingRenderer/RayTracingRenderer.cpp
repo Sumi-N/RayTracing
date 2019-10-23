@@ -57,7 +57,8 @@ Color RayTraversing(Node * traversingnode, Node * node, Ray ray, float & zbuffer
 	//hitinfo.duvw[0] = node->VectorTransformTo(hit.duvw[0]);
 	//hitinfo.duvw[1] = node->VectorTransformTo(hit.duvw[1]);
 
-	for (int i = 0; i < numberofchild; i++) {
+	for (int i = 0; i < numberofchild; i++) 
+	{
 		node = traversingnode->GetChild(i);
 		Ray changedray = node->ToNodeCoords(ray);
 
@@ -71,14 +72,13 @@ Color RayTraversing(Node * traversingnode, Node * node, Ray ray, float & zbuffer
 		}
 
 		if (node != nullptr) {
-			Node * childnode = new Node();
-			RayTraversing(node, childnode, changedray, zbuffer, originalray, hit);
+			Node childnode;
+			RayTraversing(node, &childnode, changedray, zbuffer, originalray, hit);
 			if (hit.node != nullptr && hit.node != hitinfo.node)
 			{
 				node->FromNodeCoords(hit);
 				hitinfo = hit;
 			}
-			delete childnode;
 		}
 	}
 
@@ -248,6 +248,7 @@ Color FindReflectionAndRefraction(Node * traversingnode, Node * node, Ray origin
 {
 	int numberofchild = traversingnode->GetNumChild();
 	HitInfo hitinfo = HitInfo();
+
 	for (int i = 0; i < numberofchild; i++)
 	{
 		node = traversingnode->GetChild(i);
@@ -284,11 +285,11 @@ Color FindReflectionAndRefraction(Node * traversingnode, Node * node, Ray origin
 				return materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, bounce);
 			}
 		}
-		return environment.SampleEnvironment(originalray.dir);
+		//return environment.SampleEnvironment(originalray.dir);
 	}
 	else
 	{
-		return environment.SampleEnvironment(originalray.dir);
+		//return environment.SampleEnvironment(originalray.dir);
 	}
 }
 
@@ -342,7 +343,7 @@ Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce)
 Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refractionIndex, Color refraction)
 {
 	float R;
-	// bounce 1 is refract 1 time
+	// Add bounce + 1 because in most case refraction need to go through front and back sides of the object
 	if (bounce <= -1)
 	{
 		return Color(0, 0, 0);
@@ -390,6 +391,7 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 		if (sin2 > 1)
 		{
 			return Color(0, 0, 0);
+			//return Color(1, 1, 1);
 		}
 
 		if (hInfo.front)
@@ -401,7 +403,7 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 		}
 		else
 		{
-			// Horizontal dirction Vector
+			// Horizontal direction Vector
 			T_h = -cos2 * -N;
 			// Vertical Direction Vector
 			T_v = (V - (V.Dot(-N))* -N);
@@ -410,7 +412,6 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 		T_v = -sin2 * T_v;
 		// Combined horizontal and vertical
 		T = T_h + T_v;
-		float s = T.Length();
 
 		// S is a starting point from the surface point
 		Ray S;
@@ -423,7 +424,7 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 		HitInfo hitinfo;
 
 		// Refraction part
-		Color returnColor = (1 - R) * refraction * FindReflectionAndRefraction(startnode, node, S, S, hitinfo, bounce - 1);
+		Color returnColor = (1 - R) * refraction * FindReflectionAndRefraction(startnode, node, S, S, hitinfo, bounce-1);
 		// Reflection part
 		returnColor += R * refraction * Reflection(ray, hInfo, bounce);
 		delete node;
@@ -460,8 +461,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			H.Normalize();
 
 			// Incoming light
-			Color IR;
-			IR.r = 0; IR.g = 0; IR.b = 0;
+			Color IR = Color(0, 0, 0);
 			if (N.Dot(-1 * (*light)->Direction(hInfo.p)) >= 0)
 			{
 				IR = (*light)->Illuminate(hInfo.p, N) * N.Dot(L);
@@ -482,8 +482,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			H.Normalize();
 
 			// Incoming light
-			Color IR;
-			IR.r = 0; IR.g = 0; IR.b = 0;
+			Color IR = Color(0, 0, 0);
 			if (N.Dot(-1 * (*light)->Direction(hInfo.p)) >= 0)
 			{
 				IR = (*light)->Illuminate(hInfo.p, N) * N.Dot(L);
