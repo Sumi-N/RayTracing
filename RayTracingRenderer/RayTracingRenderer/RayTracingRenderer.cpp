@@ -225,6 +225,11 @@ void BeginRender() {
 			//	RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 			//}
 			pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j],  zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+			//if (pixels[i * renderImage.GetWidth() + j] == (Color24)Color(0, 0, 0))
+			//{
+			//	Vec3f v((float)j / renderImage.GetWidth(), (float)i / renderImage.GetHeight(), 0.0f);
+			//	pixels[i * renderImage.GetWidth() + j] = (Color24)background.Sample(v);
+			//}
 		}
 	}
 
@@ -285,12 +290,9 @@ Color FindReflectionAndRefraction(Node * traversingnode, Node * node, Ray origin
 				return materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, bounce);
 			}
 		}
-		//return environment.SampleEnvironment(originalray.dir);
+		//return background.Sample(originalray.dir);
 	}
-	else
-	{
-		//return environment.SampleEnvironment(originalray.dir);
-	}
+	return Color(0, 0, 0);
 }
 
 float FresnelReflections(const HitInfo & hInfo, float refractionIndex, float cos1)
@@ -392,26 +394,35 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 		{
 			return Color(0, 0, 0);
 			//return Color(1, 1, 1);
-		}
 
-		if (hInfo.front)
-		{
-			// Horizontal dirction Vector
-			T_h = -cos2 * N;
-			// Vertical Direction Vector
-			T_v = (V - (V.Dot(N))* N);
+			//T_h = -cos2 * N;
+			//T_v = (V - (V.Dot(-N))* -N);
+			//T_v.Normalize();
+			//T_v = -sin2 * T_v;
 		}
 		else
 		{
-			// Horizontal direction Vector
-			T_h = -cos2 * -N;
-			// Vertical Direction Vector
-			T_v = (V - (V.Dot(-N))* -N);
+			if (hInfo.front)
+			{
+				// Horizontal dirction Vector
+				T_h = -cos2 * N;
+				// Vertical Direction Vector
+				T_v = (V - (V.Dot(N))* N);
+			}
+			else
+			{
+				// Horizontal direction Vector
+				T_h = -cos2 * -N;
+				// Vertical Direction Vector
+				T_v = (V - (V.Dot(-N))* -N);
+			}
+			T_v.Normalize();
+			T_v = -sin2 * T_v;
 		}
-		T_v.Normalize();
-		T_v = -sin2 * T_v;
+
 		// Combined horizontal and vertical
 		T = T_h + T_v;
+		//T.Normalize();
 
 		// S is a starting point from the surface point
 		Ray S;
@@ -542,19 +553,19 @@ bool DetectShadow(Node * traversingnode, Node * node, Ray ray, float t_max)
 
 float GenLight::Shadow(Ray ray, float t_max)
 {
-	//Node * node = new Node();
-	//Node * startnode = &rootNode;
-	//if (DetectShadow(startnode, node, ray, t_max))
-	//{
-	//	delete node;
-	//	return 0.0f;
-	//}
-	//else
-	//{
-	//	delete node;
-	//	return 1.0f;
-	//}
-	return 1.0f;
+	Node * node = new Node();
+	Node * startnode = &rootNode;
+	if (DetectShadow(startnode, node, ray, t_max))
+	{
+		delete node;
+		return 0.0f;
+	}
+	else
+	{
+		delete node;
+		return 1.0f;
+	}
+	//return 1.0f;
 }
 
 bool CheckZbuffer(float & zbuffer, float answer)
@@ -906,11 +917,18 @@ bool TriObj::IntersectTriangle(Ray const & ray, HitInfo & hInfo, int hitSide, un
 			beta1 = std::abs(a1 / a);
 			beta2 = std::abs(a2 / a);
 
-			//Vec3f normal = beta0 * vn[i0] + beta1 * vn[i1] + beta2 * vn[i2];
 			Vec3f bc = Vec3f(beta0, beta1, beta2);
+			//Vec3f normal = beta0 * vn[i0] + beta1 * vn[i1] + beta2 * vn[i2];
 			Vec3f normal = GetNormal(faceID, bc);
-
-			hInfo.front = true;
+			
+			if (a0 >= 0 && a1 >= 0 && a2 >= 0)
+			{
+				hInfo.front = false;
+			}
+			else if (a0 < 0 && a1 < 0 && a2 < 0)
+			{
+				hInfo.front = true;
+			}
 			hInfo.N = normal;
 			hInfo.p = point;
 			hInfo.z = t;
