@@ -23,6 +23,7 @@
       <rotate angle="-180" z="1"/>
       <translate x="2" y="-5" z="0"/>
     </object>
+                    <!--
     <object type="sphere" name="sphere1" material="checkerMtl">
       <scale value="6"/>
       <translate x="15" y="2" z="6"/>
@@ -31,6 +32,7 @@
       <scale value="5"/>
       <translate x="-8" y="-16" z="5"/>
     </object>
+              -->
  
     <!-- Materials -->
     <material type="blinn" name="ground">

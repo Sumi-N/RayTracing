@@ -351,11 +351,5 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
-# Log file
-RayTracingRenderer.log
-RayTracingRenderer.pdb
-RayTracingRenderer.ipdb
-RayTracingRenderer.iobj
-link.read.1.tlog
-RayTracingRenderer.write.1u.tlog
-saveimage.png
+# Igonre obj files for models in a certain directory
+!RayTracingRenderer/RayTracingRenderer/objfiles/*
