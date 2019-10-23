@@ -24,7 +24,7 @@ TexturedColor background;
 TexturedColor environment;
 TextureList textureList;
 
-#define TIMEOFREFRECTION 5
+#define TIMEOFREFRECTION 2
 #define RAYPERPIXEL 4
 #define SHADOWBIAS 0.0005f
 #define MAXSAMPLECOUNT 8
@@ -33,8 +33,8 @@ TextureList textureList;
 
 int main()
 {
-	//LoadScene(".\\xmlfiles\\assignment5.xml");
-	LoadScene(".\\xmlfiles\\assignment6.xml");
+	LoadScene(".\\xmlfiles\\playground.xml");
+	//LoadScene(".\\xmlfiles\\assignment6.xml");
 	ShowViewport();
 }
 
@@ -94,7 +94,6 @@ Color RayTraversing(Node * traversingnode, Node * node, Ray ray, float & zbuffer
 			//Shading
 			if (materials.Find(node->GetMaterial()->GetName()) != nullptr)
 			{
-				//pixel = (Color24)materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, TIMEOFREFRECTION);
 				return materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, TIMEOFREFRECTION);
 			}
 		}
@@ -208,14 +207,14 @@ void BeginRender() {
 			//hit.duvw[0] = (w / W) * x;
 			//hit.duvw[1] = (h / H) * y;
 
-			pixels[i * renderImage.GetWidth() + j] = (Color24)AdaptiveSampling(cameraray[i * renderImage.GetWidth() + j], 0.25f, (w / W)*x, (h / H)*y, startnode, node, zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], samplecount[i * renderImage.GetWidth() + j]);
-			if (pixels[i * renderImage.GetWidth() + j] == (Color24)Color(0, 0, 0))
-			{
-				Vec3f v((float)j / renderImage.GetWidth(), (float)i / renderImage.GetHeight(), 0.0f);
-				pixels[i * renderImage.GetWidth() + j] = (Color24)background.Sample(v);
-			}
+			//pixels[i * renderImage.GetWidth() + j] = (Color24)AdaptiveSampling(cameraray[i * renderImage.GetWidth() + j], 0.25f, (w / W)*x, (h / H)*y, startnode, node, zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], samplecount[i * renderImage.GetWidth() + j]);
+			//if (pixels[i * renderImage.GetWidth() + j] == (Color24)Color(0, 0, 0))
+			//{
+			//	Vec3f v((float)j / renderImage.GetWidth(), (float)i / renderImage.GetHeight(), 0.0f);
+			//	pixels[i * renderImage.GetWidth() + j] = (Color24)background.Sample(v);
+			//}
 
-			//HitInfo hit = HitInfo();
+			HitInfo hit = HitInfo();
 			//if (i == 125 && j == 22)
 			//{
 			//	RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
@@ -225,7 +224,7 @@ void BeginRender() {
 			//{
 			//	RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 			//}
-			//pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j],  zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+			pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j],  zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 		}
 	}
 
@@ -544,18 +543,19 @@ bool DetectShadow(Node * traversingnode, Node * node, Ray ray, float t_max)
 
 float GenLight::Shadow(Ray ray, float t_max)
 {
-	Node * node = new Node();
-	Node * startnode = &rootNode;
-	if (DetectShadow(startnode, node, ray, t_max))
-	{
-		delete node;
-		return 0.0f;
-	}
-	else
-	{
-		delete node;
-		return 1.0f;
-	}
+	//Node * node = new Node();
+	//Node * startnode = &rootNode;
+	//if (DetectShadow(startnode, node, ray, t_max))
+	//{
+	//	delete node;
+	//	return 0.0f;
+	//}
+	//else
+	//{
+	//	delete node;
+	//	return 1.0f;
+	//}
+	return 1.0f;
 }
 
 bool CheckZbuffer(float & zbuffer, float answer)
@@ -907,7 +907,9 @@ bool TriObj::IntersectTriangle(Ray const & ray, HitInfo & hInfo, int hitSide, un
 			beta1 = std::abs(a1 / a);
 			beta2 = std::abs(a2 / a);
 
-			Vec3f normal = beta0 * vn[i0] + beta1 * vn[i1] + beta2 * vn[i2];
+			//Vec3f normal = beta0 * vn[i0] + beta1 * vn[i1] + beta2 * vn[i2];
+			Vec3f bc = Vec3f(beta0, beta1, beta2);
+			Vec3f normal = GetNormal(faceID, bc);
 
 			hInfo.front = true;
 			hInfo.N = normal;
@@ -915,7 +917,6 @@ bool TriObj::IntersectTriangle(Ray const & ray, HitInfo & hInfo, int hitSide, un
 			hInfo.z = t;
 			// This is for texturing
 			{
-				Vec3f bc = Vec3f(beta0, beta1, beta2);
 				hInfo.uvw = GetTexCoord(faceID, bc);
 			}
 			return true;
