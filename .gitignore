@@ -351,5 +351,5 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
-# Igonre obj files for models in a certain directory
+# Exculde from ignoring certain obj files for models in a certain directory
 !RayTracingRenderer/RayTracingRenderer/objfiles/*

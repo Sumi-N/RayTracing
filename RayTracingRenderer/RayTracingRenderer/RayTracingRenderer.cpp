@@ -201,7 +201,7 @@ void BeginRender() {
 			cameraray[i * renderImage.GetWidth() + j].Normalize();
 		}
 	}
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int i = 0; i < renderImage.GetHeight(); i++) {
 		for (int j = 0; j < renderImage.GetWidth(); j++) {
 
@@ -216,12 +216,11 @@ void BeginRender() {
 			//}
 
 			HitInfo hit = HitInfo();
-			//if (i == 247 && j == 301)
-			//{
-			//	pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
-			//}
-
-			pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j],  zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+			if (i == 271 && j == 300)
+			{
+				pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+			}
+			pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 			if (pixels[i * renderImage.GetWidth() + j] == (Color24)Color(0, 0, 0))
 			{
 				Vec3f v((float)j / renderImage.GetWidth(), (float)i / renderImage.GetHeight(), 0.0f);
@@ -363,13 +362,16 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 		if (hInfo.front)
 		{
 			P = -1 * SHADOWBIAS * P;  P += hInfo.p;
-			cos1 = V.Dot(N); sin1 = sqrt(1 - (cos1 * cos1));
+			cos1 = V.Dot(N); 
 		}
 		else
 		{
 			P = SHADOWBIAS * P;  P += hInfo.p;
-			cos1 = V.Dot(-N); sin1 = sqrt(1 - (cos1 * cos1));
+			cos1 = V.Dot(-N); 
 		}
+		sin1 = sqrt(1 - (cos1 * cos1));
+
+		
 
 		// Calculate fresnel reflection
 		R = FresnelReflections(hInfo, refractionIndex, cos1);
@@ -594,20 +596,17 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 
 		if (answer1 >= answer2)
 		{
-			large = answer1;
-			small = answer2;
+			large = answer1; small = answer2;
 		}
 		else
 		{
-			large = answer2;
-			small = answer1;
+			large = answer2; small = answer1;
 		}
 
 		if (small < 0)
 		{
 			if (large > 0)
 			{
-
 				// this is for shadowprocess
 				if (hitSide == 1)
 				{
