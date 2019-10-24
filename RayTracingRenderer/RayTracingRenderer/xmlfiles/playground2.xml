@@ -3,7 +3,7 @@
     <!-- Objects -->
     <object name="box">
       <translate x="0" y="0" z="12"/>
-      <object type="plane" name="WallBottom" material="wall">
+      <object type="plane" name="WallBottom" material="wallBlue">
         <scale value="32"/>
         <translate z="-12"/>
       </object>
@@ -12,7 +12,7 @@
         <rotate angle="180" x="1"/>
         <translate z="12"/>
       </object>
-      <object type="plane" name="WallBack" material="wall">
+      <object type="plane" name="WallBack" material="wallRed">
         <scale value="32"/>
         <rotate angle="90" x="1"/>
         <translate y="20"/>
@@ -28,9 +28,9 @@
         <translate x="15"/>
       </object>
     </object>
-    <object type="obj" name="objfiles/teapot_old.obj" material="refractive">
+    <object type="obj" name="objfiles/teapot.obj" material="refractive">
       <scale value="0.8"/>
-      <rotate angle="-30" z="1"/>
+      <rotate angle="-180" z="1"/>
       <translate x="2" y="5" z="0"/>
     </object>
     <object type="sphere" name="sphere2" material="refractive">
@@ -69,7 +69,7 @@
       <diffuse  r="0.1" g="0.9" b="0.1"/>
       <specular value="0.8"/>
       <glossiness value="100"/>
-      <refraction index="1.52" value="1"/>
+      <refraction index="2.0" value="1"/>
     </material>
 
     <!-- Lights -->

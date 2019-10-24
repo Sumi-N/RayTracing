@@ -24,7 +24,7 @@ TexturedColor background;
 TexturedColor environment;
 TextureList textureList;
 
-#define TIMEOFREFRECTION 1
+#define TIMEOFREFRECTION 3
 #define RAYPERPIXEL 4
 #define SHADOWBIAS 0.0005f
 #define MAXSAMPLECOUNT 8
@@ -359,16 +359,28 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 
 		float cos1, cos2, sin1, sin2;
 
-		if (hInfo.front)
+		if (V.Dot(N) >= 0)
 		{
 			P = -1 * SHADOWBIAS * P;  P += hInfo.p;
-			cos1 = V.Dot(N); 
+			cos1 = V.Dot(N);
 		}
 		else
 		{
 			P = SHADOWBIAS * P;  P += hInfo.p;
-			cos1 = V.Dot(-N); 
+			cos1 = V.Dot(-N);
 		}
+
+		//if (hInfo.front)
+		//{
+		//	P = -1 * SHADOWBIAS * P;  P += hInfo.p;
+		//	cos1 = V.Dot(N); 
+		//}
+		//else
+		//{
+		//	P = SHADOWBIAS * P;  P += hInfo.p;
+		//	cos1 = V.Dot(-N); 
+		//}
+
 		sin1 = sqrt(1 - (cos1 * cos1));
 
 		
@@ -378,7 +390,7 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 
 		Vec3f T_h, T_v, T;
 
-		if (hInfo.front)
+		if (V.Dot(N) >= 0)
 		{
 			sin2 = (1 / refractionIndex) * sin1;
 		}
@@ -386,6 +398,15 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 		{
 			sin2 = refractionIndex * sin1;
 		}
+
+		//if (hInfo.front)
+		//{
+		//	sin2 = (1 / refractionIndex) * sin1;
+		//}
+		//else
+		//{
+		//	sin2 = refractionIndex * sin1;
+		//}
 		cos2 = sqrt(1 - (sin2 * sin2));
 
 		// Total internal reflection
@@ -401,7 +422,7 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 		}
 		else
 		{
-			if (hInfo.front)
+			if (V.Dot(N) >= 0)
 			{
 				// Horizontal dirction Vector
 				T_h = -cos2 * N;
@@ -415,6 +436,20 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 				// Vertical Direction Vector
 				T_v = (V - (V.Dot(-N))* -N);
 			}
+			//if (hInfo.front)
+			//{
+			//	// Horizontal dirction Vector
+			//	T_h = -cos2 * N;
+			//	// Vertical Direction Vector
+			//	T_v = (V - (V.Dot(N))* N);
+			//}
+			//else
+			//{
+			//	// Horizontal direction Vector
+			//	T_h = -cos2 * -N;
+			//	// Vertical Direction Vector
+			//	T_v = (V - (V.Dot(-N))* -N);
+			//}
 			T_v.Normalize();
 			T_v = -sin2 * T_v;
 		}
