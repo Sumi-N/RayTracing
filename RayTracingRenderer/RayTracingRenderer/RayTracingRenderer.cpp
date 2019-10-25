@@ -24,7 +24,7 @@ TexturedColor background;
 TexturedColor environment;
 TextureList textureList;
 
-#define TIMEOFREFRECTION 3
+#define TIMEOFREFRECTION 5
 #define RAYPERPIXEL 4
 #define SHADOWBIAS 0.0005f
 #define MAXSAMPLECOUNT 8
@@ -33,9 +33,9 @@ TextureList textureList;
 
 int main()
 {
-	//LoadScene(".\\xmlfiles\\playground.xml");
-	LoadScene(".\\xmlfiles\\playground2.xml");
-	//LoadScene(".\\xmlfiles\\assignment6.xml");
+	//LoadScene(".\\xmlfiles\\playground2.xml");
+	//LoadScene(".\\xmlfiles\\catscene.xml");
+	LoadScene(".\\xmlfiles\\assignment6.xml");
 	ShowViewport();
 }
 
@@ -201,31 +201,31 @@ void BeginRender() {
 			cameraray[i * renderImage.GetWidth() + j].Normalize();
 		}
 	}
-//#pragma omp parallel for
+#pragma omp parallel for
 	for (int i = 0; i < renderImage.GetHeight(); i++) {
 		for (int j = 0; j < renderImage.GetWidth(); j++) {
 
 			//hit.duvw[0] = (w / W) * x;
 			//hit.duvw[1] = (h / H) * y;
 
-			//pixels[i * renderImage.GetWidth() + j] = (Color24)AdaptiveSampling(cameraray[i * renderImage.GetWidth() + j], 0.25f, (w / W)*x, (h / H)*y, startnode, node, zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], samplecount[i * renderImage.GetWidth() + j]);
-			//if (pixels[i * renderImage.GetWidth() + j] == (Color24)Color(0, 0, 0))
-			//{
-			//	Vec3f v((float)j / renderImage.GetWidth(), (float)i / renderImage.GetHeight(), 0.0f);
-			//	pixels[i * renderImage.GetWidth() + j] = (Color24)background.Sample(v);
-			//}
-
-			HitInfo hit = HitInfo();
-			if (i == 271 && j == 300)
-			{
-				pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
-			}
-			pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+			pixels[i * renderImage.GetWidth() + j] = (Color24)AdaptiveSampling(cameraray[i * renderImage.GetWidth() + j], 0.25f, (w / W)*x, (h / H)*y, startnode, node, zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], samplecount[i * renderImage.GetWidth() + j]);
 			if (pixels[i * renderImage.GetWidth() + j] == (Color24)Color(0, 0, 0))
 			{
 				Vec3f v((float)j / renderImage.GetWidth(), (float)i / renderImage.GetHeight(), 0.0f);
 				pixels[i * renderImage.GetWidth() + j] = (Color24)background.Sample(v);
 			}
+
+			//HitInfo hit = HitInfo();
+			//if (i == 271 && j == 300)
+			//{
+			//	pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+			//}
+			//pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+			//if (pixels[i * renderImage.GetWidth() + j] == (Color24)Color(0, 0, 0))
+			//{
+			//	Vec3f v((float)j / renderImage.GetWidth(), (float)i / renderImage.GetHeight(), 0.0f);
+			//	pixels[i * renderImage.GetWidth() + j] = (Color24)background.Sample(v);
+			//}
 		}
 	}
 
@@ -399,14 +399,6 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 			sin2 = refractionIndex * sin1;
 		}
 
-		//if (hInfo.front)
-		//{
-		//	sin2 = (1 / refractionIndex) * sin1;
-		//}
-		//else
-		//{
-		//	sin2 = refractionIndex * sin1;
-		//}
 		cos2 = sqrt(1 - (sin2 * sin2));
 
 		// Total internal reflection
@@ -436,20 +428,7 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 				// Vertical Direction Vector
 				T_v = (V - (V.Dot(-N))* -N);
 			}
-			//if (hInfo.front)
-			//{
-			//	// Horizontal dirction Vector
-			//	T_h = -cos2 * N;
-			//	// Vertical Direction Vector
-			//	T_v = (V - (V.Dot(N))* N);
-			//}
-			//else
-			//{
-			//	// Horizontal direction Vector
-			//	T_h = -cos2 * -N;
-			//	// Vertical Direction Vector
-			//	T_v = (V - (V.Dot(-N))* -N);
-			//}
+
 			T_v.Normalize();
 			T_v = -sin2 * T_v;
 		}

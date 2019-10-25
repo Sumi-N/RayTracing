@@ -2,7 +2,7 @@
 ///
 /// \file       viewport.cpp 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    8.0
+/// \version    9.0
 /// \date       August 21, 2019
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -71,6 +71,12 @@ static int      startTime;                      // Start time of rendering
 static int mouseX = 0, mouseY = 0;
 static float viewAngle1 = 0, viewAngle2 = 0;
 static GLuint viewTexture;
+
+static int      dofDrawCount = 0;
+static Color    *dofImage = nullptr;
+static Color24 *dofBuffer = nullptr;
+
+#define MAX_DOF_DRAW    32
 
 //-------------------------------------------------------------------------------
 

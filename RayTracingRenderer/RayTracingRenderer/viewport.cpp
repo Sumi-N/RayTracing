@@ -11,7 +11,8 @@ void ShowViewport()
 	char *argv = argstr;
 	glutInit(&argc, &argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
-	if (glutGet(GLUT_SCREEN_WIDTH) > 0 && glutGet(GLUT_SCREEN_HEIGHT) > 0) {
+	if (glutGet(GLUT_SCREEN_WIDTH) > 0 && glutGet(GLUT_SCREEN_HEIGHT) > 0)
+	{
 		glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH) - camera.imgWidth) / 2, (glutGet(GLUT_SCREEN_HEIGHT) - camera.imgHeight) / 2);
 	}
 	else glutInitWindowPosition(50, 50);
@@ -38,6 +39,13 @@ void ShowViewport()
 
 	glLineWidth(2);
 
+	if (camera.dof > 0)
+	{
+		dofBuffer = new Color24[camera.imgWidth * camera.imgHeight];
+		dofImage = new Color[camera.imgWidth * camera.imgHeight];
+		memset(dofImage, 0, camera.imgWidth * camera.imgHeight * sizeof(Color));
+	}
+
 	glGenTextures(1, &viewTexture);
 	glBindTexture(GL_TEXTURE_2D, viewTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -50,10 +58,12 @@ void ShowViewport()
 
 void GlutReshape(int w, int h)
 {
-	if (w != camera.imgWidth || h != camera.imgHeight) {
+	if (w != camera.imgWidth || h != camera.imgHeight)
+	{
 		glutReshapeWindow(camera.imgWidth, camera.imgHeight);
 	}
-	else {
+	else
+	{
 		glViewport(0, 0, w, h);
 
 		glMatrixMode(GL_PROJECTION);
@@ -83,7 +93,8 @@ void DrawNode(Node *node)
 	Object *obj = node->GetNodeObj();
 	if (obj) obj->ViewportDisplay(mtl);
 
-	for (int i = 0; i < node->GetNumChild(); i++) {
+	for (int i = 0; i < node->GetNumChild(); i++)
+	{
 		DrawNode(node->GetChild(i));
 	}
 
@@ -97,7 +108,8 @@ void DrawScene()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	const TextureMap *bgMap = background.GetTexture();
-	if (bgMap) {
+	if (bgMap)
+	{
 		glDepthMask(GL_FALSE);
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
@@ -105,7 +117,8 @@ void DrawScene()
 		glMatrixMode(GL_MODELVIEW);
 		Color c = background.GetColor();
 		glColor3f(c.r, c.g, c.b);
-		if (bgMap->SetViewportTexture()) {
+		if (bgMap->SetViewportTexture())
+		{
 			glEnable(GL_TEXTURE_2D);
 			glMatrixMode(GL_TEXTURE);
 			Matrix3f tm = bgMap->GetInverseTransform();
@@ -114,7 +127,8 @@ void DrawScene()
 			glLoadMatrixf(m);
 			glMatrixMode(GL_MODELVIEW);
 		}
-		else {
+		else
+		{
 			glDisable(GL_TEXTURE_2D);
 		}
 		glBegin(GL_QUADS);
@@ -140,19 +154,29 @@ void DrawScene()
 
 	glPushMatrix();
 	Vec3f p = camera.pos;
-	Vec3f t = camera.pos + camera.dir;
+	Vec3f t = camera.pos + camera.dir*camera.focaldist;
 	Vec3f u = camera.up;
+	if (camera.dof > 0)
+	{
+		Vec3f v = camera.dir ^ camera.up;
+		float r = sqrtf(float(rand()) / RAND_MAX)*camera.dof;
+		float a = float(M_PI) * 2.0f * float(rand()) / RAND_MAX;
+		p += r * cosf(a)*v + r * sinf(a)*u;
+	}
 	gluLookAt(p.x, p.y, p.z, t.x, t.y, t.z, u.x, u.y, u.z);
 
 	glRotatef(viewAngle1, 1, 0, 0);
 	glRotatef(viewAngle2, 0, 0, 1);
 
-	if (lights.size() > 0) {
-		for (unsigned int i = 0; i < lights.size(); i++) {
+	if (lights.size() > 0)
+	{
+		for (unsigned int i = 0; i < lights.size(); i++)
+		{
 			lights[i]->SetViewportLight(i);
 		}
 	}
-	else {
+	else
+	{
 		float white[] = { 1,1,1,1 };
 		float black[] = { 0,0,0,0 };
 		Vec4f p(camera.pos, 1);
@@ -244,9 +268,37 @@ void DrawRenderProgressBar()
 
 void GlutDisplay()
 {
-	switch (viewMode) {
+	switch (viewMode)
+	{
 	case VIEWMODE_OPENGL:
-		DrawScene();
+		if (dofImage)
+		{
+			if (dofDrawCount < MAX_DOF_DRAW)
+			{
+				DrawScene();
+				glReadPixels(0, 0, camera.imgWidth, camera.imgHeight, GL_RGB, GL_UNSIGNED_BYTE, dofBuffer);
+				for (int i = 0, y = 0; y < camera.imgHeight; y++)
+				{
+					int j = (camera.imgHeight - y - 1)*camera.imgWidth;
+					for (int x = 0; x < camera.imgWidth; x++, i++, j++)
+					{
+						dofImage[i] = (dofImage[i] * float(dofDrawCount) + dofBuffer[j].ToColor()) / float(dofDrawCount + 1);
+					}
+				}
+				dofDrawCount++;
+			}
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+			DrawImage(dofImage, GL_FLOAT, GL_RGB);
+			if (dofDrawCount < MAX_DOF_DRAW)
+			{
+				DrawProgressBar(float(dofDrawCount) / MAX_DOF_DRAW);
+				glutPostRedisplay();
+			}
+		}
+		else
+		{
+			DrawScene();
+		}
 		break;
 	case VIEWMODE_IMAGE:
 		DrawImage(renderImage.GetPixels(), GL_UNSIGNED_BYTE, GL_RGB);
@@ -270,11 +322,14 @@ void GlutDisplay()
 void GlutIdle()
 {
 	static int lastRenderedPixels = 0;
-	if (mode == MODE_RENDERING) {
+	if (mode == MODE_RENDERING)
+	{
 		int nrp = renderImage.GetNumRenderedPixels();
-		if (lastRenderedPixels != nrp) {
+		if (lastRenderedPixels != nrp)
+		{
 			lastRenderedPixels = nrp;
-			if (renderImage.IsRenderDone()) {
+			if (renderImage.IsRenderDone())
+			{
 				mode = MODE_RENDER_DONE;
 				int endTime = (int)time(nullptr);
 				int t = endTime - startTime;
@@ -292,24 +347,36 @@ void GlutIdle()
 
 void GlutKeyboard(unsigned char key, int x, int y)
 {
-	switch (key) {
+	switch (key)
+	{
 	case 27:    // ESC
 		exit(0);
 		break;
 	case ' ':
-		switch (mode) {
+		switch (mode)
+		{
 		case MODE_READY:
 			mode = MODE_RENDERING;
 			viewMode = VIEWMODE_IMAGE;
-			DrawScene();
-			glReadPixels(0, 0, renderImage.GetWidth(), renderImage.GetHeight(), GL_RGB, GL_UNSIGNED_BYTE, renderImage.GetPixels());
+			if (dofImage)
 			{
-				Color24 *c = renderImage.GetPixels();
-				for (int y0 = 0, y1 = renderImage.GetHeight() - 1; y0 < y1; y0++, y1--) {
-					int i0 = y0 * renderImage.GetWidth();
-					int i1 = y1 * renderImage.GetWidth();
-					for (int x = 0; x < renderImage.GetWidth(); x++, i0++, i1++) {
-						Color24 t = c[i0]; c[i0] = c[i1]; c[i1] = t;
+				Color24 *p = renderImage.GetPixels();
+				for (int i = 0; i < camera.imgWidth*camera.imgHeight; i++) p[i] = Color24(dofImage[i]);
+			}
+			else
+			{
+				DrawScene();
+				glReadPixels(0, 0, renderImage.GetWidth(), renderImage.GetHeight(), GL_RGB, GL_UNSIGNED_BYTE, renderImage.GetPixels());
+				{
+					Color24 *c = renderImage.GetPixels();
+					for (int y0 = 0, y1 = renderImage.GetHeight() - 1; y0 < y1; y0++, y1--)
+					{
+						int i0 = y0 * renderImage.GetWidth();
+						int i1 = y1 * renderImage.GetWidth();
+						for (int x = 0; x < renderImage.GetWidth(); x++, i0++, i1++)
+						{
+							Color24 t = c[i0]; c[i0] = c[i1]; c[i1] = t;
+						}
 					}
 				}
 			}
@@ -352,13 +419,15 @@ void GlutKeyboard(unsigned char key, int x, int y)
 
 void PrintPixelData(int x, int y)
 {
-	if (x < renderImage.GetWidth() && y < renderImage.GetHeight()) {
+	if (x < renderImage.GetWidth() && y < renderImage.GetHeight())
+	{
 		Color24 *colors = renderImage.GetPixels();
 		float *zbuffer = renderImage.GetZBuffer();
 		int i = (renderImage.GetHeight() - y - 1) *renderImage.GetWidth() + x;
 		printf("Pixel [ %d, %d ] Color24: %d, %d, %d   Z: %f\n", x, y, colors[i].r, colors[i].g, colors[i].b, zbuffer[i]);
 	}
-	else {
+	else
+	{
 		printf("-- Invalid pixel (%d,%d) --\n", x, y);
 	}
 }
@@ -367,11 +436,14 @@ void PrintPixelData(int x, int y)
 
 void GlutMouse(int button, int state, int x, int y)
 {
-	if (state == GLUT_UP) {
+	if (state == GLUT_UP)
+	{
 		mouseMode = MOUSEMODE_NONE;
 	}
-	else {
-		switch (button) {
+	else
+	{
+		switch (button)
+		{
 		case GLUT_LEFT_BUTTON:
 			mouseMode = MOUSEMODE_DEBUG;
 			PrintPixelData(x, y);
@@ -389,7 +461,8 @@ void GlutMouse(int button, int state, int x, int y)
 
 void GlutMotion(int x, int y)
 {
-	switch (mouseMode) {
+	switch (mouseMode)
+	{
 	case MOUSEMODE_DEBUG:
 		PrintPixelData(x, y);
 		break;
@@ -409,7 +482,8 @@ void GlutMotion(int x, int y)
 void Sphere::ViewportDisplay(const Material *mtl) const
 {
 	static GLUquadric *q = nullptr;
-	if (q == nullptr) {
+	if (q == nullptr)
+	{
 		q = gluNewQuadric();
 		gluQuadricTexture(q, true);
 	}
@@ -424,9 +498,11 @@ void Plane::ViewportDisplay(const Material *mtl) const
 	glNormal3f(0, 0, 1);
 	glBegin(GL_QUADS);
 	float y1 = -1, y2 = xyInc - 1, v1 = 0, v2 = uvInc;
-	for (int y = 0; y < resolution; y++) {
+	for (int y = 0; y < resolution; y++)
+	{
 		float x1 = -1, x2 = xyInc - 1, u1 = 0, u2 = uvInc;
-		for (int x = 0; x < resolution; x++) {
+		for (int x = 0; x < resolution; x++)
+		{
 			glTexCoord2f(u1, v1);
 			glVertex3f(x1, y1, 0);
 			glTexCoord2f(u2, v1);
@@ -446,16 +522,20 @@ void TriObj::ViewportDisplay(const Material *mtl) const
 {
 	unsigned int nextMtlID = 0;
 	unsigned int nextMtlSwith = NF();
-	if (mtl && NM() > 0) {
+	if (mtl && NM() > 0)
+	{
 		mtl->SetViewportMaterial(0);
 		nextMtlSwith = GetMaterialFaceCount(0);
 		nextMtlID = 1;
 	}
 	glBegin(GL_TRIANGLES);
-	for (unsigned int i = 0; i < NF(); i++) {
-		while (i >= nextMtlSwith) {
+	for (unsigned int i = 0; i < NF(); i++)
+	{
+		while (i >= nextMtlSwith)
+		{
 			if (nextMtlID >= NM()) nextMtlSwith = NF();
-			else {
+			else
+			{
 				glEnd();
 				nextMtlSwith += GetMaterialFaceCount(nextMtlID);
 				mtl->SetViewportMaterial(nextMtlID);
@@ -463,7 +543,8 @@ void TriObj::ViewportDisplay(const Material *mtl) const
 				glBegin(GL_TRIANGLES);
 			}
 		}
-		for (int j = 0; j < 3; j++) {
+		for (int j = 0; j < 3; j++)
+		{
 			if (HasTextureVertices()) glTexCoord3fv(&VT(FT(i).v[j]).x);
 			if (HasNormals()) glNormal3fv(&VN(FN(i).v[j]).x);
 			glVertex3fv(&V(F(i).v[j]).x);
@@ -480,7 +561,8 @@ void MtlBlinn::SetViewportMaterial(int subMtlID) const
 	glMaterialfv(GL_FRONT, GL_SPECULAR, &c.r);
 	glMaterialf(GL_FRONT, GL_SHININESS, glossiness*1.5f);
 	const TextureMap *dm = diffuse.GetTexture();
-	if (dm && dm->SetViewportTexture()) {
+	if (dm && dm->SetViewportTexture())
+	{
 		glEnable(GL_TEXTURE_2D);
 		glMatrixMode(GL_TEXTURE);
 		Matrix3f tm = dm->GetInverseTransform();
@@ -489,7 +571,8 @@ void MtlBlinn::SetViewportMaterial(int subMtlID) const
 		glLoadMatrixf(m);
 		glMatrixMode(GL_MODELVIEW);
 	}
-	else {
+	else
+	{
 		glDisable(GL_TEXTURE_2D);
 	}
 }
@@ -503,7 +586,8 @@ void GenLight::SetViewportParam(int lightID, ColorA ambient, ColorA intensity, V
 }
 bool TextureFile::SetViewportTexture() const
 {
-	if (viewportTextureID == 0) {
+	if (viewportTextureID == 0)
+	{
 		glGenTextures(1, &viewportTextureID);
 		glBindTexture(GL_TEXTURE_2D, viewportTextureID);
 		gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_RGB, GL_UNSIGNED_BYTE, &data[0].r);
@@ -517,13 +601,15 @@ bool TextureFile::SetViewportTexture() const
 }
 bool TextureChecker::SetViewportTexture() const
 {
-	if (viewportTextureID == 0) {
+	if (viewportTextureID == 0)
+	{
 		const int texSize = 256;
 		glGenTextures(1, &viewportTextureID);
 		glBindTexture(GL_TEXTURE_2D, viewportTextureID);
 		Color24 c[2] = { Color24(color1), Color24(color2) };
 		Color24 *tex = new Color24[texSize*texSize];
-		for (int i = 0; i < texSize*texSize; i++) {
+		for (int i = 0; i < texSize*texSize; i++)
+		{
 			int ix = (i%texSize) < 128 ? 0 : 1;
 			if (i / 256 >= 128) ix = 1 - ix;
 			tex[i] = c[ix];
@@ -538,6 +624,7 @@ bool TextureChecker::SetViewportTexture() const
 	glBindTexture(GL_TEXTURE_2D, viewportTextureID);
 	return true;
 }
-
+//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 
 
