@@ -27,7 +27,7 @@ TextureList textureList;
 #define TIMEOFREFRECTION 2
 #define RAYPERPIXEL 4
 #define SHADOWBIAS 0.0005f
-#define MAXSAMPLECOUNT 8
+#define MAXSAMPLECOUNT 4
 #define SAMPLEVARIENCE 0.001f
 #define HALFOFPIXELRATIO 0.5f
 
@@ -109,14 +109,21 @@ Color RayTraversing(Node * traversingnode, Node * node, Ray ray, float & zbuffer
 
 Vec3f SamplingForDepthOfField(float radius, Vec3f point)
 {
-	float r = (rand() / (RAND_MAX)) * radius;
-	float angle = (rand() / (RAND_MAX)) * 2 * M_PI;
+	float r = ((float)rand() / (RAND_MAX)) * radius;
+	float angle = ((float)rand() / (RAND_MAX)) * 2 * M_PI;
 	r = radius * sqrt(r);
 	Vec3f x = camera.dir.Cross(camera.up);
 	Vec3f y = camera.up;
 	Vec3f offset = r * cos(angle) * x + r * sin(angle) * y;
 
 	return point + offset;
+}
+
+Vec3f RandomSamplingForAPixel(Vec3f xaxis, Vec3f yaxis, float rate, Vec3f point)
+{
+	float xrate = ((2 * ((float)rand() / (RAND_MAX))) - 1) * rate;
+	float yrate = ((2 * ((float)rand() / (RAND_MAX))) - 1) * rate;
+	return point + xrate * xaxis + yrate * yaxis;
 }
 
 Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node * traversingnode, Node * node, float & zbuffer, Ray originalray, uint8_t & samplecount)
@@ -147,6 +154,7 @@ Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node
 		{
 			screenpoints[i] = ray.p + camera.focaldist * ray.dir - radiusrate * xaxis - radiusrate * yaxis;
 		}
+		screenpoints[i] = RandomSamplingForAPixel(xaxis, yaxis, radiusrate, screenpoints[i]);
 
 		cameraraies[i].p = SamplingForDepthOfField(camera.dof, ray.p);
 		cameraraies[i].dir = screenpoints[i] - cameraraies[i].p;
