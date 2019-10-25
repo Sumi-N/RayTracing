@@ -24,7 +24,7 @@ TexturedColor background;
 TexturedColor environment;
 TextureList textureList;
 
-#define TIMEOFREFRECTION 5
+#define TIMEOFREFRECTION 2
 #define RAYPERPIXEL 4
 #define SHADOWBIAS 0.0005f
 #define MAXSAMPLECOUNT 8
@@ -34,8 +34,8 @@ TextureList textureList;
 int main()
 {
 	//LoadScene(".\\xmlfiles\\playground2.xml");
-	//LoadScene(".\\xmlfiles\\catscene.xml");
-	LoadScene(".\\xmlfiles\\assignment6.xml");
+	LoadScene(".\\xmlfiles\\catscene.xml");
+	//LoadScene(".\\xmlfiles\\assignment6.xml");
 	ShowViewport();
 }
 
@@ -162,6 +162,11 @@ Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node
 	return answercolor / RAYPERPIXEL;
 }
 
+void SamplingForDepthOfField()
+{
+
+}
+
 void BeginRender() {
 
 	time_t time0;   // create timers.
@@ -178,7 +183,7 @@ void BeginRender() {
 	Color24* pixels = renderImage.GetPixels();
 	Ray * cameraray = new Ray[renderImage.GetHeight() * renderImage.GetWidth()];
 
-	float l = 1.0f;
+	float l = camera.focaldist;
 	float h = 2 * l * tanf((camera.fov / 2) * 3.14f / 180);
 	float w = camera.imgWidth * (h / camera.imgHeight);
 
@@ -209,6 +214,11 @@ void BeginRender() {
 			//hit.duvw[1] = (h / H) * y;
 
 			pixels[i * renderImage.GetWidth() + j] = (Color24)AdaptiveSampling(cameraray[i * renderImage.GetWidth() + j], 0.25f, (w / W)*x, (h / H)*y, startnode, node, zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], samplecount[i * renderImage.GetWidth() + j]);
+
+			if (isnan((float)pixels[i * renderImage.GetWidth() + j].r)) printf("There is NAN");
+			if (isnan((float)pixels[i * renderImage.GetWidth() + j].g)) printf("There is NAN");
+			if (isnan((float)pixels[i * renderImage.GetWidth() + j].b)) printf("There is NAN");
+
 			if (pixels[i * renderImage.GetWidth() + j] == (Color24)Color(0, 0, 0))
 			{
 				Vec3f v((float)j / renderImage.GetWidth(), (float)i / renderImage.GetHeight(), 0.0f);
@@ -404,7 +414,7 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 		// Total internal reflection
 		if (sin2 > 1)
 		{
-			return Color(0, 0, 0);
+			return Color(1, 0, 0);
 			//return Color(1, 1, 1);
 
 			//T_h = -cos2 * N;
