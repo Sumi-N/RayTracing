@@ -29,12 +29,14 @@ TextureList textureList;
 #define SHADOWBIAS 0.0005f
 #define MAXSAMPLECOUNT 8
 #define SAMPLEVARIENCE 0.001f
+#define HALFOFPIXELRATIO 0.5f
 
 
 int main()
 {
 	//LoadScene(".\\xmlfiles\\playground2.xml");
-	LoadScene(".\\xmlfiles\\catscene.xml");
+	//LoadScene(".\\xmlfiles\\catscene.xml");
+	LoadScene(".\\xmlfiles\\assignment9.xml");
 	//LoadScene(".\\xmlfiles\\assignment6.xml");
 	ShowViewport();
 }
@@ -105,24 +107,49 @@ Color RayTraversing(Node * traversingnode, Node * node, Ray ray, float & zbuffer
 	}
 }
 
+Vec3f SamplingForDepthOfField(float radius, Vec3f point)
+{
+	float r = (rand() / (RAND_MAX)) * radius;
+	float angle = (rand() / (RAND_MAX)) * 2 * M_PI;
+	r = radius * sqrt(r);
+	Vec3f x = camera.dir.Cross(camera.up);
+	Vec3f y = camera.up;
+	Vec3f offset = r * cos(angle) * x + r * sin(angle) * y;
+
+	return point + offset;
+}
+
 Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node * traversingnode, Node * node, float & zbuffer, Ray originalray, uint8_t & samplecount)
 {
 	samplecount++;
 	Ray cameraraies[RAYPERPIXEL];
 	HitInfo hits[RAYPERPIXEL];
-	
-	// Assuming RAYPERPIXEL is 4
-	cameraraies[0].dir = ray.dir + radiusrate * xaxis + radiusrate * yaxis;
-	cameraraies[1].dir = ray.dir + radiusrate * xaxis - radiusrate * yaxis;
-	cameraraies[2].dir = ray.dir - radiusrate * xaxis + radiusrate * yaxis;
-	cameraraies[3].dir = ray.dir - radiusrate * xaxis - radiusrate * yaxis;
 
 	Color averagepixelcolor = Color(0, 0, 0);
 	Color pixelcolors[RAYPERPIXEL];
+	Vec3f screenpoints[RAYPERPIXEL];
 
 	for (int i = 0; i < RAYPERPIXEL; i++)
 	{
-		cameraraies[i].p = ray.p;
+		if (i == 0)
+		{
+			screenpoints[i] = ray.p + camera.focaldist * ray.dir + radiusrate * xaxis + radiusrate * yaxis;
+		}
+		else if (i == 1)
+		{
+			screenpoints[i] = ray.p + camera.focaldist * ray.dir + radiusrate * xaxis - radiusrate * yaxis;
+		}
+		else if (i == 2)
+		{
+			screenpoints[i] = ray.p + camera.focaldist * ray.dir - radiusrate * xaxis + radiusrate * yaxis;
+		}
+		else if (i == 3)
+		{
+			screenpoints[i] = ray.p + camera.focaldist * ray.dir - radiusrate * xaxis - radiusrate * yaxis;
+		}
+
+		cameraraies[i].p = SamplingForDepthOfField(camera.dof, ray.p);
+		cameraraies[i].dir = screenpoints[i] - cameraraies[i].p;
 		cameraraies[i].Normalize();
 
 		pixelcolors[i] = RayTraversing(traversingnode, node, cameraraies[i], zbuffer, cameraraies[i], hits[i]);
@@ -162,11 +189,6 @@ Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node
 	return answercolor / RAYPERPIXEL;
 }
 
-void SamplingForDepthOfField()
-{
-
-}
-
 void BeginRender() {
 
 	time_t time0;   // create timers.
@@ -184,7 +206,7 @@ void BeginRender() {
 	Ray * cameraray = new Ray[renderImage.GetHeight() * renderImage.GetWidth()];
 
 	float l = camera.focaldist;
-	float h = 2 * l * tanf((camera.fov / 2) * 3.14f / 180);
+	float h = 2 * l * tanf((camera.fov / 2) * M_PI / 180);
 	float w = camera.imgWidth * (h / camera.imgHeight);
 
 	int H = camera.imgHeight;
@@ -199,7 +221,7 @@ void BeginRender() {
 	{
 		for (int j = 0; j < renderImage.GetWidth(); j++) 
 		{
-			cameraray[i * renderImage.GetWidth() + j].dir = f + (j + 0.5f) * (w / W)*x - (i + 0.5f) * (h / H)*y - camera.pos;
+			cameraray[i * renderImage.GetWidth() + j].dir = f + (j + HALFOFPIXELRATIO) * (w / W)*x - (i + HALFOFPIXELRATIO) * (h / H)*y - camera.pos;
 			cameraray[i * renderImage.GetWidth() + j].p = camera.pos;
 			zbuffers[i * renderImage.GetWidth() + j] = BIGFLOAT;
 			samplecount[i * renderImage.GetWidth() + j] = 0;
@@ -213,11 +235,7 @@ void BeginRender() {
 			//hit.duvw[0] = (w / W) * x;
 			//hit.duvw[1] = (h / H) * y;
 
-			pixels[i * renderImage.GetWidth() + j] = (Color24)AdaptiveSampling(cameraray[i * renderImage.GetWidth() + j], 0.25f, (w / W)*x, (h / H)*y, startnode, node, zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], samplecount[i * renderImage.GetWidth() + j]);
-
-			if (isnan((float)pixels[i * renderImage.GetWidth() + j].r)) printf("There is NAN");
-			if (isnan((float)pixels[i * renderImage.GetWidth() + j].g)) printf("There is NAN");
-			if (isnan((float)pixels[i * renderImage.GetWidth() + j].b)) printf("There is NAN");
+			pixels[i * renderImage.GetWidth() + j] = (Color24)AdaptiveSampling(cameraray[i * renderImage.GetWidth() + j], HALFOFPIXELRATIO/2, (w / W)*x, (h / H)*y, startnode, node, zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], samplecount[i * renderImage.GetWidth() + j]);
 
 			if (pixels[i * renderImage.GetWidth() + j] == (Color24)Color(0, 0, 0))
 			{
@@ -648,8 +666,8 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 						hInfo.front = false;
 						hInfo.p = ray.p + large * ray.dir;
 						hInfo.N = hInfo.p;
-						float u = (1 / 2 * 3.14f) * atan2f(hInfo.p.y, hInfo.p.x) + .5f;
-						float v = (1 / 3.14f) * asinf(hInfo.p.z) + 0.5f;
+						float u = (1 / 2 * M_PI) * atan2f(hInfo.p.y, hInfo.p.x) + .5f;
+						float v = (1 / M_PI) * asinf(hInfo.p.z) + 0.5f;
 						hInfo.uvw = Vec3f(u, v, 0.0f);
 						return true;
 					}
@@ -675,8 +693,8 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 					hInfo.front = true;
 					hInfo.p = ray.p + small * ray.dir;
 					hInfo.N = hInfo.p;
-					float u = (1 / (2 * 3.14f)) * atan2f(hInfo.p.y, hInfo.p.x) + .5f;
-					float v = (1 / 3.14f) * asinf(hInfo.p.z) + 0.5f;
+					float u = (1 / (2 * M_PI)) * atan2f(hInfo.p.y, hInfo.p.x) + .5f;
+					float v = (1 / M_PI) * asinf(hInfo.p.z) + 0.5f;
 					hInfo.uvw = Vec3f(u, v, 0.0f);
 					return true;
 				}
