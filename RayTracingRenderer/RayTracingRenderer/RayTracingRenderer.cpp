@@ -26,9 +26,9 @@ TextureList textureList;
 
 #define TIMEOFREFRECTION 5
 #define RAYPERPIXEL 4
-#define MAXSAMPLECOUNT 4
+#define MAXSAMPLECOUNT 3
 #define SHADOWBIAS 0.0005f
-#define SAMPLEVARIENCE 0.001f
+#define SAMPLEVARIENCE 0.005f
 #define HALFOFPIXELRATIO 0.5f
 #define RAYPERPIXELFORBLUREFFECT 256
 
@@ -37,10 +37,10 @@ TextureList textureList;
 
 int main()
 {
-	LoadScene(".\\xmlfiles\\playground.xml");
+	//LoadScene(".\\xmlfiles\\playground.xml");
 	//LoadScene(".\\xmlfiles\\catscene.xml");
-	//LoadScene(".\\xmlfiles\\assignment9.xml");
-	//LoadScene(".\\xmlfiles\\assignment6.xml");
+	//LoadScene(".\\xmlfiles\\potscene.xml");
+	LoadScene(".\\xmlfiles\\assignment6.xml");
 	ShowViewport();
 }
 
@@ -121,7 +121,7 @@ Color RayTraversing(Node * traversingnode, Node * node, Ray ray, float & zbuffer
 Vec3f SamplingForDepthOfField(float radius, Vec3f point)
 {
 	float r = (static_cast<float>(rand()) / (RAND_MAX)) * radius;
-	float angle = (static_cast<float>(rand()) / (RAND_MAX)) * 2 * M_PI;
+	float angle = (static_cast<float>(rand()) / (RAND_MAX)) * 2 * static_cast<float>(M_PI);
 	r = radius * sqrt(r);
 	Vec3f x = camera.dir.Cross(camera.up);
 	Vec3f y = camera.up;
@@ -260,23 +260,18 @@ void BeginRender() {
 
 	Vec3f f = camera.pos + l * camera.dir + (h / 2) * y - (w / 2) * x;
 
-	for (int i = 0; i < renderImage.GetHeight(); i++) 
-	{
-		for (int j = 0; j < renderImage.GetWidth(); j++) 
-		{
-			cameraray[i * renderImage.GetWidth() + j].dir = f + (j + HALFOFPIXELRATIO) * (w / W)*x - (i + HALFOFPIXELRATIO) * (h / H)*y - camera.pos;
-			cameraray[i * renderImage.GetWidth() + j].p = camera.pos;
-			zbuffers[i * renderImage.GetWidth() + j] = BIGFLOAT;
-			samplecount[i * renderImage.GetWidth() + j] = 0;
-			cameraray[i * renderImage.GetWidth() + j].Normalize();
-		}
-	}
 #pragma omp parallel for
 	for (int i = 0; i < renderImage.GetHeight(); i++) {
 		for (int j = 0; j < renderImage.GetWidth(); j++) {
 
 			//hit.duvw[0] = (w / W) * x;
 			//hit.duvw[1] = (h / H) * y;
+
+			cameraray[i * renderImage.GetWidth() + j].dir = f + (j + HALFOFPIXELRATIO) * (w / W)*x - (i + HALFOFPIXELRATIO) * (h / H)*y - camera.pos;
+			cameraray[i * renderImage.GetWidth() + j].p = camera.pos;
+			zbuffers[i * renderImage.GetWidth() + j] = BIGFLOAT;
+			samplecount[i * renderImage.GetWidth() + j] = 0;
+			cameraray[i * renderImage.GetWidth() + j].Normalize();
 
 		#ifdef ANTIALIASING
 		   pixels[i * renderImage.GetWidth() + j] = (Color24)AdaptiveSampling(cameraray[i * renderImage.GetWidth() + j], HALFOFPIXELRATIO/2, (w / W)*x, (h / H)*y, startnode, node, zbuffers[i * renderImage.GetWidth() + j], samplecount[i * renderImage.GetWidth() + j]);
