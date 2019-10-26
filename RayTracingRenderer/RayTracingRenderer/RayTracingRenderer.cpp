@@ -25,12 +25,15 @@ TexturedColor environment;
 TextureList textureList;
 
 #define TIMEOFREFRECTION 2
-#define RAYPERPIXEL 256
-#define SHADOWBIAS 0.0005f
+#define RAYPERPIXEL 4
 #define MAXSAMPLECOUNT 4
+#define SHADOWBIAS 0.0005f
 #define SAMPLEVARIENCE 0.001f
 #define HALFOFPIXELRATIO 0.5f
+#define RAYPERPIXELFORBLUREFFECT 256
 
+#define ANTIALIASING
+//#define BLUEEFFECT
 
 int main()
 {
@@ -134,7 +137,32 @@ Vec3f RandomSamplingForAPixel(Vec3f xaxis, Vec3f yaxis, float rate, Vec3f point)
 	return point + xrate * xaxis + yrate * yaxis;
 }
 
-Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node * traversingnode, Node * node, float & zbuffer, Ray originalray, uint8_t & samplecount)
+Color BlurEffect(Ray ray, Node * traversingnode, Node * node, float & zbuffer)
+{
+	Ray cameraraies[RAYPERPIXELFORBLUREFFECT];
+	HitInfo hits[RAYPERPIXELFORBLUREFFECT];
+
+	Color averagepixelcolor = Color(0, 0, 0);
+	Color pixelcolors[RAYPERPIXELFORBLUREFFECT];
+	Vec3f screenpoints[RAYPERPIXELFORBLUREFFECT];
+
+	Color answercolor = Color(0, 0, 0);
+
+	for (int i = 0; i < RAYPERPIXELFORBLUREFFECT; i++)
+	{
+		screenpoints[i] = ray.p + camera.focaldist * ray.dir;
+		cameraraies[i].p = SamplingForDepthOfField(camera.dof, ray.p);
+		cameraraies[i].dir = screenpoints[i] - cameraraies[i].p;
+		cameraraies[i].Normalize();
+
+		pixelcolors[i] = RayTraversing(traversingnode, node, cameraraies[i], zbuffer, cameraraies[i], hits[i]);
+		answercolor += pixelcolors[i];
+	}
+
+	return answercolor / RAYPERPIXELFORBLUREFFECT;
+}
+
+Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node * traversingnode, Node * node, float & zbuffer, uint8_t & samplecount)
 {
 	samplecount++;
 	Ray cameraraies[RAYPERPIXEL];
@@ -163,8 +191,7 @@ Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node
 			screenpoints[i] = ray.p + camera.focaldist * ray.dir - radiusrate * xaxis - radiusrate * yaxis;
 		}
 		screenpoints[i] = RandomSamplingForAPixel(xaxis, yaxis, radiusrate, screenpoints[i]);
-
-		cameraraies[i].p = SamplingForDepthOfField(camera.dof, ray.p);
+		cameraraies[i].p = ray.p;
 		cameraraies[i].dir = screenpoints[i] - cameraraies[i].p;
 		cameraraies[i].Normalize();
 
@@ -181,30 +208,28 @@ Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node
 	}
 	variance /= RAYPERPIXEL;
 
-	Color answercolor = Color(0, 0, 0);
+	Color returncolor = Color(0, 0, 0);
 
 	for (int i = 0; i < RAYPERPIXEL; i++)
 	{
-		//if (abs(variance.r) >= SAMPLEVARIENCE || abs(variance.g) >= SAMPLEVARIENCE || abs(variance.b) >= SAMPLEVARIENCE)
-		//{
-		//	if (samplecount < MAXSAMPLECOUNT)
-		//	{
-		//		answercolor += AdaptiveSampling(cameraraies[i], radiusrate / 2.0f, xaxis, yaxis, traversingnode, node, zbuffer, originalray, samplecount);
-		//	}
-		//	else
-		//	{
-		//		answercolor += pixelcolors[i];
-		//	}
-		//}
-		//else
-		//{
-		//	answercolor += pixelcolors[i];
-		//}
-
-		answercolor += pixelcolors[i];
+		if (abs(variance.r) >= SAMPLEVARIENCE || abs(variance.g) >= SAMPLEVARIENCE || abs(variance.b) >= SAMPLEVARIENCE)
+		{
+			if (samplecount < MAXSAMPLECOUNT)
+			{
+				returncolor += AdaptiveSampling(cameraraies[i], radiusrate / 2.0f, xaxis, yaxis, traversingnode, node, zbuffer, samplecount);
+			}
+			else
+			{
+				returncolor += pixelcolors[i];
+			}
+		}
+		else
+		{
+			returncolor += pixelcolors[i];
+		}
 	}
 
-	return answercolor / RAYPERPIXEL;
+	return returncolor / RAYPERPIXEL;
 }
 
 void BeginRender() {
@@ -253,7 +278,11 @@ void BeginRender() {
 			//hit.duvw[0] = (w / W) * x;
 			//hit.duvw[1] = (h / H) * y;
 
-			pixels[i * renderImage.GetWidth() + j] = (Color24)AdaptiveSampling(cameraray[i * renderImage.GetWidth() + j], HALFOFPIXELRATIO/2, (w / W)*x, (h / H)*y, startnode, node, zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], samplecount[i * renderImage.GetWidth() + j]);
+		#ifdef ANTIALIASING
+		   pixels[i * renderImage.GetWidth() + j] = (Color24)AdaptiveSampling(cameraray[i * renderImage.GetWidth() + j], HALFOFPIXELRATIO/2, (w / W)*x, (h / H)*y, startnode, node, zbuffers[i * renderImage.GetWidth() + j], samplecount[i * renderImage.GetWidth() + j]);
+		#elif defined BLUREFFECT
+			pixels[i * renderImage.GetWidth() + j] = (Color24)BlurEffect(cameraray[i * renderImage.GetWidth() + j], startnode, node, zbuffers[i * renderImage.GetWidth() + j]);
+		#endif 
 
 			if (pixels[i * renderImage.GetWidth() + j] == (Color24)Color(0, 0, 0))
 			{
@@ -415,17 +444,6 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 			P = SHADOWBIAS * P;  P += hInfo.p;
 			cos1 = V.Dot(-N);
 		}
-
-		//if (hInfo.front)
-		//{
-		//	P = -1 * SHADOWBIAS * P;  P += hInfo.p;
-		//	cos1 = V.Dot(N); 
-		//}
-		//else
-		//{
-		//	P = SHADOWBIAS * P;  P += hInfo.p;
-		//	cos1 = V.Dot(-N); 
-		//}
 
 		sin1 = sqrt(1 - (cos1 * cos1));
 
