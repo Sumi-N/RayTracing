@@ -24,7 +24,7 @@ TexturedColor background;
 TexturedColor environment;
 TextureList textureList;
 
-#define TIMEOFREFRECTION 5
+#define TIMEOFREFRECTION 15
 #define RAYPERPIXEL 4
 #define MAXSAMPLECOUNT 3
 #define SHADOWBIAS 0.0005f
@@ -38,9 +38,9 @@ TextureList textureList;
 int main()
 {
 	//LoadScene(".\\xmlfiles\\playground.xml");
-	//LoadScene(".\\xmlfiles\\catscene.xml");
+	LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
-	LoadScene(".\\xmlfiles\\assignment6.xml");
+	//LoadScene(".\\xmlfiles\\assignment6.xml");
 	ShowViewport();
 }
 
@@ -282,7 +282,8 @@ void BeginRender() {
 			if (pixels[i * renderImage.GetWidth() + j] == (Color24)Color(0, 0, 0))
 			{
 				Vec3f v((float)j / renderImage.GetWidth(), (float)i / renderImage.GetHeight(), 0.0f);
-				pixels[i * renderImage.GetWidth() + j] = (Color24)background.Sample(v);
+				//pixels[i * renderImage.GetWidth() + j] = (Color24)background.Sample(v);
+				pixels[i * renderImage.GetWidth() + j] = Color24(0, 255, 255);
 			}
 
 			//HitInfo hit = HitInfo();
