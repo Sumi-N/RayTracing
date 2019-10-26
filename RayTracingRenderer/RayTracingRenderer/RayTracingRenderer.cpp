@@ -25,7 +25,7 @@ TexturedColor environment;
 TextureList textureList;
 
 #define TIMEOFREFRECTION 2
-#define RAYPERPIXEL 4
+#define RAYPERPIXEL 256
 #define SHADOWBIAS 0.0005f
 #define MAXSAMPLECOUNT 4
 #define SAMPLEVARIENCE 0.001f
@@ -99,18 +99,26 @@ Color RayTraversing(Node * traversingnode, Node * node, Ray ray, float & zbuffer
 			{
 				return materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, TIMEOFREFRECTION);
 			}
+			else
+			{
+				return Color(0, 0, 0);
+			}
 		}
 		else
 		{
 			return Color(0, 0, 0);
 		}
 	}
+	else
+	{
+		return Color(0, 0, 0);
+	}
 }
 
 Vec3f SamplingForDepthOfField(float radius, Vec3f point)
 {
-	float r = ((float)rand() / (RAND_MAX)) * radius;
-	float angle = ((float)rand() / (RAND_MAX)) * 2 * M_PI;
+	float r = (static_cast<float>(rand()) / (RAND_MAX)) * radius;
+	float angle = (static_cast<float>(rand()) / (RAND_MAX)) * 2 * M_PI;
 	r = radius * sqrt(r);
 	Vec3f x = camera.dir.Cross(camera.up);
 	Vec3f y = camera.up;
@@ -138,19 +146,19 @@ Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node
 
 	for (int i = 0; i < RAYPERPIXEL; i++)
 	{
-		if (i == 0)
+		if (i % 4 == 0)
 		{
 			screenpoints[i] = ray.p + camera.focaldist * ray.dir + radiusrate * xaxis + radiusrate * yaxis;
 		}
-		else if (i == 1)
+		else if (i % 4 == 1)
 		{
 			screenpoints[i] = ray.p + camera.focaldist * ray.dir + radiusrate * xaxis - radiusrate * yaxis;
 		}
-		else if (i == 2)
+		else if (i % 4 == 2)
 		{
 			screenpoints[i] = ray.p + camera.focaldist * ray.dir - radiusrate * xaxis + radiusrate * yaxis;
 		}
-		else if (i == 3)
+		else if (i % 4 == 3)
 		{
 			screenpoints[i] = ray.p + camera.focaldist * ray.dir - radiusrate * xaxis - radiusrate * yaxis;
 		}
@@ -177,21 +185,23 @@ Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node
 
 	for (int i = 0; i < RAYPERPIXEL; i++)
 	{
-		if (abs(variance.r) >= SAMPLEVARIENCE || abs(variance.g) >= SAMPLEVARIENCE || abs(variance.b) >= SAMPLEVARIENCE)
-		{
-			if (samplecount < MAXSAMPLECOUNT)
-			{
-				answercolor += AdaptiveSampling(cameraraies[i], radiusrate / 2.0f, xaxis, yaxis, traversingnode, node, zbuffer, originalray, samplecount);
-			}
-			else
-			{
-				answercolor += pixelcolors[i];
-			}
-		}
-		else
-		{
-			answercolor += pixelcolors[i];
-		}
+		//if (abs(variance.r) >= SAMPLEVARIENCE || abs(variance.g) >= SAMPLEVARIENCE || abs(variance.b) >= SAMPLEVARIENCE)
+		//{
+		//	if (samplecount < MAXSAMPLECOUNT)
+		//	{
+		//		answercolor += AdaptiveSampling(cameraraies[i], radiusrate / 2.0f, xaxis, yaxis, traversingnode, node, zbuffer, originalray, samplecount);
+		//	}
+		//	else
+		//	{
+		//		answercolor += pixelcolors[i];
+		//	}
+		//}
+		//else
+		//{
+		//	answercolor += pixelcolors[i];
+		//}
+
+		answercolor += pixelcolors[i];
 	}
 
 	return answercolor / RAYPERPIXEL;
@@ -214,7 +224,7 @@ void BeginRender() {
 	Ray * cameraray = new Ray[renderImage.GetHeight() * renderImage.GetWidth()];
 
 	float l = camera.focaldist;
-	float h = 2 * l * tanf((camera.fov / 2) * M_PI / 180);
+	float h = 2 * l * tanf((camera.fov / 2) * static_cast<float>(M_PI) / 180);
 	float w = camera.imgWidth * (h / camera.imgHeight);
 
 	int H = camera.imgHeight;
@@ -471,7 +481,6 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 
 		// Combined horizontal and vertical
 		T = T_h + T_v;
-		//T.Normalize();
 
 		// S is a starting point from the surface point
 		Ray S;
@@ -674,8 +683,8 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 						hInfo.front = false;
 						hInfo.p = ray.p + large * ray.dir;
 						hInfo.N = hInfo.p;
-						float u = (1 / 2 * M_PI) * atan2f(hInfo.p.y, hInfo.p.x) + .5f;
-						float v = (1 / M_PI) * asinf(hInfo.p.z) + 0.5f;
+						float u = (1 / 2 * static_cast<float>(M_PI)) * atan2f(hInfo.p.y, hInfo.p.x) + .5f;
+						float v = (1 / static_cast<float>(M_PI)) * asinf(hInfo.p.z) + 0.5f;
 						hInfo.uvw = Vec3f(u, v, 0.0f);
 						return true;
 					}
@@ -701,8 +710,8 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 					hInfo.front = true;
 					hInfo.p = ray.p + small * ray.dir;
 					hInfo.N = hInfo.p;
-					float u = (1 / (2 * M_PI)) * atan2f(hInfo.p.y, hInfo.p.x) + .5f;
-					float v = (1 / M_PI) * asinf(hInfo.p.z) + 0.5f;
+					float u = (1 / (2 * static_cast<float>(M_PI))) * atan2f(hInfo.p.y, hInfo.p.x) + .5f;
+					float v = (1 / static_cast<float>(M_PI)) * asinf(hInfo.p.z) + 0.5f;
 					hInfo.uvw = Vec3f(u, v, 0.0f);
 					return true;
 				}
