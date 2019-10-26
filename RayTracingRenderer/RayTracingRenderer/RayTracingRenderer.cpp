@@ -24,7 +24,7 @@ TexturedColor background;
 TexturedColor environment;
 TextureList textureList;
 
-#define TIMEOFREFRECTION 2
+#define TIMEOFREFRECTION 5
 #define RAYPERPIXEL 4
 #define MAXSAMPLECOUNT 4
 #define SHADOWBIAS 0.0005f
@@ -37,9 +37,9 @@ TextureList textureList;
 
 int main()
 {
-	//LoadScene(".\\xmlfiles\\playground2.xml");
+	LoadScene(".\\xmlfiles\\playground.xml");
 	//LoadScene(".\\xmlfiles\\catscene.xml");
-	LoadScene(".\\xmlfiles\\assignment9.xml");
+	//LoadScene(".\\xmlfiles\\assignment9.xml");
 	//LoadScene(".\\xmlfiles\\assignment6.xml");
 	ShowViewport();
 }
@@ -413,6 +413,19 @@ Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce)
 	}
 }
 
+Color TotalInternalReflection(Ray ray, int bounce)
+{
+	// Start traversing node 
+	Node node;
+	Node * startnode = &rootNode;
+	HitInfo hitinfo;
+	Color returnColor = Color(0, 0, 0);
+
+	returnColor = FindReflectionAndRefraction(startnode, &node, ray, ray, hitinfo, bounce-1);
+
+	return returnColor;
+}
+
 Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refractionIndex, Color refraction)
 {
 	float R;
@@ -423,25 +436,24 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 	}
 	else
 	{
-		Vec3f P = hInfo.N;
-		P.Normalize();
-
 		Vec3f V = -1 * ray.dir;
 		V.Normalize();
 
 		Vec3f N = hInfo.N;
 		N.Normalize();
 
+		Vec3f P;
+
 		float cos1, cos2, sin1, sin2;
 
 		if (V.Dot(N) >= 0)
 		{
-			P = -1 * SHADOWBIAS * P;  P += hInfo.p;
+			P = -1 * SHADOWBIAS * N;  P += hInfo.p;
 			cos1 = V.Dot(N);
 		}
 		else
 		{
-			P = SHADOWBIAS * P;  P += hInfo.p;
+			P = SHADOWBIAS * N;  P += hInfo.p;
 			cos1 = V.Dot(-N);
 		}
 
@@ -465,18 +477,20 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 
 		cos2 = sqrt(1 - (sin2 * sin2));
 
+		// S is a starting point from the surface point
+		Ray S;
+
 		// Total internal reflection
 		if (sin2 > 1)
 		{
-			return Color(1, 0, 0);
-			//return Color(1, 1, 1);
-
-			//T_h = -cos2 * N;
-			//T_v = (V - (V.Dot(-N))* -N);
-			//T_v.Normalize();
-			//T_v = -sin2 * T_v;
+			T = ray.dir - 2 * (ray.dir.Dot(N)) * N;
+			P -= 2 * SHADOWBIAS * N;
+			S.dir = T;
+			S.p = P;
+			S.Normalize();
+			return TotalInternalReflection(S, bounce);
 		}
-		else
+		else // Normal procedure
 		{
 			if (V.Dot(N) >= 0)
 			{
@@ -495,28 +509,25 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 
 			T_v.Normalize();
 			T_v = -sin2 * T_v;
+			// Combined horizontal and vertical
+			T = T_h + T_v;
+
+			S.dir = T;
+			S.p = P;
+
+			// Start traversing node 
+			Node node;
+			Node * startnode = &rootNode;
+			HitInfo hitinfo;
+
+			Color returnColor = Color(0, 0, 0);
+
+			// Refraction part
+			returnColor = (1 - R) * refraction * FindReflectionAndRefraction(startnode, &node, S, S, hitinfo, bounce - 1);
+			// Reflection part
+			returnColor += R * refraction * Reflection(ray, hInfo, bounce);
+			return returnColor;
 		}
-
-		// Combined horizontal and vertical
-		T = T_h + T_v;
-
-		// S is a starting point from the surface point
-		Ray S;
-		S.dir = T;
-		S.p = P;
-
-		// Start traversing node 
-		Node node;
-		Node * startnode = &rootNode;
-		HitInfo hitinfo;
-
-		Color returnColor = Color(0, 0, 0);
-
-		// Refraction part
-		returnColor = (1 - R) * refraction * FindReflectionAndRefraction(startnode, &node, S, S, hitinfo, bounce-1);
-		// Reflection part
-		returnColor += R * refraction * Reflection(ray, hInfo, bounce);
-		return returnColor;
 	}
 }
 
