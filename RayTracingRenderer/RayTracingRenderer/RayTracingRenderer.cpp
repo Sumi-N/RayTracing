@@ -24,17 +24,23 @@ TexturedColor background;
 TexturedColor environment;
 TextureList textureList;
 
-#define TIMEOFREFRECTION 5
+#define TIMEOFREFRECTION 2
 #define RAYPERPIXEL 4
+#define MAXSAMPLECOUNT 4
 #define SHADOWBIAS 0.0005f
-#define MAXSAMPLECOUNT 16
 #define SAMPLEVARIENCE 0.001f
+#define HALFOFPIXELRATIO 0.5f
+#define RAYPERPIXELFORBLUREFFECT 256
 
+#define ANTIALIASING
+//#define BLUEEFFECT
 
 int main()
 {
-	//LoadScene(".\\xmlfiles\\assignment5.xml");
-	LoadScene(".\\xmlfiles\\assignment6.xml");
+	//LoadScene(".\\xmlfiles\\playground2.xml");
+	//LoadScene(".\\xmlfiles\\catscene.xml");
+	LoadScene(".\\xmlfiles\\assignment9.xml");
+	//LoadScene(".\\xmlfiles\\assignment6.xml");
 	ShowViewport();
 }
 
@@ -57,7 +63,8 @@ Color RayTraversing(Node * traversingnode, Node * node, Ray ray, float & zbuffer
 	//hitinfo.duvw[0] = node->VectorTransformTo(hit.duvw[0]);
 	//hitinfo.duvw[1] = node->VectorTransformTo(hit.duvw[1]);
 
-	for (int i = 0; i < numberofchild; i++) {
+	for (int i = 0; i < numberofchild; i++) 
+	{
 		node = traversingnode->GetChild(i);
 		Ray changedray = node->ToNodeCoords(ray);
 
@@ -71,14 +78,13 @@ Color RayTraversing(Node * traversingnode, Node * node, Ray ray, float & zbuffer
 		}
 
 		if (node != nullptr) {
-			Node * childnode = new Node();
-			RayTraversing(node, childnode, changedray, zbuffer, originalray, hit);
+			Node childnode;
+			RayTraversing(node, &childnode, changedray, zbuffer, originalray, hit);
 			if (hit.node != nullptr && hit.node != hitinfo.node)
 			{
 				node->FromNodeCoords(hit);
 				hitinfo = hit;
 			}
-			delete childnode;
 		}
 	}
 
@@ -94,8 +100,11 @@ Color RayTraversing(Node * traversingnode, Node * node, Ray ray, float & zbuffer
 			//Shading
 			if (materials.Find(node->GetMaterial()->GetName()) != nullptr)
 			{
-				//pixel = (Color24)materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, TIMEOFREFRECTION);
 				return materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, TIMEOFREFRECTION);
+			}
+			else
+			{
+				return Color(0, 0, 0);
 			}
 		}
 		else
@@ -103,26 +112,87 @@ Color RayTraversing(Node * traversingnode, Node * node, Ray ray, float & zbuffer
 			return Color(0, 0, 0);
 		}
 	}
+	else
+	{
+		return Color(0, 0, 0);
+	}
 }
 
-Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node * traversingnode, Node * node, float & zbuffer, Ray originalray, uint8_t & samplecount)
+Vec3f SamplingForDepthOfField(float radius, Vec3f point)
+{
+	float r = (static_cast<float>(rand()) / (RAND_MAX)) * radius;
+	float angle = (static_cast<float>(rand()) / (RAND_MAX)) * 2 * M_PI;
+	r = radius * sqrt(r);
+	Vec3f x = camera.dir.Cross(camera.up);
+	Vec3f y = camera.up;
+	Vec3f offset = r * cos(angle) * x + r * sin(angle) * y;
+
+	return point + offset;
+}
+
+Vec3f RandomSamplingForAPixel(Vec3f xaxis, Vec3f yaxis, float rate, Vec3f point)
+{
+	float xrate = ((2 * ((float)rand() / (RAND_MAX))) - 1) * rate;
+	float yrate = ((2 * ((float)rand() / (RAND_MAX))) - 1) * rate;
+	return point + xrate * xaxis + yrate * yaxis;
+}
+
+Color BlurEffect(Ray ray, Node * traversingnode, Node * node, float & zbuffer)
+{
+	Ray cameraraies[RAYPERPIXELFORBLUREFFECT];
+	HitInfo hits[RAYPERPIXELFORBLUREFFECT];
+
+	Color averagepixelcolor = Color(0, 0, 0);
+	Color pixelcolors[RAYPERPIXELFORBLUREFFECT];
+	Vec3f screenpoints[RAYPERPIXELFORBLUREFFECT];
+
+	Color answercolor = Color(0, 0, 0);
+
+	for (int i = 0; i < RAYPERPIXELFORBLUREFFECT; i++)
+	{
+		screenpoints[i] = ray.p + camera.focaldist * ray.dir;
+		cameraraies[i].p = SamplingForDepthOfField(camera.dof, ray.p);
+		cameraraies[i].dir = screenpoints[i] - cameraraies[i].p;
+		cameraraies[i].Normalize();
+
+		pixelcolors[i] = RayTraversing(traversingnode, node, cameraraies[i], zbuffer, cameraraies[i], hits[i]);
+		answercolor += pixelcolors[i];
+	}
+
+	return answercolor / RAYPERPIXELFORBLUREFFECT;
+}
+
+Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node * traversingnode, Node * node, float & zbuffer, uint8_t & samplecount)
 {
 	samplecount++;
 	Ray cameraraies[RAYPERPIXEL];
 	HitInfo hits[RAYPERPIXEL];
-	
-	// Assuming RAYPERPIXEL is 4
-	cameraraies[0].dir = ray.dir + radiusrate * xaxis + radiusrate * yaxis;
-	cameraraies[1].dir = ray.dir + radiusrate * xaxis - radiusrate * yaxis;
-	cameraraies[2].dir = ray.dir - radiusrate * xaxis + radiusrate * yaxis;
-	cameraraies[3].dir = ray.dir - radiusrate * xaxis - radiusrate * yaxis;
 
 	Color averagepixelcolor = Color(0, 0, 0);
 	Color pixelcolors[RAYPERPIXEL];
+	Vec3f screenpoints[RAYPERPIXEL];
 
 	for (int i = 0; i < RAYPERPIXEL; i++)
 	{
+		if (i % 4 == 0)
+		{
+			screenpoints[i] = ray.p + camera.focaldist * ray.dir + radiusrate * xaxis + radiusrate * yaxis;
+		}
+		else if (i % 4 == 1)
+		{
+			screenpoints[i] = ray.p + camera.focaldist * ray.dir + radiusrate * xaxis - radiusrate * yaxis;
+		}
+		else if (i % 4 == 2)
+		{
+			screenpoints[i] = ray.p + camera.focaldist * ray.dir - radiusrate * xaxis + radiusrate * yaxis;
+		}
+		else if (i % 4 == 3)
+		{
+			screenpoints[i] = ray.p + camera.focaldist * ray.dir - radiusrate * xaxis - radiusrate * yaxis;
+		}
+		screenpoints[i] = RandomSamplingForAPixel(xaxis, yaxis, radiusrate, screenpoints[i]);
 		cameraraies[i].p = ray.p;
+		cameraraies[i].dir = screenpoints[i] - cameraraies[i].p;
 		cameraraies[i].Normalize();
 
 		pixelcolors[i] = RayTraversing(traversingnode, node, cameraraies[i], zbuffer, cameraraies[i], hits[i]);
@@ -138,7 +208,7 @@ Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node
 	}
 	variance /= RAYPERPIXEL;
 
-	Color answercolor = Color(0, 0, 0);
+	Color returncolor = Color(0, 0, 0);
 
 	for (int i = 0; i < RAYPERPIXEL; i++)
 	{
@@ -146,20 +216,20 @@ Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node
 		{
 			if (samplecount < MAXSAMPLECOUNT)
 			{
-				answercolor += AdaptiveSampling(cameraraies[i], radiusrate / 2.0f, xaxis, yaxis, traversingnode, node, zbuffer, originalray, samplecount);
+				returncolor += AdaptiveSampling(cameraraies[i], radiusrate / 2.0f, xaxis, yaxis, traversingnode, node, zbuffer, samplecount);
 			}
 			else
 			{
-				answercolor += pixelcolors[i];
+				returncolor += pixelcolors[i];
 			}
 		}
 		else
 		{
-			answercolor += pixelcolors[i];
+			returncolor += pixelcolors[i];
 		}
 	}
 
-	return answercolor / RAYPERPIXEL;
+	return returncolor / RAYPERPIXEL;
 }
 
 void BeginRender() {
@@ -178,8 +248,8 @@ void BeginRender() {
 	Color24* pixels = renderImage.GetPixels();
 	Ray * cameraray = new Ray[renderImage.GetHeight() * renderImage.GetWidth()];
 
-	float l = 1.0f;
-	float h = 2 * l * tanf((camera.fov / 2) * 3.14f / 180);
+	float l = camera.focaldist;
+	float h = 2 * l * tanf((camera.fov / 2) * static_cast<float>(M_PI) / 180);
 	float w = camera.imgWidth * (h / camera.imgHeight);
 
 	int H = camera.imgHeight;
@@ -194,7 +264,7 @@ void BeginRender() {
 	{
 		for (int j = 0; j < renderImage.GetWidth(); j++) 
 		{
-			cameraray[i * renderImage.GetWidth() + j].dir = f + (j + 0.5f) * (w / W)*x - (i + 0.5f) * (h / H)*y - camera.pos;
+			cameraray[i * renderImage.GetWidth() + j].dir = f + (j + HALFOFPIXELRATIO) * (w / W)*x - (i + HALFOFPIXELRATIO) * (h / H)*y - camera.pos;
 			cameraray[i * renderImage.GetWidth() + j].p = camera.pos;
 			zbuffers[i * renderImage.GetWidth() + j] = BIGFLOAT;
 			samplecount[i * renderImage.GetWidth() + j] = 0;
@@ -208,7 +278,12 @@ void BeginRender() {
 			//hit.duvw[0] = (w / W) * x;
 			//hit.duvw[1] = (h / H) * y;
 
-			pixels[i * renderImage.GetWidth() + j] = (Color24)AdaptiveSampling(cameraray[i * renderImage.GetWidth() + j], 0.25f, (w / W)*x, (h / H)*y, startnode, node, zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], samplecount[i * renderImage.GetWidth() + j]);
+		#ifdef ANTIALIASING
+		   pixels[i * renderImage.GetWidth() + j] = (Color24)AdaptiveSampling(cameraray[i * renderImage.GetWidth() + j], HALFOFPIXELRATIO/2, (w / W)*x, (h / H)*y, startnode, node, zbuffers[i * renderImage.GetWidth() + j], samplecount[i * renderImage.GetWidth() + j]);
+		#elif defined BLUREFFECT
+			pixels[i * renderImage.GetWidth() + j] = (Color24)BlurEffect(cameraray[i * renderImage.GetWidth() + j], startnode, node, zbuffers[i * renderImage.GetWidth() + j]);
+		#endif 
+
 			if (pixels[i * renderImage.GetWidth() + j] == (Color24)Color(0, 0, 0))
 			{
 				Vec3f v((float)j / renderImage.GetWidth(), (float)i / renderImage.GetHeight(), 0.0f);
@@ -216,16 +291,16 @@ void BeginRender() {
 			}
 
 			//HitInfo hit = HitInfo();
-			//if (i == 125 && j == 22)
+			//if (i == 271 && j == 300)
 			//{
-			//	RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+			//	pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 			//}
-
-			//if (i == 432 && j == 6)
+			//pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+			//if (pixels[i * renderImage.GetWidth() + j] == (Color24)Color(0, 0, 0))
 			//{
-			//	RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], pixels[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+			//	Vec3f v((float)j / renderImage.GetWidth(), (float)i / renderImage.GetHeight(), 0.0f);
+			//	pixels[i * renderImage.GetWidth() + j] = (Color24)background.Sample(v);
 			//}
-			//pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j],  zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 		}
 	}
 
@@ -249,6 +324,7 @@ Color FindReflectionAndRefraction(Node * traversingnode, Node * node, Ray origin
 {
 	int numberofchild = traversingnode->GetNumChild();
 	HitInfo hitinfo = HitInfo();
+
 	for (int i = 0; i < numberofchild; i++)
 	{
 		node = traversingnode->GetChild(i);
@@ -285,12 +361,9 @@ Color FindReflectionAndRefraction(Node * traversingnode, Node * node, Ray origin
 				return materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, bounce);
 			}
 		}
-		return environment.SampleEnvironment(originalray.dir);
+		//return background.Sample(originalray.dir);
 	}
-	else
-	{
-		return environment.SampleEnvironment(originalray.dir);
-	}
+	return Color(0, 0, 0);
 }
 
 float FresnelReflections(const HitInfo & hInfo, float refractionIndex, float cos1)
@@ -298,11 +371,11 @@ float FresnelReflections(const HitInfo & hInfo, float refractionIndex, float cos
 	float R0;
 	if (hInfo.front)
 	{
-		R0 = (1 - refractionIndex) / (1 + refractionIndex) * (1 - refractionIndex) / (1 + refractionIndex);
+		R0 = ((1 - refractionIndex) / (1 + refractionIndex)) * ((1 - refractionIndex) / (1 + refractionIndex));
 	}
 	else
 	{
-		R0 = (refractionIndex - 1) / (1 + refractionIndex) * (refractionIndex - 1) / (1 + refractionIndex);
+		R0 = ((refractionIndex - 1) / (1 + refractionIndex)) * ((refractionIndex - 1) / (1 + refractionIndex));
 	}
 
 	return R0 + (1 - R0) * pow(1 - cos1, 5);
@@ -343,7 +416,7 @@ Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce)
 Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refractionIndex, Color refraction)
 {
 	float R;
-	// bounce 1 is refract 1 time
+	// Add bounce + 1 because in most case refraction need to go through front and back sides of the object
 	if (bounce <= -1)
 	{
 		return Color(0, 0, 0);
@@ -361,23 +434,27 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 
 		float cos1, cos2, sin1, sin2;
 
-		if (hInfo.front)
+		if (V.Dot(N) >= 0)
 		{
 			P = -1 * SHADOWBIAS * P;  P += hInfo.p;
-			cos1 = V.Dot(N); sin1 = sqrt(1 - (cos1 * cos1));
+			cos1 = V.Dot(N);
 		}
 		else
 		{
 			P = SHADOWBIAS * P;  P += hInfo.p;
-			cos1 = V.Dot(-N); sin1 = sqrt(1 - (cos1 * cos1));
+			cos1 = V.Dot(-N);
 		}
+
+		sin1 = sqrt(1 - (cos1 * cos1));
+
+		
 
 		// Calculate fresnel reflection
 		R = FresnelReflections(hInfo, refractionIndex, cos1);
 
 		Vec3f T_h, T_v, T;
 
-		if (hInfo.front)
+		if (V.Dot(N) >= 0)
 		{
 			sin2 = (1 / refractionIndex) * sin1;
 		}
@@ -385,33 +462,43 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 		{
 			sin2 = refractionIndex * sin1;
 		}
+
 		cos2 = sqrt(1 - (sin2 * sin2));
 
 		// Total internal reflection
 		if (sin2 > 1)
 		{
-			return Color(0, 0, 0);
-		}
+			return Color(1, 0, 0);
+			//return Color(1, 1, 1);
 
-		if (hInfo.front)
-		{
-			// Horizontal dirction Vector
-			T_h = -cos2 * N;
-			// Vertical Direction Vector
-			T_v = (V - (V.Dot(N))* N);
+			//T_h = -cos2 * N;
+			//T_v = (V - (V.Dot(-N))* -N);
+			//T_v.Normalize();
+			//T_v = -sin2 * T_v;
 		}
 		else
 		{
-			// Horizontal dirction Vector
-			T_h = -cos2 * -N;
-			// Vertical Direction Vector
-			T_v = (V - (V.Dot(-N))* -N);
+			if (V.Dot(N) >= 0)
+			{
+				// Horizontal dirction Vector
+				T_h = -cos2 * N;
+				// Vertical Direction Vector
+				T_v = (V - (V.Dot(N))* N);
+			}
+			else
+			{
+				// Horizontal direction Vector
+				T_h = -cos2 * -N;
+				// Vertical Direction Vector
+				T_v = (V - (V.Dot(-N))* -N);
+			}
+
+			T_v.Normalize();
+			T_v = -sin2 * T_v;
 		}
-		T_v.Normalize();
-		T_v = -sin2 * T_v;
+
 		// Combined horizontal and vertical
 		T = T_h + T_v;
-		float s = T.Length();
 
 		// S is a starting point from the surface point
 		Ray S;
@@ -419,15 +506,16 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 		S.p = P;
 
 		// Start traversing node 
-		Node * node = new Node();
+		Node node;
 		Node * startnode = &rootNode;
 		HitInfo hitinfo;
 
+		Color returnColor = Color(0, 0, 0);
+
 		// Refraction part
-		Color returnColor = (1 - R) * refraction * FindReflectionAndRefraction(startnode, node, S, S, hitinfo, bounce - 1);
+		returnColor = (1 - R) * refraction * FindReflectionAndRefraction(startnode, &node, S, S, hitinfo, bounce-1);
 		// Reflection part
 		returnColor += R * refraction * Reflection(ray, hInfo, bounce);
-		delete node;
 		return returnColor;
 	}
 }
@@ -461,8 +549,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			H.Normalize();
 
 			// Incoming light
-			Color IR;
-			IR.r = 0; IR.g = 0; IR.b = 0;
+			Color IR = Color(0, 0, 0);
 			if (N.Dot(-1 * (*light)->Direction(hInfo.p)) >= 0)
 			{
 				IR = (*light)->Illuminate(hInfo.p, N) * N.Dot(L);
@@ -483,8 +570,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			H.Normalize();
 
 			// Incoming light
-			Color IR;
-			IR.r = 0; IR.g = 0; IR.b = 0;
+			Color IR = Color(0, 0, 0);
 			if (N.Dot(-1 * (*light)->Direction(hInfo.p)) >= 0)
 			{
 				IR = (*light)->Illuminate(hInfo.p, N) * N.Dot(L);
@@ -556,6 +642,7 @@ float GenLight::Shadow(Ray ray, float t_max)
 		delete node;
 		return 1.0f;
 	}
+	//return 1.0f;
 }
 
 bool CheckZbuffer(float & zbuffer, float answer)
@@ -586,20 +673,17 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 
 		if (answer1 >= answer2)
 		{
-			large = answer1;
-			small = answer2;
+			large = answer1; small = answer2;
 		}
 		else
 		{
-			large = answer2;
-			small = answer1;
+			large = answer2; small = answer1;
 		}
 
 		if (small < 0)
 		{
 			if (large > 0)
 			{
-
 				// this is for shadowprocess
 				if (hitSide == 1)
 				{
@@ -617,8 +701,8 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 						hInfo.front = false;
 						hInfo.p = ray.p + large * ray.dir;
 						hInfo.N = hInfo.p;
-						float u = (1 / 2 * 3.14f) * atan2f(hInfo.p.y, hInfo.p.x) + .5f;
-						float v = (1 / 3.14f) * asinf(hInfo.p.z) + 0.5f;
+						float u = (1 / 2 * static_cast<float>(M_PI)) * atan2f(hInfo.p.y, hInfo.p.x) + .5f;
+						float v = (1 / static_cast<float>(M_PI)) * asinf(hInfo.p.z) + 0.5f;
 						hInfo.uvw = Vec3f(u, v, 0.0f);
 						return true;
 					}
@@ -644,8 +728,8 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 					hInfo.front = true;
 					hInfo.p = ray.p + small * ray.dir;
 					hInfo.N = hInfo.p;
-					float u = (1 / (2 * 3.14f)) * atan2f(hInfo.p.y, hInfo.p.x) + .5f;
-					float v = (1 / 3.14f) * asinf(hInfo.p.z) + 0.5f;
+					float u = (1 / (2 * static_cast<float>(M_PI))) * atan2f(hInfo.p.y, hInfo.p.x) + .5f;
+					float v = (1 / static_cast<float>(M_PI)) * asinf(hInfo.p.z) + 0.5f;
 					hInfo.uvw = Vec3f(u, v, 0.0f);
 					return true;
 				}
@@ -907,15 +991,22 @@ bool TriObj::IntersectTriangle(Ray const & ray, HitInfo & hInfo, int hitSide, un
 			beta1 = std::abs(a1 / a);
 			beta2 = std::abs(a2 / a);
 
-			Vec3f normal = beta0 * vn[i0] + beta1 * vn[i1] + beta2 * vn[i2];
-
-			hInfo.front = true;
+			Vec3f bc = Vec3f(beta0, beta1, beta2);
+			Vec3f normal = GetNormal(faceID, bc);
+			
+			if (a0 >= 0 && a1 >= 0 && a2 >= 0)
+			{
+				hInfo.front = true;
+			}
+			else if (a0 < 0 && a1 < 0 && a2 < 0)
+			{
+				hInfo.front = false;
+			}
 			hInfo.N = normal;
 			hInfo.p = point;
 			hInfo.z = t;
 			// This is for texturing
 			{
-				Vec3f bc = Vec3f(beta0, beta1, beta2);
 				hInfo.uvw = GetTexCoord(faceID, bc);
 			}
 			return true;
