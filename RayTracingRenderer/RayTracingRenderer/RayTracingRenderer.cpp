@@ -24,7 +24,7 @@ TexturedColor background;
 TexturedColor environment;
 TextureList textureList;
 
-#define TIMEOFREFRECTION 15
+#define TIMEOFREFRECTION 2
 #define RAYPERPIXEL 4
 #define MAXSAMPLECOUNT 3
 #define SHADOWBIAS 0.0005f
@@ -32,15 +32,15 @@ TextureList textureList;
 #define HALFOFPIXELRATIO 0.5f
 #define RAYPERPIXELFORBLUREFFECT 256
 
-#define ANTIALIASING
-//#define BLUEEFFECT
+//#define ANTIALIASING
+#define BLUREFFECT
 
 int main()
 {
 	//LoadScene(".\\xmlfiles\\playground.xml");
-	LoadScene(".\\xmlfiles\\catscene.xml");
+	//LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
-	//LoadScene(".\\xmlfiles\\assignment6.xml");
+	LoadScene(".\\xmlfiles\\assignment9.xml");
 	ShowViewport();
 }
 
@@ -282,8 +282,8 @@ void BeginRender() {
 			if (pixels[i * renderImage.GetWidth() + j] == (Color24)Color(0, 0, 0))
 			{
 				Vec3f v((float)j / renderImage.GetWidth(), (float)i / renderImage.GetHeight(), 0.0f);
-				//pixels[i * renderImage.GetWidth() + j] = (Color24)background.Sample(v);
-				pixels[i * renderImage.GetWidth() + j] = Color24(0, 255, 255);
+				pixels[i * renderImage.GetWidth() + j] = (Color24)background.Sample(v);
+				//pixels[i * renderImage.GetWidth() + j] = Color24(0, 255, 255);
 			}
 
 			//HitInfo hit = HitInfo();
@@ -316,7 +316,7 @@ void StopRender() {
 
 
 
-Color FindReflectionAndRefraction(Node * traversingnode, Node * node, Ray originalray, Ray ray, HitInfo & hit, int bounce)
+Color TraverseReflectionAndRefraction(Node * traversingnode, Node * node, Ray originalray, Ray ray, HitInfo & hit, int bounce)
 {
 	int numberofchild = traversingnode->GetNumChild();
 	HitInfo hitinfo = HitInfo();
@@ -337,7 +337,7 @@ Color FindReflectionAndRefraction(Node * traversingnode, Node * node, Ray origin
 		if (node != nullptr)
 		{
 			Node * childnode = new Node();
-			FindReflectionAndRefraction(node, childnode, originalray, changedray, hit, bounce);
+			TraverseReflectionAndRefraction(node, childnode, originalray, changedray, hit, bounce);
 			if (hit.node != nullptr && hit.node != hitinfo.node)
 			{
 				node->FromNodeCoords(hit);
@@ -403,7 +403,7 @@ Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce)
 		Node * startnode = &rootNode;
 		HitInfo hitinfo;
 
-		Color returnColor = FindReflectionAndRefraction(startnode, node, S, S, hitinfo, bounce - 1);
+		Color returnColor = TraverseReflectionAndRefraction(startnode, node, S, S, hitinfo, bounce - 1);
 		delete node;
 		return returnColor;
 	}
@@ -417,7 +417,7 @@ Color TotalInternalReflection(Ray ray, int bounce)
 	HitInfo hitinfo;
 	Color returnColor = Color(0, 0, 0);
 
-	returnColor = FindReflectionAndRefraction(startnode, &node, ray, ray, hitinfo, bounce-1);
+	returnColor = TraverseReflectionAndRefraction(startnode, &node, ray, ray, hitinfo, bounce-1);
 
 	return returnColor;
 }
@@ -519,7 +519,7 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 			Color returnColor = Color(0, 0, 0);
 
 			// Refraction part
-			returnColor = (1 - R) * refraction * FindReflectionAndRefraction(startnode, &node, S, S, hitinfo, bounce - 1);
+			returnColor = (1 - R) * refraction * TraverseReflectionAndRefraction(startnode, &node, S, S, hitinfo, bounce - 1);
 			// Reflection part
 			returnColor += R * refraction * Reflection(ray, hInfo, bounce);
 			return returnColor;
