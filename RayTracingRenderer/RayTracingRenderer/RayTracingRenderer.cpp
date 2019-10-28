@@ -24,7 +24,7 @@ TexturedColor background;
 TexturedColor environment;
 TextureList textureList;
 
-#define TIMEOFREFRECTION 5
+#define TIMEOFREFRECTION 2
 #define RAYPERPIXEL 4
 #define MAXSAMPLECOUNT 3
 #define SHADOWBIAS 0.0005f
@@ -32,15 +32,15 @@ TextureList textureList;
 #define HALFOFPIXELRATIO 0.5f
 #define RAYPERPIXELFORBLUREFFECT 256
 
-#define ANTIALIASING
-//#define BLUREFFECT
+//#define ANTIALIASING
+#define BLUREFFECT
 
 int main()
 {
 	//LoadScene(".\\xmlfiles\\playground.xml");
-	LoadScene(".\\xmlfiles\\catscene.xml");
+	//LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
-	//LoadScene(".\\xmlfiles\\assignment6.xml");
+	LoadScene(".\\xmlfiles\\assignment9.xml");
 	ShowViewport();
 }
 
@@ -797,135 +797,132 @@ bool Plane::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 	return false;
 }
 
+void Swap(float & a, float & b)
+{
+	float tmp = a;
+	a = b;
+	b = tmp;
+}
+
 bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 {
 	// The t value for each case
-	float xmin, ymin, zmin;
-	float xmax, ymax, zmax;
-	float maxofmin, minofmax;
-	bool detected = false;
-	bool secondcheck = false;
+	float t_xmin, t_ymin, t_zmin;
+	float t_xmax, t_ymax, t_zmax;
+	float t_tmpmin, t_tmpmax;
 
-	float x, y, z;
+	//if (ray.dir.x == 0)
+	//{
+	//	t_ymin = (vertices[1] - ray.p.y) / ray.dir.y;
+	//	t_ymax = (vertices[4] - ray.p.y) / ray.dir.y;
 
-	xmin = (vertices[0] - ray.p.x) / ray.dir.x;
-	y = xmin * ray.dir.y + ray.p.y;
-	z = xmin * ray.dir.z + ray.p.z;
-	if (y >= vertices[1] && y <= vertices[4] && z >= vertices[2] && z <= vertices[5])
+	//	if (t_ymin > t_ymax)
+	//	{
+	//		Swap(t_ymin, t_ymax);
+	//	}
+
+	//	t_zmin = (vertices[2] - ray.p.z) / ray.dir.z;
+	//	t_zmax = (vertices[5] - ray.p.z) / ray.dir.z;
+
+	//	if (t_zmin > t_zmax)
+	//	{
+	//		Swap(t_zmin, t_zmax);
+	//	}
+
+	//	if (t_ymin > t_zmax || t_ymin > t_zmax)
+	//	{
+	//		return false;
+	//	}
+	//	return true;
+	//} 
+	//else if (ray.dir.y == 0)
+	//{
+	//	t_xmin = (vertices[0] - ray.p.x) / ray.dir.x;
+	//	t_xmax = (vertices[3] - ray.p.x) / ray.dir.x;
+
+	//	if (t_xmin > t_xmax)
+	//	{
+	//		Swap(t_xmin, t_xmax);
+	//	}
+
+	//	t_zmin = (vertices[2] - ray.p.z) / ray.dir.z;
+	//	t_zmax = (vertices[5] - ray.p.z) / ray.dir.z;
+
+	//	if (t_zmin > t_zmax)
+	//	{
+	//		Swap(t_zmin, t_zmax);
+	//	}
+
+	//	if (t_xmin > t_zmax || t_zmin > t_xmax)
+	//	{
+	//		return false;
+	//	}
+	//	return true;
+	//} 
+	//else if (ray.dir.z == 0)
+	//{
+	//	t_xmin = (vertices[0] - ray.p.x) / ray.dir.x;
+	//	t_xmax = (vertices[3] - ray.p.x) / ray.dir.x;
+
+	//	if (t_xmin > t_xmax)
+	//	{
+	//		Swap(t_xmin, t_xmax);
+	//	}
+
+	//	t_ymin = (vertices[1] - ray.p.y) / ray.dir.y;
+	//	t_ymax = (vertices[4] - ray.p.y) / ray.dir.y;
+
+	//	if (t_ymin > t_ymax)
+	//	{
+	//		Swap(t_ymin, t_ymax);
+	//	}
+
+	//	if (t_xmin > t_ymax || t_ymin > t_xmax)
+	//	{
+	//		return false;
+	//	}
+	//	return true;
+	//}
+	//else
 	{
-		if (detected)
-		{
-			maxofmin = xmin;
-			secondcheck = true;
-		}
-		else
-		{
-			minofmax = xmin;
-			detected = true;
-		}
-	}
+		t_xmin = (vertices[0] - ray.p.x) / ray.dir.x;
+		t_xmax = (vertices[3] - ray.p.x) / ray.dir.x;
 
-	ymin = (vertices[1] - ray.p.y) / ray.dir.y;
-	x = ymin * ray.dir.x + ray.p.x;
-	z = ymin * ray.dir.z + ray.p.z;
-	if (x >= vertices[0] && x <= vertices[3] && z >= vertices[2] && z <= vertices[5])
-	{
-		if (detected)
+		if (t_xmin > t_xmax)
 		{
-			maxofmin = ymin;
-			secondcheck = true;
+			Swap(t_xmin, t_xmax);
 		}
-		else
-		{
-			minofmax = ymin;
-			detected = true;
-		}
-	}
 
-	zmin = (vertices[2] - ray.p.z) / ray.dir.z;
-	x = zmin * ray.dir.x + ray.p.x;
-	y = zmin * ray.dir.y + ray.p.y;
-	if (x >= vertices[0] && x <= vertices[3] && y >= vertices[1] && y <= vertices[4])
-	{
-		if (detected)
-		{
-			maxofmin = zmin;
-			secondcheck = true;
-		}
-		else
-		{
-			minofmax = zmin;
-			detected = true;
-		}
-	}
+		t_ymin = (vertices[1] - ray.p.y) / ray.dir.y;
+		t_ymax = (vertices[4] - ray.p.y) / ray.dir.y;
 
-	xmax = (vertices[3] - ray.p.x) / ray.dir.x;
-	y = xmax * ray.dir.y + ray.p.y;
-	z = xmax * ray.dir.z + ray.p.z;
-	if (y >= vertices[1] && y <= vertices[4] && z >= vertices[2] && z <= vertices[5])
-	{
-		if (detected)
+		if (t_ymin > t_ymax)
 		{
-			maxofmin = xmax;
-			secondcheck = true;
+			Swap(t_ymin, t_ymax);
 		}
-		else
-		{
-			minofmax = xmax;
-			detected = true;
-		}
-	}
 
-	ymax = (vertices[4] - ray.p.y) / ray.dir.y;
-	x = ymax * ray.dir.x + ray.p.x;
-	z = ymax * ray.dir.z + ray.p.z;
-	if (x >= vertices[0] && x <= vertices[3] && z >= vertices[2] && z <= vertices[5])
-	{
-		if (detected)
+		if (t_xmin > t_ymax || t_ymin > t_xmax)
 		{
-			maxofmin = ymax;
-			secondcheck = true;
+			return false;
 		}
-		else
-		{
-			minofmax = ymax;
-			detected = true;
-		}
-	}
 
-	zmax = (vertices[5] - ray.p.z) / ray.dir.z;
-	x = zmax * ray.dir.x + ray.p.x;
-	y = zmax * ray.dir.y + ray.p.y;
-	if (x >= vertices[0] && x <= vertices[3] && y >= vertices[1] && y <= vertices[4])
-	{
-		if (detected)
-		{
-			maxofmin = zmax;
-			secondcheck = true;
-		}
-		else
-		{
-			minofmax = zmax;
-			detected = true;
-		}
-	}
+		t_tmpmin = (t_xmin > t_ymin) ? t_ymin : t_xmin;
+		t_tmpmax = (t_xmax > t_ymax) ? t_xmax : t_ymax;
 
-	if (!detected | !secondcheck)
-	{
-		return false;
-	}
+		t_zmin = (vertices[2] - ray.p.z) / ray.dir.z;
+		t_zmax = (vertices[5] - ray.p.z) / ray.dir.z;
 
-	if (maxofmin <= minofmax)
-	{
-		answer = maxofmin;
+		if (t_zmin > t_zmax)
+		{
+			Swap(t_zmin, t_zmax);
+		}
+
+		if (t_tmpmin > t_zmax || t_zmin > t_tmpmax)
+		{
+			return false;
+		}
 		return true;
 	}
-	else
-	{
-		answer = minofmax;
-		return true;
-	}
-	return false;
 }
 
 bool TriObj::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
