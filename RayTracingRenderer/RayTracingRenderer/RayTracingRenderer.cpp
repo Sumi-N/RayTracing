@@ -38,8 +38,8 @@ TextureList textureList;
 int main()
 {
 	//LoadScene(".\\xmlfiles\\playground2.xml");
-	//LoadScene(".\\xmlfiles\\catscene.xml");
-	LoadScene(".\\xmlfiles\\assignment9.xml");
+	LoadScene(".\\xmlfiles\\catscene.xml");
+	//LoadScene(".\\xmlfiles\\assignment9.xml");
 	//LoadScene(".\\xmlfiles\\assignment6.xml");
 	ShowViewport();
 }
