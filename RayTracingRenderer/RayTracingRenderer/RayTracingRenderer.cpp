@@ -32,15 +32,15 @@ TextureList textureList;
 #define HALFOFPIXELRATIO 0.5f
 #define RAYPERPIXELFORBLUREFFECT 256
 
-//#define ANTIALIASING
-#define BLUREFFECT
+#define ANTIALIASING
+//#define BLUREFFECT
 
 int main()
 {
 	//LoadScene(".\\xmlfiles\\playground.xml");
-	//LoadScene(".\\xmlfiles\\catscene.xml");
+	LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
-	LoadScene(".\\xmlfiles\\assignment9.xml");
+	//LoadScene(".\\xmlfiles\\assignment6.xml");
 	ShowViewport();
 }
 
@@ -196,7 +196,7 @@ Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node
 		cameraraies[i].Normalize();
 
 		pixelcolors[i] = RayTraversing(traversingnode, node, cameraraies[i], zbuffer, cameraraies[i], hits[i]);
-		averagepixelcolor += RayTraversing(traversingnode, node, cameraraies[i], zbuffer, cameraraies[i], hits[i]);
+		averagepixelcolor += pixelcolors[i];
 	}
 
 	averagepixelcolor /= RAYPERPIXEL;
@@ -336,14 +336,13 @@ Color TraverseReflectionAndRefraction(Node * traversingnode, Node * node, Ray or
 
 		if (node != nullptr)
 		{
-			Node * childnode = new Node();
-			TraverseReflectionAndRefraction(node, childnode, originalray, changedray, hit, bounce);
+			Node childnode;
+			TraverseReflectionAndRefraction(node, &childnode, originalray, changedray, hit, bounce);
 			if (hit.node != nullptr && hit.node != hitinfo.node)
 			{
 				node->FromNodeCoords(hit);
 				hitinfo = hit;
 			}
-			delete childnode;
 		}
 	}
 
@@ -403,12 +402,11 @@ Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce)
 		S.p = P;
 
 		// Start traversing node 
-		Node * node = new Node();
+		Node node;
 		Node * startnode = &rootNode;
 		HitInfo hitinfo;
 
-		Color returnColor = TraverseReflectionAndRefraction(startnode, node, S, S, hitinfo, bounce - 1);
-		delete node;
+		Color returnColor = TraverseReflectionAndRefraction(startnode, &node, S, S, hitinfo, bounce - 1);
 		return returnColor;
 	}
 }
@@ -631,9 +629,8 @@ bool DetectShadow(Node * traversingnode, Node * node, Ray ray, float t_max)
 
 		if (node != nullptr)
 		{
-			Node * childnode = new Node();
-			DetectShadow(node, childnode, node->ToNodeCoords(currentray), t_max);
-			delete childnode;
+			Node childnode;
+			DetectShadow(node, &childnode, node->ToNodeCoords(currentray), t_max);
 		}
 	}
 	return false;
@@ -641,16 +638,16 @@ bool DetectShadow(Node * traversingnode, Node * node, Ray ray, float t_max)
 
 float GenLight::Shadow(Ray ray, float t_max)
 {
-	Node * node = new Node();
+	Node node;
 	Node * startnode = &rootNode;
-	if (DetectShadow(startnode, node, ray, t_max))
+	if (DetectShadow(startnode, &node, ray, t_max))
 	{
-		delete node;
+		//delete node;
 		return 0.0f;
 	}
 	else
 	{
-		delete node;
+		//delete node;
 		return 1.0f;
 	}
 	//return 1.0f;
