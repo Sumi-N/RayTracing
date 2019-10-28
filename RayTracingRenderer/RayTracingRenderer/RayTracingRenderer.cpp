@@ -24,7 +24,7 @@ TexturedColor background;
 TexturedColor environment;
 TextureList textureList;
 
-#define TIMEOFREFRECTION 2
+#define TIMEOFREFRECTION 5
 #define RAYPERPIXEL 4
 #define MAXSAMPLECOUNT 3
 #define SHADOWBIAS 0.0005f
@@ -32,15 +32,15 @@ TextureList textureList;
 #define HALFOFPIXELRATIO 0.5f
 #define RAYPERPIXELFORBLUREFFECT 256
 
-//#define ANTIALIASING
-#define BLUREFFECT
+#define ANTIALIASING
+//#define BLUREFFECT
 
 int main()
 {
 	//LoadScene(".\\xmlfiles\\playground.xml");
-	//LoadScene(".\\xmlfiles\\catscene.xml");
+	LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
-	LoadScene(".\\xmlfiles\\assignment9.xml");
+	//LoadScene(".\\xmlfiles\\assignment6.xml");
 	ShowViewport();
 }
 
@@ -367,11 +367,15 @@ float FresnelReflections(const HitInfo & hInfo, float refractionIndex, float cos
 	float R0;
 	if (hInfo.front)
 	{
-		R0 = ((1 - refractionIndex) / (1 + refractionIndex)) * ((1 - refractionIndex) / (1 + refractionIndex));
+		R0 =      ((1 - refractionIndex) * (1 - refractionIndex))
+			  / //----------------------------------------------
+			      ((1 + refractionIndex) * (1 + refractionIndex));
 	}
 	else
 	{
-		R0 = ((refractionIndex - 1) / (1 + refractionIndex)) * ((refractionIndex - 1) / (1 + refractionIndex));
+		R0 =    ((refractionIndex - 1) * (refractionIndex - 1))
+			 / //-----------------------------------------------
+			    ((1 + refractionIndex) * (1 + refractionIndex));
 	}
 
 	return R0 + (1 - R0) * pow(1 - cos1, 5);
@@ -652,7 +656,7 @@ float GenLight::Shadow(Ray ray, float t_max)
 	//return 1.0f;
 }
 
-bool CheckZbuffer(float & zbuffer, float answer)
+bool CheckZbuffer(float & zbuffer, float & answer)
 {
 	if (answer < zbuffer)
 	{
