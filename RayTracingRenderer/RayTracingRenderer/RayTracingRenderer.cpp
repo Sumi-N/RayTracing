@@ -38,9 +38,9 @@ TextureList textureList;
 int main()
 {
 	//LoadScene(".\\xmlfiles\\playground.xml");
-	LoadScene(".\\xmlfiles\\catscene.xml");
+	//LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
-	//LoadScene(".\\xmlfiles\\assignment6.xml");
+	LoadScene(".\\xmlfiles\\assignment10.xml");
 	ShowViewport();
 }
 
@@ -1121,4 +1121,9 @@ bool TriObj::TraceBVHNode(Ray const & ray, HitInfo & hInfo, int hitSide, unsigne
 		}
 	}
 	return false;
+}
+
+Color PointLight::Illuminate(Vec3f const & p, Vec3f const & N) const
+{
+	return Color();
 }
