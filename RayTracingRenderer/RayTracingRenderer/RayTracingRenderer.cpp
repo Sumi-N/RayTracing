@@ -31,8 +31,10 @@ TextureList textureList;
 #define SAMPLEVARIENCE 0.005f
 #define HALFOFPIXELRATIO 0.5f
 #define RAYPERPIXELFORBLUREFFECT 256
+#define RAYPERPIXELFORGLOSSINESS 16
 
-#define ANTIALIASING
+#define NOANTIALIASING
+//#define ANTIALIASING
 //#define BLUREFFECT
 
 int main()
@@ -277,6 +279,14 @@ void BeginRender() {
 		   pixels[i * renderImage.GetWidth() + j] = (Color24)AdaptiveSampling(cameraray[i * renderImage.GetWidth() + j], HALFOFPIXELRATIO/2, (w / W)*x, (h / H)*y, startnode, node, zbuffers[i * renderImage.GetWidth() + j], samplecount[i * renderImage.GetWidth() + j]);
 		#elif defined BLUREFFECT
 			pixels[i * renderImage.GetWidth() + j] = (Color24)BlurEffect(cameraray[i * renderImage.GetWidth() + j], startnode, node, zbuffers[i * renderImage.GetWidth() + j]);
+		
+		#elif defined NOANTIALIASING
+			HitInfo hit = HitInfo();
+			//if (i == 271 && j == 300)
+			//{
+			//	pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+			//}
+			pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 		#endif 
 
 			if (pixels[i * renderImage.GetWidth() + j] == (Color24)Color(0, 0, 0))
@@ -285,18 +295,6 @@ void BeginRender() {
 				pixels[i * renderImage.GetWidth() + j] = (Color24)background.Sample(v);
 				//pixels[i * renderImage.GetWidth() + j] = Color24(0, 255, 255);
 			}
-
-			//HitInfo hit = HitInfo();
-			//if (i == 271 && j == 300)
-			//{
-			//	pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
-			//}
-			//pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
-			//if (pixels[i * renderImage.GetWidth() + j] == (Color24)Color(0, 0, 0))
-			//{
-			//	Vec3f v((float)j / renderImage.GetWidth(), (float)i / renderImage.GetHeight(), 0.0f);
-			//	pixels[i * renderImage.GetWidth() + j] = (Color24)background.Sample(v);
-			//}
 		}
 	}
 
@@ -358,7 +356,7 @@ Color TraverseReflectionAndRefraction(Node * traversingnode, Node * node, Ray or
 		}
 		//return background.Sample(originalray.dir);
 	}
-	return Color(0, 0, 0);
+	return environment.SampleEnvironment(originalray.dir);
 }
 
 float FresnelReflections(const HitInfo & hInfo, float refractionIndex, float cos1)
@@ -380,7 +378,18 @@ float FresnelReflections(const HitInfo & hInfo, float refractionIndex, float cos
 	return R0 + (1 - R0) * pow(1 - cos1, 5);
 }
 
-Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce)
+void ReturnGlossedVector(Vec3f & N, const float glossiness)
+{
+	Vec3f u = Vec3f(-1 * N.y, N.x, 0);
+	u.Normalize();
+	Vec3f v = N.Cross(u);
+	v.Normalize();
+	float randomrand = 2 * static_cast<float>(M_PI) * (static_cast<float>(rand()) / (RAND_MAX));
+	Vec3f N_alpha = sinf(randomrand) * u + cosf(randomrand) * v;
+	N += glossiness * N_alpha;
+}
+
+Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce, const float glossiness)
 {
 	// bounce 1 is reflect 1 time
 	if (bounce <= 0)
@@ -389,11 +398,14 @@ Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce)
 	}
 	else
 	{
-		Vec3f P = hInfo.N;
+		Vec3f N = hInfo.N;
+		ReturnGlossedVector(N, glossiness);
+
+		Vec3f P = N;
 		P.Normalize(); P = SHADOWBIAS * P; P += hInfo.p;
 
 		Vec3f V = -1 * ray.dir;
-		Vec3f R = 2 * (hInfo.N.Dot(V)) * hInfo.N - V;
+		Vec3f R = 2 * (N.Dot(V)) * N - V;
 		R.Normalize();
 
 		// S is a starting point from the surface point
@@ -424,7 +436,7 @@ Color TotalInternalReflection(Ray ray, int bounce)
 	return returnColor;
 }
 
-Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refractionIndex, Color refraction)
+Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refractionIndex, Color refraction, const float glossiness)
 {
 	float R;
 	// Add bounce + 1 because in most case refraction need to go through front and back sides of the object
@@ -439,6 +451,7 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 
 		Vec3f N = hInfo.N;
 		N.Normalize();
+		//ReturnGlossedVector(N, glossiness);
 
 		Vec3f P;
 
@@ -523,7 +536,7 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 			// Refraction part
 			returnColor = (1 - R) * refraction * TraverseReflectionAndRefraction(startnode, &node, S, S, hitinfo, bounce - 1);
 			// Reflection part
-			returnColor += R * refraction * Reflection(ray, hInfo, bounce);
+			returnColor += R * refraction * Reflection(ray, hInfo, bounce, glossiness);
 			return returnColor;
 		}
 	}
@@ -595,7 +608,14 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 	// Caluculate only relfection part for reflection
 	if (this->reflection.Sample(hInfo.uvw) != Color(0, 0, 0))
 	{
-		color += this->reflection.Sample(hInfo.uvw) * Reflection(ray, hInfo, bounce);
+		Color reflectioncolor = Color(0, 0, 0);
+		for (int i = 0; i < RAYPERPIXELFORGLOSSINESS; i++)
+		{
+			reflectioncolor += this->reflection.Sample(hInfo.uvw) * Reflection(ray, hInfo, bounce, reflectionGlossiness);
+		}
+		reflectioncolor /= RAYPERPIXELFORGLOSSINESS;
+
+		color += reflectioncolor;
 	}
 
 	// Caluculate refraction part
@@ -606,7 +626,15 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		{
 			color += CalculateAbsorption(color, absorption, hInfo.z);
 		}
-		color += Refraction(ray, hInfo, bounce, ior, refraction.Sample(hInfo.uvw));
+
+		Color refractioncolor = Color(0, 0, 0);
+		for (int i = 0; i < RAYPERPIXELFORGLOSSINESS; i++)
+		{
+			refractioncolor += Refraction(ray, hInfo, bounce, ior, refraction.Sample(hInfo.uvw), refractionGlossiness);
+		}
+		refractioncolor /= RAYPERPIXELFORGLOSSINESS;
+
+		color += refractioncolor;
 	}
 
 	return color;
@@ -1125,5 +1153,6 @@ bool TriObj::TraceBVHNode(Ray const & ray, HitInfo & hInfo, int hitSide, unsigne
 
 Color PointLight::Illuminate(Vec3f const & p, Vec3f const & N) const
 {
+	return Shadow(Ray(p, N)) * intensity;
 	return Color();
 }
