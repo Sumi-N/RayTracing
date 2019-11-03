@@ -388,7 +388,7 @@ void ChangedToRandomVectorAroundTheCircle(Vec3f & dir, const float radius)
 	float randomrand = 2 * static_cast<float>(M_PI) * (static_cast<float>(rand()) / (RAND_MAX));
 	Vec3f dir_alpha = sinf(randomrand) * u + cosf(randomrand) * v;
 	float r = (static_cast<float>(rand()) / (RAND_MAX)) * radius;
-	//r = radius * sqrt(r);
+	r = radius * sqrt(r);
 
 	dir += r * dir_alpha;
 }
