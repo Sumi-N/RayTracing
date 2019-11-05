@@ -31,8 +31,8 @@ TextureList textureList;
 #define SAMPLEVARIENCE 0.005f
 #define HALFOFPIXELRATIO 0.5f
 #define RAYPERPIXELFORBLUREFFECT 256
-#define RAYPERPIXELFORGLOSSINESS 8
-#define RAYPERPIXELFORSHADOW 1
+#define RAYPERPIXELFORGLOSSINESS 16
+#define RAYPERPIXELFORSHADOW 64
 
 //#define NOANTIALIASING
 #define ANTIALIASING
@@ -391,6 +391,7 @@ void ChangedToRandomVectorAroundTheCircle(Vec3f & dir, const float radius)
 	r = radius * sqrt(r);
 
 	dir += r * dir_alpha;
+	dir.Normalize();
 }
 
 Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce, const float glossiness)
@@ -463,12 +464,12 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 
 		if (V.Dot(N) >= 0)
 		{
-			P = -1 * SHADOWBIAS * hInfo.N;  P += hInfo.p;
+			P = -1 * SHADOWBIAS * N;  P += hInfo.p;
 			cos1 = V.Dot(N);
 		}
 		else
 		{
-			P = SHADOWBIAS * hInfo.N;  P += hInfo.p;
+			P = SHADOWBIAS * N;  P += hInfo.p;
 			cos1 = V.Dot(-N);
 		}
 
@@ -490,8 +491,6 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 			sin2 = refractionIndex * sin1;
 		}
 
-		cos2 = sqrt(1 - (sin2 * sin2));
-
 		// S is a starting point from the surface point
 		Ray S;
 
@@ -507,6 +506,8 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 		}
 		else // Normal procedure
 		{
+			cos2 = sqrt(1 - (sin2 * sin2));
+
 			if (V.Dot(N) >= 0)
 			{
 				// Horizontal dirction Vector
@@ -713,9 +714,10 @@ Color PointLight::Illuminate(Vec3f const & p, Vec3f const & N) const
 	for (int j = 0; j < RAYPERPIXELFORSHADOW; j++)
 	{
 		direction = position - p;
+		float length = direction.Length();
 		ChangedToRandomVectorAroundTheCircle(direction, size / 2);
 		direction.Normalize();
-		ratio += Shadow(Ray(p, direction));
+		ratio += Shadow(Ray(p, direction), length);
 	}
 	ratio /= RAYPERPIXELFORSHADOW;
 
