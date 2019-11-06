@@ -28,11 +28,11 @@ TextureList textureList;
 #define RAYPERPIXEL 4
 #define MAXSAMPLECOUNT 3
 #define SHADOWBIAS 0.0005f
-#define SAMPLEVARIENCE 0.005f
+#define SAMPLEVARIENCE 0.0001f
 #define HALFOFPIXELRATIO 0.5f
 #define RAYPERPIXELFORBLUREFFECT 256
-#define RAYPERPIXELFORGLOSSINESS 16
-#define RAYPERPIXELFORSHADOW 64
+#define RAYPERPIXELFORGLOSSINESS 8
+#define RAYPERPIXELFORSHADOW 16
 
 //#define NOANTIALIASING
 #define ANTIALIASING
@@ -387,7 +387,7 @@ void ChangedToRandomVectorAroundTheCircle(Vec3f & dir, const float radius)
 	v.Normalize();
 	float randomrand = 2 * static_cast<float>(M_PI) * (static_cast<float>(rand()) / (RAND_MAX));
 	Vec3f dir_alpha = sinf(randomrand) * u + cosf(randomrand) * v;
-	float r = (static_cast<float>(rand()) / (RAND_MAX)) * radius;
+	float r = (static_cast<float>(rand()) / (RAND_MAX));
 	r = radius * sqrt(r);
 
 	dir += r * dir_alpha;
@@ -663,7 +663,10 @@ bool DetectShadow(Node * traversingnode, Node * node, Ray ray, float t_max)
 		if (node != nullptr)
 		{
 			Node childnode;
-			DetectShadow(node, &childnode, node->ToNodeCoords(currentray), t_max);
+			if (DetectShadow(node, &childnode, node->ToNodeCoords(currentray), t_max))
+			{
+				return true;
+			}
 		}
 	}
 	return false;
@@ -687,39 +690,40 @@ Color PointLight::Illuminate(Vec3f const & p, Vec3f const & N) const
 {
 	Vec3f direction;
 	float ratio = 0.0f;
-	//for (int i = 0; i < RAYPERPIXEL; i++)
-	//{
-	//	direction = position - p;
-	//	ChangedToRandomVectorAroundTheCircle(direction, size / 2);
-	//	direction.Normalize();
-	//	if (Shadow(Ray(p, direction)) == 0.0f)
-	//	{
-	//		ratio = 0.0f;
-	//		for (int j = 0; j < RAYPERPIXELFORSHADOW; j++)
-	//		{
-	//			direction = position - p;
-	//				ChangedToRandomVectorAroundTheCircle(direction, size / 2);
-	//				direction.Normalize();
-	//				ratio += Shadow(Ray(p, direction));
-	//		}
-	//		ratio /= RAYPERPIXELFORSHADOW;
-	//		break;
-	//	}
-	//	else
-	//	{
-	//		ratio = 1.0f;
-	//	}
-	//}
-
-	for (int j = 0; j < RAYPERPIXELFORSHADOW; j++)
+	for (int i = 0; i < RAYPERPIXEL; i++)
 	{
 		direction = position - p;
 		float length = direction.Length();
 		ChangedToRandomVectorAroundTheCircle(direction, size / 2);
 		direction.Normalize();
-		ratio += Shadow(Ray(p, direction), length);
+		if (Shadow(Ray(p, direction)) == 0.0f)
+		{
+			ratio = 0.0f;
+			for (int j = 0; j < RAYPERPIXELFORSHADOW; j++)
+			{
+				direction = position - p;
+					ChangedToRandomVectorAroundTheCircle(direction, size / 2);
+					direction.Normalize();
+					ratio += Shadow(Ray(p, direction), length);
+			}
+			ratio /= RAYPERPIXELFORSHADOW;
+			break;
+		}
+		else
+		{
+			ratio = 1.0f;
+		}
 	}
-	ratio /= RAYPERPIXELFORSHADOW;
+
+	//for (int j = 0; j < RAYPERPIXELFORSHADOW; j++)
+	//{
+	//	direction = position - p;
+	//	float length = direction.Length();
+	//	ChangedToRandomVectorAroundTheCircle(direction, size / 2);
+	//	direction.Normalize();
+	//	ratio += Shadow(Ray(p, direction), length);
+	//}
+	//ratio /= RAYPERPIXELFORSHADOW;
 
 	return ratio * intensity;
 }
