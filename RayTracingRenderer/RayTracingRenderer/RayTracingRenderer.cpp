@@ -28,11 +28,11 @@ TextureList textureList;
 #define RAYPERPIXEL 4
 #define MAXSAMPLECOUNT 3
 #define SHADOWBIAS 0.0005f
-#define SAMPLEVARIENCE 0.0001f
+#define SAMPLEVARIENCE 0.0003f
 #define HALFOFPIXELRATIO 0.5f
 #define RAYPERPIXELFORBLUREFFECT 256
 #define RAYPERPIXELFORGLOSSINESS 8
-#define RAYPERPIXELFORSHADOW 16
+#define RAYPERPIXELFORSHADOW 64
 
 //#define NOANTIALIASING
 #define ANTIALIASING
@@ -313,6 +313,53 @@ void BeginRender() {
 void StopRender() {
 }
 
+Color TraverseReflectionAndRefraction2(Node * traversingnode, Ray ray, HitInfo & hit, int bounce)
+{
+	Node * currentnode = traversingnode;
+	Ray currentray = ray;
+
+	Node * previousnode;
+	Ray previousray;
+
+	int numberofchildren = currentnode->GetNumChild();
+	int i = 0;
+	int j = 0;
+
+	while (j < numberofchildren)
+	{
+		previousnode = currentnode;
+		previousray = currentray;
+
+		while (i < numberofchildren)
+		{
+			currentnode = previousnode;
+			currentray = previousray;
+
+			currentnode = currentnode->GetChild(i);
+			currentray = currentnode->ToNodeCoords(currentray);
+
+			if (currentnode->GetNodeObj() != nullptr)
+			{
+				if (currentnode->GetNodeObj()->IntersectRay(currentray, hit, 0))
+				{
+					hit.node = currentnode;
+					currentnode->FromNodeCoords(hit);
+				}
+			}
+			i++;
+		}
+
+		numberofchildren = previousnode->GetNumChild();
+		if (numberofchildren == 0)
+		{
+			break;
+		}
+
+		currentnode = previousnode->GetChild(j);
+		currentray = currentnode->ToNodeCoords(previousray);
+		j++;
+	}
+}
 
 
 Color TraverseReflectionAndRefraction(Node * traversingnode, Node * node, Ray originalray, Ray ray, HitInfo & hit, int bounce)
