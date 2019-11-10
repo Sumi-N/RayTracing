@@ -1,8 +1,6 @@
 #include "xmlload.h"
 //-------------------------------------------------------------------------------
 
-//-------------------------------------------------------------------------------
-
 int LoadScene(char const *filename)
 {
 	TiXmlDocument doc(filename);
@@ -322,6 +320,13 @@ void LoadMaterial(TiXmlElement *element)
 					ReadFloat(child, f);
 					m->SetGlossiness(f);
 					printf("   glossiness %f\n", f);
+				}
+				else if (COMPARE(child->Value(), "emission"))
+				{
+					ReadColor(child, c);
+					m->SetEmission(c);
+					printf("   emission %f %f %f\n", c.r, c.g, c.b);
+					m->SetEmissionTexture(ReadTexture(child));
 				}
 				else if (COMPARE(child->Value(), "reflection"))
 				{

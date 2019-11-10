@@ -1,8 +1,9 @@
+
 //-------------------------------------------------------------------------------
 ///
 /// \file       materials.h 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    10.0
+/// \version    11.0
 /// \date       August 21, 2019
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -19,7 +20,7 @@
 class MtlBlinn : public Material
 {
 public:
-	MtlBlinn() : diffuse(0.5f, 0.5f, 0.5f), specular(0.7f, 0.7f, 0.7f), glossiness(20.0f),
+	MtlBlinn() : diffuse(0.5f, 0.5f, 0.5f), specular(0.7f, 0.7f, 0.7f), glossiness(20.0f), emission(0, 0, 0),
 		reflection(0, 0, 0), refraction(0, 0, 0), absorption(0, 0, 0), ior(1),
 		reflectionGlossiness(0), refractionGlossiness(0)
 	{
@@ -37,6 +38,10 @@ public:
 	void SetGlossiness(float gloss)
 	{
 		glossiness = gloss;
+	}
+	void SetEmission(Color e)
+	{
+		emission.SetColor(e);
 	}
 
 	void SetReflection(Color reflect)
@@ -64,6 +69,10 @@ public:
 	{
 		specular.SetTexture(map);
 	}
+	void SetEmissionTexture(TextureMap *map)
+	{
+		emission.SetTexture(map);
+	}
 	void SetReflectionTexture(TextureMap *map)
 	{
 		reflection.SetTexture(map);
@@ -84,7 +93,7 @@ public:
 	virtual void SetViewportMaterial(int subMtlID = 0) const; // used for OpenGL display
 
 private:
-	TexturedColor diffuse, specular, reflection, refraction;
+	TexturedColor diffuse, specular, reflection, refraction, emission;
 	float glossiness;
 	Color absorption;
 	float ior;  // index of refraction

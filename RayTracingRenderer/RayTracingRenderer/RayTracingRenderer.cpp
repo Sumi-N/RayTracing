@@ -10,6 +10,7 @@
 #include <omp.h>
 #include <cyBVH.h>
 #include <time.h>
+#include <math.h>
 
 Node rootNode;
 Camera camera;
@@ -32,10 +33,11 @@ TextureList textureList;
 #define HALFOFPIXELRATIO 0.5f
 #define RAYPERPIXELFORBLUREFFECT 256
 #define RAYPERPIXELFORGLOSSINESS 8
-#define RAYPERPIXELFORSHADOW 64
+#define RAYPERPIXELFORSHADOW 1
+#define MonteCarloGI 16
 
-//#define NOANTIALIASING
-#define ANTIALIASING
+#define NOANTIALIASING
+//#define ANTIALIASING
 //#define BLUREFFECT
 
 int main()
@@ -43,7 +45,7 @@ int main()
 	//LoadScene(".\\xmlfiles\\playground.xml");
 	//LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
-	LoadScene(".\\xmlfiles\\assignment10.xml");
+	LoadScene(".\\xmlfiles\\assignment11.xml");
 	ShowViewport();
 }
 
@@ -373,12 +375,14 @@ Color TraverseReflectionAndRefraction(Node * traversingnode, Node * node, Ray or
 		Ray changedray = node->ToNodeCoords(ray);
 
 		if (node->GetNodeObj() != nullptr)
+		{
 			if (node->GetNodeObj()->IntersectRay(changedray, hitinfo, 0))
 			{
 				hitinfo.node = node;
 				node->FromNodeCoords(hitinfo);
 			}
-		hit = hitinfo;
+			hit = hitinfo;
+		}
 
 		if (node != nullptr)
 		{
@@ -438,6 +442,23 @@ void ChangedToRandomVectorAroundTheCircle(Vec3f & dir, const float radius)
 	r = radius * sqrt(r);
 
 	dir += r * dir_alpha;
+	dir.Normalize();
+}
+
+void CosineWeightedHemisphereUniformSampling(Vec3f& dir)
+{
+	float theta = (static_cast<float>(rand()) / (RAND_MAX));
+	float phy = (static_cast<float>(rand()) / (RAND_MAX));
+
+	float x = cosf(2 * static_cast<float>(M_PI) *phy) * sqrtf(theta);
+	float y = sinf(2 * static_cast<float>(M_PI) *phy) * sqrtf(theta);
+	float z = sqrtf(1 - theta);
+
+	Vec3f randomdir = Vec3f(x, y, z);
+	randomdir.Normalize();
+	randomdir -= Vec3f(0, 0, 1);
+
+	dir += randomdir;
 	dir.Normalize();
 }
 
@@ -657,6 +678,33 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		}
 	}
 
+	// For global illumination
+	if (bounce > 0)
+	{
+		Color returnColor = Color(0, 0, 0);
+		Vec3f N_dash = N;
+		N_dash.Normalize();
+
+		for (int i = 0; i < MonteCarloGI; i++)
+		{
+			CosineWeightedHemisphereUniformSampling(N_dash);
+
+			// Start traversing node 
+			Node node;
+			Node * startnode = &rootNode;
+			HitInfo hhh;
+
+			Ray ray_gi;
+			ray_gi.p = hInfo.p;
+			ray_gi.p += SHADOWBIAS * N;
+			ray_gi.dir = N_dash;
+
+			returnColor += TraverseReflectionAndRefraction(startnode, &node, ray_gi, ray_gi, hhh, bounce - 2);
+		}
+		returnColor /= MonteCarloGI;
+		color += returnColor;
+	}
+
 	// Caluculate only relfection part for reflection
 	if (this->reflection.Sample(hInfo.uvw) != Color(0, 0, 0))
 	{
@@ -749,9 +797,9 @@ Color PointLight::Illuminate(Vec3f const & p, Vec3f const & N) const
 			for (int j = 0; j < RAYPERPIXELFORSHADOW; j++)
 			{
 				direction = position - p;
-					ChangedToRandomVectorAroundTheCircle(direction, size / 2);
-					direction.Normalize();
-					ratio += Shadow(Ray(p, direction), length);
+				ChangedToRandomVectorAroundTheCircle(direction, size / 2);
+				direction.Normalize();
+				ratio += Shadow(Ray(p, direction), length);
 			}
 			ratio /= RAYPERPIXELFORSHADOW;
 			break;

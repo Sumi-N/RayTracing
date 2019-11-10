@@ -2,7 +2,7 @@
 ///
 /// \file       scene.h 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    9.0
+/// \version    11.0
 /// \date       August 21, 2019
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -33,14 +33,6 @@
 using namespace cy;
 
 //-------------------------------------------------------------------------------
-
-#ifndef Min
-# define Min(a,b) ((a)<(b)?(a):(b))
-#endif
-
-#ifndef max
-# define max(a,b) ((a)>(b)?(a):(b))
-#endif
 
 #define BIGFLOAT 1.0e30f
 
@@ -403,7 +395,9 @@ public:
 	}    // used for OpenGL display
 };
 
-class LightList : public ItemList<Light> {};
+class LightList : public ItemList<Light>
+{
+};
 
 //-------------------------------------------------------------------------------
 
@@ -755,10 +749,11 @@ private:
 	uint8_t *zbufferImg;
 	uint8_t *sampleCount;
 	uint8_t *sampleCountImg;
+	uint8_t *irradComp;
 	int      width, height;
 	std::atomic<int> numRenderedPixels;
 public:
-	RenderImage() : img(nullptr), zbuffer(nullptr), zbufferImg(nullptr), sampleCount(nullptr), sampleCountImg(nullptr), width(0), height(0), numRenderedPixels(0)
+	RenderImage() : img(nullptr), zbuffer(nullptr), zbufferImg(nullptr), sampleCount(nullptr), sampleCountImg(nullptr), irradComp(nullptr), width(0), height(0), numRenderedPixels(0)
 	{
 	}
 	void Init(int w, int h)
@@ -775,7 +770,14 @@ public:
 		sampleCount = new uint8_t[width*height];
 		if (sampleCountImg) delete[] sampleCountImg;
 		sampleCountImg = nullptr;
+		if (irradComp) delete[] irradComp;
+		irradComp = nullptr;
 		ResetNumRenderedPixels();
+	}
+	void AllocateIrradianceComputationImage()
+	{
+		if (!irradComp) irradComp = new uint8_t[width*height];
+		for (int i = 0; i < width*height; i++) irradComp[i] = 0;
 	}
 
 	int      GetWidth() const
@@ -805,6 +807,10 @@ public:
 	uint8_t* GetSampleCountImage()
 	{
 		return sampleCountImg;
+	}
+	uint8_t* GetIrradianceComputationImage()
+	{
+		return irradComp;
 	}
 
 	void ResetNumRenderedPixels()
@@ -891,6 +897,10 @@ public:
 	bool SaveSampleCountImage(char const *filename) const
 	{
 		return SavePNG(filename, sampleCountImg, 1);
+	}
+	bool SaveIrradianceComputationImage(char const *filename) const
+	{
+		return SavePNG(filename, irradComp, 1);
 	}
 
 private:

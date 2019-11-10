@@ -2,7 +2,7 @@
 ///
 /// \file       xmlload.cpp 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    10.0
+/// \version    11.0
 /// \date       August 21, 2019
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -56,6 +56,7 @@ struct NodeMtl
 	Node *node;
 	char const *mtlName;
 };
+
 //-------------------------------------------------------------------------------
 
 extern std::vector<NodeMtl> nodeMtlList;
