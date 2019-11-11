@@ -29,12 +29,12 @@ TextureList textureList;
 #define RAYPERPIXEL 4
 #define MAXSAMPLECOUNT 3
 #define SHADOWBIAS 0.0005f
-#define SAMPLEVARIENCE 0.003f
+#define SAMPLEVARIENCE 0.03f
 #define HALFOFPIXELRATIO 0.5f
 #define RAYPERPIXELFORBLUREFFECT 256
 #define RAYPERPIXELFORGLOSSINESS 8
-#define RAYPERPIXELFORSHADOW 1
-#define MONTECARLOGI 64
+#define RAYPERPIXELFORSHADOW 16
+//#define MONTECARLOGI 64
 
 //#define NOANTIALIASING
 //#define BLUREFFECT
@@ -48,7 +48,8 @@ int main()
 	//LoadScene(".\\xmlfiles\\playground.xml");
 	//LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
-	LoadScene(".\\xmlfiles\\assignment11.xml");
+	LoadScene(".\\xmlfiles\\assignment9.xml");
+	//LoadScene(".\\xmlfiles\\assignment11.xml");
 	ShowViewport();
 }
 
@@ -63,7 +64,7 @@ int main()
 //   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
 //   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
 
-Color RayTraversing(Node * traversingnode, Node * node, Ray ray, float & zbuffer, Ray originalray, HitInfo & hit) {
+Color OuterRayTraversing(Node * traversingnode, Node * node, Ray ray, float & zbuffer, Ray originalray, HitInfo & hit) {
 
 	int numberofchild = traversingnode->GetNumChild();
 	HitInfo hitinfo = HitInfo();
@@ -87,7 +88,7 @@ Color RayTraversing(Node * traversingnode, Node * node, Ray ray, float & zbuffer
 
 		if (node != nullptr) {
 			Node childnode;
-			RayTraversing(node, &childnode, changedray, zbuffer, originalray, hit);
+			OuterRayTraversing(node, &childnode, changedray, zbuffer, originalray, hit);
 			if (hit.node != nullptr && hit.node != hitinfo.node)
 			{
 				node->FromNodeCoords(hit);
@@ -163,7 +164,7 @@ Color BlurEffect(Ray ray, Node * traversingnode, Node * node, float & zbuffer)
 		cameraraies[i].dir = screenpoints[i] - cameraraies[i].p;
 		cameraraies[i].Normalize();
 
-		pixelcolors[i] = RayTraversing(traversingnode, node, cameraraies[i], zbuffer, cameraraies[i], hits[i]);
+		pixelcolors[i] = OuterRayTraversing(traversingnode, node, cameraraies[i], zbuffer, cameraraies[i], hits[i]);
 		answercolor += pixelcolors[i];
 	}
 
@@ -203,7 +204,7 @@ Color AdaptiveSampling(Ray ray, float radiusrate, Vec3f xaxis, Vec3f yaxis, Node
 		cameraraies[i].dir = screenpoints[i] - cameraraies[i].p;
 		cameraraies[i].Normalize();
 
-		pixelcolors[i] = RayTraversing(traversingnode, node, cameraraies[i], zbuffer, cameraraies[i], hits[i]);
+		pixelcolors[i] = OuterRayTraversing(traversingnode, node, cameraraies[i], zbuffer, cameraraies[i], hits[i]);
 		averagepixelcolor += pixelcolors[i];
 	}
 
@@ -292,9 +293,9 @@ void BeginRender() {
 			HitInfo hit = HitInfo();
 			//if (i == 271 && j == 300)
 			//{
-			//	pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+			//	pixels[i * renderImage.GetWidth() + j] = (Color24)OuterRayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 			//}
-			resultColor = RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+			resultColor = OuterRayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 		#endif 
 
 			resultColor.r = pow(resultColor.r, 1 / 2.2f);
@@ -326,118 +327,128 @@ void BeginRender() {
 void StopRender() {
 }
 
-Color TraverseReflectionAndRefraction2(Node * traversingnode, Ray ray, HitInfo & hit, int bounce)
+/* Unfinished function, do not used this*/
+//Color InnerRayTraversing(Node * traversingnode, Ray ray, HitInfo & hit, int bounce)
+//{
+//	Node * currentnode = traversingnode;
+//	Node * previousnode;
+//	Node * parentnode = traversingnode;
+//
+//	std::vector<Node *> parentsnodes;
+//
+//	Ray currentray = ray;
+//	Ray previousray;
+//	Ray parentray = ray;
+//
+//	int numberofchildren = currentnode->GetNumChild();
+//	int i = 0;
+//	int j = 0;
+//
+//	while (i < numberofchildren)
+//	{
+//		previousnode = currentnode;
+//		previousray = currentray;
+//
+//		j = 0;
+//		numberofchildren = previousnode->GetNumChild();
+//
+//		while (j < numberofchildren)
+//		{
+//			currentnode = previousnode;
+//			currentray = previousray;
+//
+//			currentnode = currentnode->GetChild(j);
+//			currentray = currentnode->ToNodeCoords(currentray);
+//
+//			if (currentnode->GetNodeObj() != nullptr)
+//			{
+//				if (currentnode->GetNodeObj()->IntersectRay(currentray, hit, 0))
+//				{
+//					hit.node = currentnode;
+//					currentnode->FromNodeCoords(hit);
+//				}
+//			}
+//			j++;
+//		}
+//
+//		if (i == parentnode->GetNumChild())
+//		{
+//			parentsnodes.push_back(parentnode);
+//
+//			i = 0;
+//			parentnode = parentnode->GetChild(i);
+//			parentray = parentnode->ToNodeCoords(parentray);
+//
+//			numberofchildren = parentnode->GetNumChild();
+//			if (numberofchildren == 0)
+//			{
+//				break;
+//			}
+//		}
+//		
+//		currentnode = parentnode->GetChild(i);
+//		currentray = currentnode->ToNodeCoords(parentray);
+//		i++;
+//	}
+//
+//	//Shading
+//	if (currentnode->GetNodeObj() != nullptr)
+//	{
+//		if (hit.node != nullptr)
+//		{
+//			if (materials.Find(currentnode->GetMaterial()->GetName()) != nullptr)
+//			{
+//				return materials.Find(hit.node->GetMaterial()->GetName())->Shade(ray, hit, lights, bounce);
+//			}
+//		}
+//		//return background.Sample(originalray.dir);
+//	}
+//	return environment.SampleEnvironment(ray.dir);
+//}
+
+
+Color InnerRayTraversing(Node * node, Ray ray, HitInfo & hit, int bounce)
 {
-	Node * currentnode = traversingnode;
-	Ray currentray = ray;
-
-	Node * previousnode;
-	Ray previousray;
-
-	int numberofchildren = currentnode->GetNumChild();
-	int i = 0;
-	int j = 0;
-
-	while (i < numberofchildren)
-	{
-		previousnode = currentnode;
-		previousray = currentray;
-
-		while (j < numberofchildren)
-		{
-			currentnode = previousnode;
-			currentray = previousray;
-
-			currentnode = currentnode->GetChild(j);
-			currentray = currentnode->ToNodeCoords(currentray);
-
-			if (currentnode->GetNodeObj() != nullptr)
-			{
-				if (currentnode->GetNodeObj()->IntersectRay(currentray, hit, 0))
-				{
-					hit.node = currentnode;
-					currentnode->FromNodeCoords(hit);
-				}
-			}
-			j++;
-		}
-
-		if (i == previousnode->GetNumChild())
-		{
-			numberofchildren = previousnode->GetNumChild();
-			if (numberofchildren == 0)
-			{
-				break;
-			}
-			i == 0;
-		}
-		
-		currentnode = previousnode->GetChild(i);
-		currentray = currentnode->ToNodeCoords(previousray);
-		i++;
-	}
-
-	//Shading
-	if (currentnode->GetNodeObj() != nullptr)
-	{
-		if (hit.node != nullptr)
-		{
-			if (materials.Find(currentnode->GetMaterial()->GetName()) != nullptr)
-			{
-				return materials.Find(hit.node->GetMaterial()->GetName())->Shade(ray, hit, lights, bounce);
-			}
-		}
-		//return background.Sample(originalray.dir);
-	}
-	return environment.SampleEnvironment(ray.dir);
-}
-
-
-Color TraverseReflectionAndRefraction(Node * traversingnode, Node * node, Ray originalray, Ray ray, HitInfo & hit, int bounce)
-{
-	int numberofchild = traversingnode->GetNumChild();
-	HitInfo hitinfo = HitInfo();
+	Node * currentnode = node;
+	int numberofchild = node->GetNumChild();
+	HitInfo tmphit = HitInfo();
 
 	for (int i = 0; i < numberofchild; i++)
 	{
-		node = traversingnode->GetChild(i);
-		Ray changedray = node->ToNodeCoords(ray);
+		currentnode = node->GetChild(i);
+		Ray currentray = currentnode->ToNodeCoords(ray);
 
-		if (node->GetNodeObj() != nullptr)
+		if (currentnode->GetNodeObj() != nullptr)
 		{
-			if (node->GetNodeObj()->IntersectRay(changedray, hitinfo, 0))
+			if (currentnode->GetNodeObj()->IntersectRay(currentray, tmphit, 0))
 			{
-				hitinfo.node = node;
-				node->FromNodeCoords(hitinfo);
+				tmphit.node = currentnode;
+				currentnode->FromNodeCoords(tmphit);
+				hit = tmphit;
 			}
-			hit = hitinfo;
 		}
 
-		if (node != nullptr)
+		if (currentnode != nullptr)
 		{
 			Node childnode;
-			TraverseReflectionAndRefraction(node, &childnode, originalray, changedray, hit, bounce);
-			if (hit.node != nullptr && hit.node != hitinfo.node)
+			InnerRayTraversing(currentnode, currentray, hit, bounce);
+			if (hit.node != nullptr && hit.node != tmphit.node)
 			{
-				node->FromNodeCoords(hit);
-				hitinfo = hit;
+				currentnode->FromNodeCoords(hit);
+				tmphit = hit;
 			}
 		}
 	}
 
 	//Shading
-	if (node->GetNodeObj() != nullptr)
+	if (node == &rootNode)
 	{
-		if (hitinfo.node != nullptr)
+		if (tmphit.node != nullptr)
 		{
-			if (materials.Find(node->GetMaterial()->GetName()) != nullptr)
-			{
-				return materials.Find(hitinfo.node->GetMaterial()->GetName())->Shade(originalray, hitinfo, lights, bounce);
-			}
+			return materials.Find(tmphit.node->GetMaterial()->GetName())->Shade(ray, tmphit, lights, bounce);
 		}
-		//return background.Sample(originalray.dir);
+		return environment.SampleEnvironment(ray.dir);
 	}
-	return environment.SampleEnvironment(originalray.dir);
 }
 
 float FresnelReflections(const HitInfo & hInfo, float refractionIndex, float cos1)
@@ -526,7 +537,7 @@ Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce, const float
 		Node * startnode = &rootNode;
 		HitInfo hitinfo;
 
-		Color returnColor = TraverseReflectionAndRefraction(startnode, &node, S, S, hitinfo, bounce - 1);
+		Color returnColor = InnerRayTraversing(startnode, S, hitinfo, bounce - 1);
 		return returnColor;
 	}
 }
@@ -539,7 +550,7 @@ Color TotalInternalReflection(Ray ray, int bounce)
 	HitInfo hitinfo;
 	Color returnColor = Color(0, 0, 0);
 
-	returnColor = TraverseReflectionAndRefraction(startnode, &node, ray, ray, hitinfo, bounce-1);
+	returnColor = InnerRayTraversing(startnode, ray, hitinfo, bounce-1);
 
 	return returnColor;
 }
@@ -641,7 +652,7 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 			Color returnColor = Color(0, 0, 0);
 
 			// Refraction part
-			returnColor = (1 - R) * refraction * TraverseReflectionAndRefraction(startnode, &node, S, S, hitinfo, bounce - 1);
+			returnColor = (1 - R) * refraction * InnerRayTraversing(startnode, S, hitinfo, bounce - 1);
 			// Reflection part
 			returnColor += R * refraction * Reflection(ray, hInfo, bounce, glossiness);
 			return returnColor;
@@ -736,7 +747,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			ray_gi.p += SHADOWBIAS * N;
 			ray_gi.dir = N_dash;
 
-			returnColor += this->diffuse.Sample(hInfo.uvw, hInfo.duvw) * TraverseReflectionAndRefraction(startnode, &node, ray_gi, ray_gi, hitinfo, bounce - 2);
+			returnColor += this->diffuse.Sample(hInfo.uvw, hInfo.duvw) * InnerRayTraversing(startnode, ray_gi, hitinfo, bounce - 2);
 		}
 		returnColor /= MONTECARLOGI;
 		color += returnColor;
