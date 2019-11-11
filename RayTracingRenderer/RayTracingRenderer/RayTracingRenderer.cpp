@@ -34,10 +34,10 @@ TextureList textureList;
 #define RAYPERPIXELFORBLUREFFECT 256
 #define RAYPERPIXELFORGLOSSINESS 8
 #define RAYPERPIXELFORSHADOW 1
-#define MonteCarloGI 16
+#define MonteCarloGI 64
 
 #define NOANTIALIASING
-//#define ANTIALIASING
+#define ANTIALIASING
 //#define BLUREFFECT
 
 int main()
@@ -278,10 +278,12 @@ void BeginRender() {
 			samplecount[i * renderImage.GetWidth() + j] = 0;
 			cameraray[i * renderImage.GetWidth() + j].Normalize();
 
+			Color resultColor;
+
 		#ifdef ANTIALIASING
-		   pixels[i * renderImage.GetWidth() + j] = (Color24)AdaptiveSampling(cameraray[i * renderImage.GetWidth() + j], HALFOFPIXELRATIO/2, (w / W)*x, (h / H)*y, startnode, node, zbuffers[i * renderImage.GetWidth() + j], samplecount[i * renderImage.GetWidth() + j]);
+			resultColor = AdaptiveSampling(cameraray[i * renderImage.GetWidth() + j], HALFOFPIXELRATIO/2, (w / W)*x, (h / H)*y, startnode, node, zbuffers[i * renderImage.GetWidth() + j], samplecount[i * renderImage.GetWidth() + j]);
 		#elif defined BLUREFFECT
-			pixels[i * renderImage.GetWidth() + j] = (Color24)BlurEffect(cameraray[i * renderImage.GetWidth() + j], startnode, node, zbuffers[i * renderImage.GetWidth() + j]);
+			resultColor = BlurEffect(cameraray[i * renderImage.GetWidth() + j], startnode, node, zbuffers[i * renderImage.GetWidth() + j]);
 		
 		#elif defined NOANTIALIASING
 			HitInfo hit = HitInfo();
@@ -289,8 +291,14 @@ void BeginRender() {
 			//{
 			//	pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 			//}
-			pixels[i * renderImage.GetWidth() + j] = (Color24)RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
+			resultColor = RayTraversing(startnode, node, cameraray[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], cameraray[i * renderImage.GetWidth() + j], hit);
 		#endif 
+
+			resultColor.r = pow(resultColor.r, 1 / 2.2f);
+			resultColor.g = pow(resultColor.g, 1 / 2.2f);
+			resultColor.b = pow(resultColor.b, 1 / 2.2f);
+
+			pixels[i * renderImage.GetWidth() + j] = (Color24)resultColor;
 
 			if (pixels[i * renderImage.GetWidth() + j] == (Color24)Color(0, 0, 0))
 			{
@@ -447,19 +455,24 @@ void ChangedToRandomVectorAroundTheCircle(Vec3f & dir, const float radius)
 
 void CosineWeightedHemisphereUniformSampling(Vec3f& dir)
 {
+	dir.Normalize();
+
+	Vec3f randomvec = Vec3f((static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)));
+	Vec3f perpendicular = dir.Cross(randomvec);
+	Vec3f perpendicular2 = dir.Cross(perpendicular);
+	perpendicular.Normalize();
+	perpendicular2.Normalize();
+
 	float theta = (static_cast<float>(rand()) / (RAND_MAX));
 	float phy = (static_cast<float>(rand()) / (RAND_MAX));
 
-	float x = cosf(2 * static_cast<float>(M_PI) *phy) * sqrtf(theta);
-	float y = sinf(2 * static_cast<float>(M_PI) *phy) * sqrtf(theta);
+	float x = cosf(2 * static_cast<float>(M_PI) * phy) * sqrtf(theta);
+	float y = sinf(2 * static_cast<float>(M_PI) * phy) * sqrtf(theta);
 	float z = sqrtf(1 - theta);
 
-	Vec3f randomdir = Vec3f(x, y, z);
+	Vec3f randomdir = x * perpendicular + y * perpendicular2 + z * dir;
 	randomdir.Normalize();
-	randomdir -= Vec3f(0, 0, 1);
-
-	dir += randomdir;
-	dir.Normalize();
+	dir = randomdir;
 }
 
 Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce, const float glossiness)
@@ -628,6 +641,9 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 	Vec3f N = hInfo.N;
 	Color color = Color();
 
+	Color specularpart;
+	Color diffusepart;
+
 	for (auto light = lights.begin(); light != lights.end(); ++light)
 	{
 		if ((*light)->IsAmbient())
@@ -672,8 +688,8 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			}
 
 			float oneofcos = 1 / hInfo.N.Dot(L);
-			Color specularpart = oneofcos * pow(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
-			Color diffusepart = this->diffuse.Sample(hInfo.uvw, hInfo.duvw);
+			specularpart = oneofcos * pow(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
+			diffusepart = this->diffuse.Sample(hInfo.uvw, hInfo.duvw);
 			color += (diffusepart + specularpart) * IR;
 		}
 	}
@@ -683,7 +699,6 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 	{
 		Color returnColor = Color(0, 0, 0);
 		Vec3f N_dash = N;
-		N_dash.Normalize();
 
 		for (int i = 0; i < MonteCarloGI; i++)
 		{
@@ -692,14 +707,14 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			// Start traversing node 
 			Node node;
 			Node * startnode = &rootNode;
-			HitInfo hhh;
+			HitInfo hitinfo;
 
 			Ray ray_gi;
 			ray_gi.p = hInfo.p;
 			ray_gi.p += SHADOWBIAS * N;
 			ray_gi.dir = N_dash;
 
-			returnColor += TraverseReflectionAndRefraction(startnode, &node, ray_gi, ray_gi, hhh, bounce - 2);
+			returnColor += this->diffuse.Sample(hInfo.uvw, hInfo.duvw) * TraverseReflectionAndRefraction(startnode, &node, ray_gi, ray_gi, hitinfo, bounce - 2);
 		}
 		returnColor /= MonteCarloGI;
 		color += returnColor;
