@@ -338,17 +338,17 @@ Color TraverseReflectionAndRefraction2(Node * traversingnode, Ray ray, HitInfo &
 	int i = 0;
 	int j = 0;
 
-	while (i < numberofchildren)
+	while (j < numberofchildren)
 	{
 		previousnode = currentnode;
 		previousray = currentray;
 
-		while (j < numberofchildren)
+		while (i < numberofchildren)
 		{
 			currentnode = previousnode;
 			currentray = previousray;
 
-			currentnode = currentnode->GetChild(j);
+			currentnode = currentnode->GetChild(i);
 			currentray = currentnode->ToNodeCoords(currentray);
 
 			if (currentnode->GetNodeObj() != nullptr)
@@ -359,37 +359,19 @@ Color TraverseReflectionAndRefraction2(Node * traversingnode, Ray ray, HitInfo &
 					currentnode->FromNodeCoords(hit);
 				}
 			}
-			j++;
+			i++;
 		}
 
-		if (i == previousnode->GetNumChild())
+		numberofchildren = previousnode->GetNumChild();
+		if (numberofchildren == 0)
 		{
-			numberofchildren = previousnode->GetNumChild();
-			if (numberofchildren == 0)
-			{
-				break;
-			}
-			i == 0;
+			break;
 		}
-		
-		currentnode = previousnode->GetChild(i);
+
+		currentnode = previousnode->GetChild(j);
 		currentray = currentnode->ToNodeCoords(previousray);
-		i++;
+		j++;
 	}
-
-	//Shading
-	if (currentnode->GetNodeObj() != nullptr)
-	{
-		if (hit.node != nullptr)
-		{
-			if (materials.Find(currentnode->GetMaterial()->GetName()) != nullptr)
-			{
-				return materials.Find(hit.node->GetMaterial()->GetName())->Shade(ray, hit, lights, bounce);
-			}
-		}
-		//return background.Sample(originalray.dir);
-	}
-	return environment.SampleEnvironment(ray.dir);
 }
 
 
