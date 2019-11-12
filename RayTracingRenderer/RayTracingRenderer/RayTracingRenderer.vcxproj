@@ -167,6 +167,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="scene.h" />
     <ClInclude Include="texture.h" />
+    <ClInclude Include="utility.h" />
     <ClInclude Include="viewport.h" />
     <ClInclude Include="xmlload.h" />
   </ItemGroup>

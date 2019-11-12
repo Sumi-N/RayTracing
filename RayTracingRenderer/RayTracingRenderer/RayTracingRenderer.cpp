@@ -1,6 +1,7 @@
 // RayTracingRenderer.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
+#include "utility.h"
 
 #include <iostream>
 #include <scene.h>
@@ -42,6 +43,8 @@ TextureList textureList;
 #ifndef NOANTIALIASING
 #define ANTIALIASING
 #endif
+
+using Utility::utility;
 
 int main()
 {
@@ -470,7 +473,7 @@ float FresnelReflections(const HitInfo & hInfo, float refractionIndex, float cos
 	return R0 + (1 - R0) * pow(1 - cos1, 5);
 }
 
-void ChangedToRandomVectorAroundTheCircle(Vec3f & dir, const float radius)
+void ConeUniformSampling(Vec3f & dir, const float radius)
 {
 	Vec3f u = Vec3f(-1 * dir.y, dir.x, 0);
 	u.Normalize();
@@ -485,28 +488,6 @@ void ChangedToRandomVectorAroundTheCircle(Vec3f & dir, const float radius)
 	dir.Normalize();
 }
 
-void CosineWeightedHemisphereUniformSampling(Vec3f& dir)
-{
-	dir.Normalize();
-
-	Vec3f randomvec = Vec3f((static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)));
-	Vec3f perpendicular = dir.Cross(randomvec);
-	Vec3f perpendicular2 = dir.Cross(perpendicular);
-	perpendicular.Normalize();
-	perpendicular2.Normalize();
-
-	float theta = (static_cast<float>(rand()) / (RAND_MAX));
-	float phy = (static_cast<float>(rand()) / (RAND_MAX));
-
-	float x = cosf(2 * static_cast<float>(M_PI) * phy) * sqrtf(theta);
-	float y = sinf(2 * static_cast<float>(M_PI) * phy) * sqrtf(theta);
-	float z = sqrtf(1 - theta);
-
-	Vec3f randomdir = x * perpendicular + y * perpendicular2 + z * dir;
-	randomdir.Normalize();
-	dir = randomdir;
-}
-
 Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce, const float glossiness)
 {
 	// bounce 1 is reflect 1 time
@@ -517,7 +498,7 @@ Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce, const float
 	else
 	{
 		Vec3f N = hInfo.N;
-		ChangedToRandomVectorAroundTheCircle(N, glossiness);
+		ConeUniformSampling(N, glossiness);
 
 		Vec3f P = N;
 		P = SHADOWBIAS * P; 
@@ -569,7 +550,7 @@ Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refra
 		V.Normalize();
 
 		Vec3f N = hInfo.N;
-		ChangedToRandomVectorAroundTheCircle(N, glossiness);
+		ConeUniformSampling(N, glossiness);
 
 		Vec3f P;
 
@@ -735,7 +716,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 
 		for (int i = 0; i < MONTECARLOGI; i++)
 		{
-			CosineWeightedHemisphereUniformSampling(N_dash);
+			ConsineWeightedHemisphereSampling(N_dash);
 
 			// Start traversing node 
 			Node node;
@@ -838,7 +819,7 @@ Color PointLight::Illuminate(Vec3f const & p, Vec3f const & N) const
 	{
 		direction = position - p;
 		float length = direction.Length();
-		ChangedToRandomVectorAroundTheCircle(direction, size / 2);
+		ConeUniformSampling(direction, size / 2);
 		direction.Normalize();
 		if (Shadow(Ray(p, direction)) == 0.0f)
 		{
@@ -846,7 +827,7 @@ Color PointLight::Illuminate(Vec3f const & p, Vec3f const & N) const
 			for (int j = 0; j < RAYPERPIXELFORSHADOW; j++)
 			{
 				direction = position - p;
-				ChangedToRandomVectorAroundTheCircle(direction, size / 2);
+				ConeUniformSampling(direction, size / 2);
 				direction.Normalize();
 				ratio += Shadow(Ray(p, direction), length);
 			}
@@ -863,7 +844,7 @@ Color PointLight::Illuminate(Vec3f const & p, Vec3f const & N) const
 	//{
 	//	direction = position - p;
 	//	float length = direction.Length();
-	//	ChangedToRandomVectorAroundTheCircle(direction, size / 2);
+	//	ConeUniformSampling(direction, size / 2);
 	//	direction.Normalize();
 	//	ratio += Shadow(Ray(p, direction), length);
 	//}
@@ -872,7 +853,7 @@ Color PointLight::Illuminate(Vec3f const & p, Vec3f const & N) const
 	return ratio * intensity;
 }
 
-bool CheckZbuffer(float & zbuffer, float & answer)
+bool CheckZbuffer(const float & zbuffer, const float & answer)
 {
 	if (answer < zbuffer)
 	{
