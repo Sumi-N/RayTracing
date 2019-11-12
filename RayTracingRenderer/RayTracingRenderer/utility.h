@@ -7,15 +7,31 @@
 
 namespace Utility
 {
-	using cy::Vec3f;
+	using namespace cy;
 
-	class utility
+	inline void SwapFloat(float & a, float & b)
 	{
-	public:
-		static void ConeUniformSampling(Vec3f & dir, const float radius);
-	};
+		float tmp = a;
+		a = b;
+		b = tmp;
+	}
 
-	inline void utility::ConeUniformSampling(Vec3f & dir, const float radius)
+	inline void SquareUniformSampling(Vec3f & point, Vec3f x_axis, Vec3f y_axis, const float & rate)
+	{
+
+	}
+
+	inline void CircleUniformSampling(Vec3f & point, const Vec3f forward_dir, const Vec3f upward_dir, const float & radius)
+	{
+		float randomradius = (static_cast<float>(rand()) / (RAND_MAX));
+		float randomrand = 2 * static_cast<float>(M_PI) * (static_cast<float>(rand()) / (RAND_MAX));
+		randomradius = radius * sqrt(randomradius);
+
+		Vec3f right_dir = forward_dir.Cross(upward_dir);
+		point = randomradius * (cos(randomrand) * upward_dir + sin(randomrand) * right_dir);
+	}
+
+	inline void ConeUniformSampling(Vec3f & dir, const float & radius)
 	{
 		Vec3f u = Vec3f(-1 * dir.y, dir.x, 0);
 		Vec3f v = dir.Cross(u);
@@ -30,6 +46,24 @@ namespace Utility
 
 		dir += randomradiuslength * randomradiusdir;
 		dir.Normalize();
+	}
+
+	inline void CosineWeightedHemisphereUniformSampling(Vec3f & dir)
+	{
+		Vec3f randomvec = Vec3f((static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)));
+		Vec3f x_dir = dir.Cross(randomvec);
+		Vec3f y_dir = dir.Cross(x_dir);
+		x_dir.Normalize();
+		y_dir.Normalize();
+
+		float theta = (static_cast<float>(rand()) / (RAND_MAX));
+		float phy = (static_cast<float>(rand()) / (RAND_MAX));
+
+		float x_length = cosf(2 * static_cast<float>(M_PI) * phy) * sqrtf(theta);
+		float y_length = sinf(2 * static_cast<float>(M_PI) * phy) * sqrtf(theta);
+		float z_length = sqrtf(1 - theta);
+
+		dir = x_length * x_dir + y_length * y_dir + z_length * dir;
 	}
 }
 

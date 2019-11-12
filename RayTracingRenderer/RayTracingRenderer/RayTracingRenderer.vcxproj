@@ -160,6 +160,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="constant.h" />
     <ClInclude Include="lights.h" />
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="materials.h" />
@@ -172,6 +173,7 @@
     <ClInclude Include="xmlload.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="lights.cpp" />
     <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="RayTracingRenderer.cpp" />
     <ClCompile Include="texture.cpp" />

@@ -1,6 +1,7 @@
 // RayTracingRenderer.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
+#include "constant.h"
 #include "utility.h"
 
 #include <iostream>
@@ -26,33 +27,16 @@ TexturedColor background;
 TexturedColor environment;
 TextureList textureList;
 
-#define TIMEOFREFRECTION 2
-#define RAYPERPIXEL 4
-#define MAXSAMPLECOUNT 3
-#define SHADOWBIAS 0.0005f
-#define SAMPLEVARIENCE 0.03f
-#define HALFOFPIXELRATIO 0.5f
-#define RAYPERPIXELFORBLUREFFECT 256
-#define RAYPERPIXELFORGLOSSINESS 8
-#define RAYPERPIXELFORSHADOW 16
-//#define MONTECARLOGI 64
-
-//#define NOANTIALIASING
-//#define BLUREFFECT
-
-#ifndef NOANTIALIASING
-#define ANTIALIASING
-#endif
-
-using Utility::utility;
+using namespace Utility;
 
 int main()
 {
 	//LoadScene(".\\xmlfiles\\playground.xml");
 	//LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
-	LoadScene(".\\xmlfiles\\assignment9.xml");
-	//LoadScene(".\\xmlfiles\\assignment11.xml");
+	//LoadScene(".\\xmlfiles\\assignment9.xml");
+	//LoadScene(".\\xmlfiles\\assignment10.xml");
+	LoadScene(".\\xmlfiles\\assignment11.xml");
 	ShowViewport();
 }
 
@@ -130,16 +114,48 @@ Color OuterRayTraversing(Node * traversingnode, Node * node, Ray ray, float & zb
 	}
 }
 
-Vec3f SamplingForDepthOfField(float radius, Vec3f point)
+Color InnerRayTraversing(Node * node, Ray ray, HitInfo & hit, int bounce)
 {
-	float r = (static_cast<float>(rand()) / (RAND_MAX)) * radius;
-	float angle = (static_cast<float>(rand()) / (RAND_MAX)) * 2 * static_cast<float>(M_PI);
-	r = radius * sqrt(r);
-	Vec3f x = camera.dir.Cross(camera.up);
-	Vec3f y = camera.up;
-	Vec3f offset = r * cos(angle) * x + r * sin(angle) * y;
+	Node * currentnode = node;
+	int numberofchild = node->GetNumChild();
+	HitInfo tmphit = HitInfo();
 
-	return point + offset;
+	for (int i = 0; i < numberofchild; i++)
+	{
+		currentnode = node->GetChild(i);
+		Ray currentray = currentnode->ToNodeCoords(ray);
+
+		if (currentnode->GetNodeObj() != nullptr)
+		{
+			if (currentnode->GetNodeObj()->IntersectRay(currentray, tmphit, 0))
+			{
+				tmphit.node = currentnode;
+				currentnode->FromNodeCoords(tmphit);
+				hit = tmphit;
+			}
+		}
+
+		if (currentnode != nullptr)
+		{
+			Node childnode;
+			InnerRayTraversing(currentnode, currentray, hit, bounce);
+			if (hit.node != nullptr && hit.node != tmphit.node)
+			{
+				currentnode->FromNodeCoords(hit);
+				tmphit = hit;
+			}
+		}
+	}
+
+	//Shading
+	if (node == &rootNode)
+	{
+		if (tmphit.node != nullptr)
+		{
+			return materials.Find(tmphit.node->GetMaterial()->GetName())->Shade(ray, tmphit, lights, bounce);
+		}
+		return environment.SampleEnvironment(ray.dir);
+	}
 }
 
 Vec3f RandomSamplingForAPixel(Vec3f xaxis, Vec3f yaxis, float rate, Vec3f point)
@@ -163,7 +179,11 @@ Color BlurEffect(Ray ray, Node * traversingnode, Node * node, float & zbuffer)
 	for (int i = 0; i < RAYPERPIXELFORBLUREFFECT; i++)
 	{
 		screenpoints[i] = ray.p + camera.focaldist * ray.dir;
-		cameraraies[i].p = SamplingForDepthOfField(camera.dof, ray.p);
+
+		Vec3f offset = Vec3f(0, 0, 0);
+		CircleUniformSampling(offset, camera.dir, camera.up, camera.dof);
+		cameraraies[i].p = ray.p + offset;
+
 		cameraraies[i].dir = screenpoints[i] - cameraraies[i].p;
 		cameraraies[i].Normalize();
 
@@ -409,51 +429,6 @@ void StopRender() {
 //	return environment.SampleEnvironment(ray.dir);
 //}
 
-
-Color InnerRayTraversing(Node * node, Ray ray, HitInfo & hit, int bounce)
-{
-	Node * currentnode = node;
-	int numberofchild = node->GetNumChild();
-	HitInfo tmphit = HitInfo();
-
-	for (int i = 0; i < numberofchild; i++)
-	{
-		currentnode = node->GetChild(i);
-		Ray currentray = currentnode->ToNodeCoords(ray);
-
-		if (currentnode->GetNodeObj() != nullptr)
-		{
-			if (currentnode->GetNodeObj()->IntersectRay(currentray, tmphit, 0))
-			{
-				tmphit.node = currentnode;
-				currentnode->FromNodeCoords(tmphit);
-				hit = tmphit;
-			}
-		}
-
-		if (currentnode != nullptr)
-		{
-			Node childnode;
-			InnerRayTraversing(currentnode, currentray, hit, bounce);
-			if (hit.node != nullptr && hit.node != tmphit.node)
-			{
-				currentnode->FromNodeCoords(hit);
-				tmphit = hit;
-			}
-		}
-	}
-
-	//Shading
-	if (node == &rootNode)
-	{
-		if (tmphit.node != nullptr)
-		{
-			return materials.Find(tmphit.node->GetMaterial()->GetName())->Shade(ray, tmphit, lights, bounce);
-		}
-		return environment.SampleEnvironment(ray.dir);
-	}
-}
-
 float FresnelReflections(const HitInfo & hInfo, float refractionIndex, float cos1)
 {
 	float R0;
@@ -471,21 +446,6 @@ float FresnelReflections(const HitInfo & hInfo, float refractionIndex, float cos
 	}
 
 	return R0 + (1 - R0) * pow(1 - cos1, 5);
-}
-
-void ConeUniformSampling(Vec3f & dir, const float radius)
-{
-	Vec3f u = Vec3f(-1 * dir.y, dir.x, 0);
-	u.Normalize();
-	Vec3f v = dir.Cross(u);
-	v.Normalize();
-	float randomrand = 2 * static_cast<float>(M_PI) * (static_cast<float>(rand()) / (RAND_MAX));
-	Vec3f dir_alpha = sinf(randomrand) * u + cosf(randomrand) * v;
-	float r = (static_cast<float>(rand()) / (RAND_MAX));
-	r = radius * sqrt(r);
-
-	dir += r * dir_alpha;
-	dir.Normalize();
 }
 
 Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce, const float glossiness)
@@ -716,7 +676,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 
 		for (int i = 0; i < MONTECARLOGI; i++)
 		{
-			ConsineWeightedHemisphereSampling(N_dash);
+			CosineWeightedHemisphereUniformSampling(N_dash);
 
 			// Start traversing node 
 			Node node;
@@ -795,62 +755,6 @@ bool DetectShadow(Node * traversingnode, Node * node, Ray ray, float t_max)
 		}
 	}
 	return false;
-}
-
-float GenLight::Shadow(Ray ray, float t_max)
-{
-	Node node;
-	Node * startnode = &rootNode;
-	if (DetectShadow(startnode, &node, ray, t_max))
-	{
-		return 0.0f;
-	}
-	else
-	{
-		return 1.0f;
-	}
-}
-
-Color PointLight::Illuminate(Vec3f const & p, Vec3f const & N) const
-{
-	Vec3f direction;
-	float ratio = 0.0f;
-	for (int i = 0; i < RAYPERPIXEL; i++)
-	{
-		direction = position - p;
-		float length = direction.Length();
-		ConeUniformSampling(direction, size / 2);
-		direction.Normalize();
-		if (Shadow(Ray(p, direction)) == 0.0f)
-		{
-			ratio = 0.0f;
-			for (int j = 0; j < RAYPERPIXELFORSHADOW; j++)
-			{
-				direction = position - p;
-				ConeUniformSampling(direction, size / 2);
-				direction.Normalize();
-				ratio += Shadow(Ray(p, direction), length);
-			}
-			ratio /= RAYPERPIXELFORSHADOW;
-			break;
-		}
-		else
-		{
-			ratio = 1.0f;
-		}
-	}
-
-	//for (int j = 0; j < RAYPERPIXELFORSHADOW; j++)
-	//{
-	//	direction = position - p;
-	//	float length = direction.Length();
-	//	ConeUniformSampling(direction, size / 2);
-	//	direction.Normalize();
-	//	ratio += Shadow(Ray(p, direction), length);
-	//}
-	//ratio /= RAYPERPIXELFORSHADOW;
-
-	return ratio * intensity;
 }
 
 bool CheckZbuffer(const float & zbuffer, const float & answer)
@@ -994,13 +898,6 @@ bool Plane::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 	return false;
 }
 
-void Swap(float & a, float & b)
-{
-	float tmp = a;
-	a = b;
-	b = tmp;
-}
-
 bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 {
 	// The t value for each case
@@ -1015,7 +912,7 @@ bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 
 	//	if (t_ymin > t_ymax)
 	//	{
-	//		Swap(t_ymin, t_ymax);
+	//		SwapFloat(t_ymin, t_ymax);
 	//	}
 
 	//	t_zmin = (vertices[2] - ray.p.z) / ray.dir.z;
@@ -1023,7 +920,7 @@ bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 
 	//	if (t_zmin > t_zmax)
 	//	{
-	//		Swap(t_zmin, t_zmax);
+	//		SwapFloat(t_zmin, t_zmax);
 	//	}
 
 	//	if (t_ymin > t_zmax || t_ymin > t_zmax)
@@ -1039,7 +936,7 @@ bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 
 	//	if (t_xmin > t_xmax)
 	//	{
-	//		Swap(t_xmin, t_xmax);
+	//		SwapFloat(t_xmin, t_xmax);
 	//	}
 
 	//	t_zmin = (vertices[2] - ray.p.z) / ray.dir.z;
@@ -1047,7 +944,7 @@ bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 
 	//	if (t_zmin > t_zmax)
 	//	{
-	//		Swap(t_zmin, t_zmax);
+	//		SwapFloat(t_zmin, t_zmax);
 	//	}
 
 	//	if (t_xmin > t_zmax || t_zmin > t_xmax)
@@ -1063,7 +960,7 @@ bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 
 	//	if (t_xmin > t_xmax)
 	//	{
-	//		Swap(t_xmin, t_xmax);
+	//		SwapFloat(t_xmin, t_xmax);
 	//	}
 
 	//	t_ymin = (vertices[1] - ray.p.y) / ray.dir.y;
@@ -1071,7 +968,7 @@ bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 
 	//	if (t_ymin > t_ymax)
 	//	{
-	//		Swap(t_ymin, t_ymax);
+	//		SwapFloat(t_ymin, t_ymax);
 	//	}
 
 	//	if (t_xmin > t_ymax || t_ymin > t_xmax)
@@ -1087,7 +984,7 @@ bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 
 		if (t_xmin > t_xmax)
 		{
-			Swap(t_xmin, t_xmax);
+			SwapFloat(t_xmin, t_xmax);
 		}
 
 		t_ymin = (vertices[1] - ray.p.y) / ray.dir.y;
@@ -1095,7 +992,7 @@ bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 
 		if (t_ymin > t_ymax)
 		{
-			Swap(t_ymin, t_ymax);
+			SwapFloat(t_ymin, t_ymax);
 		}
 
 		if (t_xmin > t_ymax || t_ymin > t_xmax)
@@ -1111,7 +1008,7 @@ bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 
 		if (t_zmin > t_zmax)
 		{
-			Swap(t_zmin, t_zmax);
+			SwapFloat(t_zmin, t_zmax);
 		}
 
 		if (t_tmpmin > t_zmax || t_zmin > t_tmpmax)

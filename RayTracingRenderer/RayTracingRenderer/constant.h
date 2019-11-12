@@ -1,0 +1,21 @@
+//
+//This is a place to set a constant values
+//
+
+#define TIMEOFREFRECTION 2
+#define RAYPERPIXEL 4
+#define MAXSAMPLECOUNT 3
+#define SHADOWBIAS 0.0005f
+#define SAMPLEVARIENCE 0.03f
+#define HALFOFPIXELRATIO 0.5f
+#define RAYPERPIXELFORBLUREFFECT 8
+#define RAYPERPIXELFORGLOSSINESS 8
+#define RAYPERPIXELFORSHADOW 1
+#define MONTECARLOGI 16
+
+//#define NOANTIALIASING
+#define BLUREFFECT
+
+#ifndef NOANTIALIASING
+#define ANTIALIASING
+#endif
