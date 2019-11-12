@@ -51,6 +51,52 @@ int main()
 //   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
 //   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
 
+//Color RayTraversing(Node * node, Ray ray, HitInfo & hit, int bounce) {
+//
+//	Node * currentnode = node;
+//	int numberofchild = node->GetNumChild();
+//	HitInfo tmphit = HitInfo();
+//
+//	for (int i = 0; i < numberofchild; i++) 
+//	{
+//		currentnode = node->GetChild(i);
+//		Ray changedray = currentnode->ToNodeCoords(ray);
+//
+//		if (currentnode->GetNodeObj() != nullptr) {
+//			if(currentnode->GetNodeObj()->IntersectRay(changedray, tmphit, 0))
+//			{
+//				tmphit.node = currentnode;
+//				currentnode->FromNodeCoords(tmphit);
+//			}
+//			hit = tmphit;
+//		}
+//
+//		if (currentnode != nullptr) {
+//			Node childnode;
+//			RayTraversing(currentnode, changedray, zbuffer, hit);
+//			if (hit.node != nullptr && hit.node != tmphit.node)
+//			{
+//				currentnode->FromNodeCoords(hit);
+//				tmphit = hit;
+//			}
+//		}
+//	}
+//
+//	if (node == &rootNode)
+//	{
+//		hit = tmphit;
+//		if (tmphit.node != nullptr)
+//		{
+//			//Shading
+//			if (materials.Find(currentnode->GetMaterial()->GetName()) != nullptr)
+//			{
+//				return materials.Find(tmphit.node->GetMaterial()->GetName())->Shade(ray, tmphit, lights, bounce);
+//			}
+//		}
+//	}
+//	return Color(0, 0, 0);
+//}
+
 Color RayTraversing(Node * node, Ray ray, HitInfo & hit, int bounce)
 {
 	Node * currentnode;
