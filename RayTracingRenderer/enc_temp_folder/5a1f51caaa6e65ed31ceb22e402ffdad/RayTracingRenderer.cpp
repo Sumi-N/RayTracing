@@ -96,13 +96,13 @@ Color RayTraversing(Node * node, Ray ray, HitInfo & hit, int bounce)
 			return materials.Find(hit.node->GetMaterial()->GetName())->Shade(ray, hit, lights, bounce);
 		}
 
-		if(bounce != BOUNCINGTIME)
+		if(bounce != TIMEOFREFRECTION)
 			return environment.SampleEnvironment(ray.dir);
 	}
 	return Color(0, 0, 0);
 }
 
-Color BlurEffect(Ray ray)
+Color BlurEffect(Ray ray, Node * traversingnode, Node * node, float & zbuffer)
 {
 	Ray cameraraies[RAYPERPIXELFORBLUREFFECT];
 	HitInfo hits[RAYPERPIXELFORBLUREFFECT];
@@ -111,7 +111,7 @@ Color BlurEffect(Ray ray)
 	Color pixelcolors[RAYPERPIXELFORBLUREFFECT];
 	Vec3f screenpoints[RAYPERPIXELFORBLUREFFECT];
 
-	Color returnColor = Color(0, 0, 0);
+	Color answercolor = Color(0, 0, 0);
 
 	for (int i = 0; i < RAYPERPIXELFORBLUREFFECT; i++)
 	{
@@ -124,11 +124,11 @@ Color BlurEffect(Ray ray)
 		cameraraies[i].dir = screenpoints[i] - cameraraies[i].p;
 		cameraraies[i].Normalize();
 
-		pixelcolors[i] = RayTraversing(&rootNode, cameraraies[i], hits[i], BOUNCINGTIME);
-		returnColor += pixelcolors[i];
+		pixelcolors[i] = RayTraversing(traversingnode, cameraraies[i], hits[i], TIMEOFREFRECTION);
+		answercolor += pixelcolors[i];
 	}
 
-	return returnColor / RAYPERPIXELFORBLUREFFECT;
+	return answercolor / RAYPERPIXELFORBLUREFFECT;
 }
 
 Color AdaptiveSampling(Ray ray, float length, uint8_t & samplecount)
@@ -168,7 +168,7 @@ Color AdaptiveSampling(Ray ray, float length, uint8_t & samplecount)
 		cameraraies[i].dir = screenpoints[i] - cameraraies[i].p;
 		cameraraies[i].Normalize();
 
-		pixelcolors[i] = RayTraversing(&rootNode, cameraraies[i], hits[i], BOUNCINGTIME);
+		pixelcolors[i] = RayTraversing(&rootNode, cameraraies[i], hits[i], TIMEOFREFRECTION);
 		averagepixelcolor += pixelcolors[i];
 	}
 
@@ -239,6 +239,9 @@ void BeginRender() {
 	for (int i = 0; i < renderImage.GetHeight(); i++) {
 		for (int j = 0; j < renderImage.GetWidth(); j++) {
 
+			//hit.duvw[0] = (w / W) * x;
+			//hit.duvw[1] = (h / H) * y;
+
 			cameraray[i * renderImage.GetWidth() + j].dir = f + (j + HALF) * (w / W)*x - (i + HALF) * (h / H)*y - camera.pos;
 			cameraray[i * renderImage.GetWidth() + j].p = camera.pos;
 			zbuffers[i * renderImage.GetWidth() + j] = BIGFLOAT;
@@ -254,7 +257,11 @@ void BeginRender() {
 		
 		#elif defined NOANTIALIASING
 			HitInfo hit = HitInfo();
-			resultColor = RayTraversing(startnode, cameraray[i * renderImage.GetWidth() + j], hit, BOUNCINGTIME);
+			//if (i == 271 && j == 300)
+			//{
+			//	pixels[i * renderImage.GetWidth() + j] = (Color24)OutRayTraversing(startnode, cameraray[i * renderImage.GetWidth() + j], zbuffers[i * renderImage.GetWidth() + j], hit);
+			//}
+			resultColor = RayTraversing(startnode, cameraray[i * renderImage.GetWidth() + j], hit, TIMEOFREFRECTION);
 			zbuffers[i * renderImage.GetWidth() + j] = hit.z;
 		#endif 
 
@@ -285,6 +292,85 @@ void BeginRender() {
 
 void StopRender() {
 }
+
+/* Unfinished function, do not used this*/
+//Color InnerRayTraversing(Node * node, Ray ray, HitInfo & hit, int bounce)
+//{
+//	Node * currentnode = node;
+//	Node * previousnode;
+//	Node * parentnode = node;
+//
+//	std::vector<Node *> parentsnodes;
+//
+//	Ray currentray = ray;
+//	Ray previousray;
+//	Ray parentray = ray;
+//
+//	int numberofchildren = currentnode->GetNumChild();
+//	int i = 0;
+//	int j = 0;
+//
+//	while (i < numberofchildren)
+//	{
+//		previousnode = currentnode;
+//		previousray = currentray;
+//
+//		j = 0;
+//		numberofchildren = previousnode->GetNumChild();
+//
+//		while (j < numberofchildren)
+//		{
+//			currentnode = previousnode;
+//			currentray = previousray;
+//
+//			currentnode = currentnode->GetChild(j);
+//			currentray = currentnode->ToNodeCoords(currentray);
+//
+//			if (currentnode->GetNodeObj() != nullptr)
+//			{
+//				if (currentnode->GetNodeObj()->IntersectRay(currentray, hit, 0))
+//				{
+//					hit.currentnode = currentnode;
+//					currentnode->FromNodeCoords(hit);
+//				}
+//			}
+//			j++;
+//		}
+//
+//		if (i == parentnode->GetNumChild())
+//		{
+//			parentsnodes.push_back(parentnode);
+//
+//			i = 0;
+//			parentnode = parentnode->GetChild(i);
+//			parentray = parentnode->ToNodeCoords(parentray);
+//
+//			numberofchildren = parentnode->GetNumChild();
+//			if (numberofchildren == 0)
+//			{
+//				break;
+//			}
+//		}
+//		
+//		currentnode = parentnode->GetChild(i);
+//		currentray = currentnode->ToNodeCoords(parentray);
+//		i++;
+//	}
+//
+//	//Shading
+//	if (currentnode->GetNodeObj() != nullptr)
+//	{
+//		if (hit.currentnode != nullptr)
+//		{
+//			if (materials.Find(currentnode->GetMaterial()->GetName()) != nullptr)
+//			{
+//				return materials.Find(hit.currentnode->GetMaterial()->GetName())->Shade(ray, hit, lights, bounce);
+//			}
+//		}
+//		//return background.Sample(originalray.dir);
+//	}
+//	return environment.SampleEnvironment(ray.dir);
+//}
 
 float FresnelReflections(const HitInfo & hInfo, float refractionIndex, float cos1)
 {

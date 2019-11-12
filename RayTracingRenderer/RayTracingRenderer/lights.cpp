@@ -24,7 +24,7 @@ Color PointLight::Illuminate(Vec3f const & p, Vec3f const & N) const
 {
 	Vec3f direction;
 	float ratio = 0.0f;
-	for (int i = 0; i < RAYPERPIXEL; i++)
+	for (int i = 0; i < RAYPERSAMPLING; i++)
 	{
 		direction = position - p;
 		float length = direction.Length();
