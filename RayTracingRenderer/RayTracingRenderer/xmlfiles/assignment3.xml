@@ -25,7 +25,7 @@
     <light type="ambient" name="ambientLight">
       <intensity value="0.1"/>
     </light>
-    <light type="direct" name="directionalLight">
+    <light type="direct" name="directLight">
       <intensity value="1" r="1" g="0.2" b="0.2"/>
       <direction x="1" y="0" z="-0.5"/>
     </light>
