@@ -4,13 +4,39 @@
 
 using namespace Utility;
 extern Node rootNode;
-bool DetectShadow(Node *, Node *, Ray, float);
+
+bool ShadowTraversing(Node * traversingnode, Node * node, Ray ray, float t_max)
+{
+	int numberofchild = traversingnode->GetNumChild();
+	Ray currentray = ray;
+	for (int i = 0; i < numberofchild; i++)
+	{
+		node = traversingnode->GetChild(i);
+		if (node->GetNodeObj() != nullptr)
+		{
+			Ray changedray = node->ToNodeCoords(currentray);
+			HitInfo fake; fake.z = t_max;
+			if (node->GetNodeObj()->IntersectRay(changedray, fake, 1))
+				return true;
+		}
+
+		if (node != nullptr)
+		{
+			Node childnode;
+			if (ShadowTraversing(node, &childnode, node->ToNodeCoords(currentray), t_max))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
 
 float GenLight::Shadow(Ray ray, float t_max)
 {
 	Node node;
 	Node * startnode = &rootNode;
-	if (DetectShadow(startnode, &node, ray, t_max))
+	if (ShadowTraversing(startnode, &node, ray, t_max))
 	{
 		return 0.0f;
 	}

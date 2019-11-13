@@ -41,7 +41,7 @@ int main()
 	//LoadScene(".\\xmlfiles\\potscene.xml");
 	//LoadScene(".\\xmlfiles\\assignment9.xml");
 	//LoadScene(".\\xmlfiles\\assignment11_2.xml");
-	LoadScene(".\\xmlfiles\\assignment11.xml");
+	LoadScene(".\\xmlfiles\\assignment6.xml");
 	ShowViewport();
 }
 
@@ -56,7 +56,7 @@ int main()
 //   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
 //   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
 
-void RayTraversing(Node * node, Ray ray, HitInfo & hit, int bounce)
+void RayTraversing(Node * node, Ray ray, HitInfo & hit)
 {
 	Node * currentnode;
 	int numberofchild = node->GetNumChild();
@@ -80,7 +80,7 @@ void RayTraversing(Node * node, Ray ray, HitInfo & hit, int bounce)
 		if (currentnode != nullptr)
 		{
 			Node childnode;
-			RayTraversing(currentnode, currentray, hit, bounce);
+			RayTraversing(currentnode, currentray, hit);
 			if (hit.node != nullptr && hit.node != tmphit.node)
 			{
 				currentnode->FromNodeCoords(hit);
@@ -95,16 +95,16 @@ void RayTraversing(Node * node, Ray ray, HitInfo & hit, int bounce)
 	}
 }
 
-Color InitialRayTraverse(Ray ray, int bounce)
+Color InitialRayTraverse(Ray ray)
 {
 	Node * node = &rootNode;
 	HitInfo hit = HitInfo();
 
-	RayTraversing(node, ray, hit, bounce);
+	RayTraversing(node, ray, hit);
 
 	if (hit.node != nullptr)
 	{
-		return materials.Find(hit.node->GetMaterial()->GetName())->Shade(ray, hit, lights, bounce);
+		return materials.Find(hit.node->GetMaterial()->GetName())->Shade(ray, hit, lights, 0);
 	}
 	else
 	{
@@ -117,7 +117,7 @@ Color GlobalIlluminationTraverse(Ray ray, int bounce)
 	Node * node = &rootNode;
 	HitInfo hit = HitInfo();
 
-	RayTraversing(node, ray, hit, bounce);
+	RayTraversing(node, ray, hit);
 	
 	if (hit.node != nullptr)
 	{
@@ -151,7 +151,7 @@ Color BlurEffect(Ray ray)
 		cameraraies[i].dir = screenpoints[i] - cameraraies[i].p;
 		cameraraies[i].Normalize();
 
-		pixelcolors[i] = InitialRayTraverse(cameraraies[i], BOUNCINGTIME);
+		pixelcolors[i] = InitialRayTraverse(cameraraies[i]);
 		returnColor += pixelcolors[i];
 	}
 
@@ -195,7 +195,7 @@ Color AdaptiveSampling(Ray ray, float length, uint8_t & samplecount)
 		cameraraies[i].dir = screenpoints[i] - cameraraies[i].p;
 		cameraraies[i].Normalize();
 
-		pixelcolors[i] = InitialRayTraverse(cameraraies[i], BOUNCINGTIME);
+		pixelcolors[i] = InitialRayTraverse(cameraraies[i]);
 		averagepixelcolor += pixelcolors[i];
 	}
 
@@ -239,9 +239,6 @@ void BeginRender() {
 
 	time(&time0);   // get current time.
 
-
-	Node * startnode = &rootNode;
-
 	float * zbuffers = renderImage.GetZBuffer();
 	uint8_t * samplecount = renderImage.GetSampleCount();
 	Color24* pixels = renderImage.GetPixels();
@@ -274,15 +271,14 @@ void BeginRender() {
 
 			Color resultColor;
 
-		#ifdef ANTIALIASING
+		#ifdef ENABLEAA
 			resultColor = AdaptiveSampling(cameraray[i * renderImage.GetWidth() + j], HALF, samplecount[i * renderImage.GetWidth() + j]);
 		#elif defined BLUREFFECT
-			resultColor = BlurEffect(cameraray[i * renderImage.GetWidth() + j], startnode, node, zbuffers[i * renderImage.GetWidth() + j]);
+			resultColor = BlurEffect(cameraray[i * renderImage.GetWidth() + j]);
 		
 		#elif defined NOANTIALIASING
-			HitInfo hit = HitInfo();
-			resultColor = InitialRayTraverse(cameraray[i * renderImage.GetWidth() + j], BOUNCINGTIME);
-			zbuffers[i * renderImage.GetWidth() + j] = hit.z;
+			resultColor = InitialRayTraverse(cameraray[i * renderImage.GetWidth() + j]);
+			//zbuffers[i * renderImage.GetWidth() + j] = hit.z;
 		#endif 
 
 			resultColor.r = pow(resultColor.r, 1 / 2.2f);
@@ -295,7 +291,6 @@ void BeginRender() {
 			{
 				Vec3f v((float)j / renderImage.GetWidth(), (float)i / renderImage.GetHeight(), 0.0f);
 				pixels[i * renderImage.GetWidth() + j] = (Color24)background.Sample(v);
-				//pixels[i * renderImage.GetWidth() + j] = Color24(0, 255, 255);
 			}
 		}
 	}
@@ -317,9 +312,8 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 {
 	Vec3f N = hInfo.N;
 	Color color = Color(0, 0, 0);
-
-	Color specularpart;
-	Color diffusepart;
+	Color specularpart = Color(0, 0, 0);
+	Color diffusepart = Color(0, 0, 0);
 
 	for (auto light = lights.begin(); light != lights.end(); ++light)
 	{
@@ -371,14 +365,15 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		}
 	}
 
-#ifdef MONTECARLOGI
+#ifdef ENABLEGI
 	// For global illumination
-	if (bounce > 0)
+	if (bounce < GIBOUNCE)
 	{
+		bounce++;
 		Color returnColor = Color(0, 0, 0);
 		Vec3f N_dash;
 
-		for (int i = 0; i < MONTECARLOGI; i++)
+		for (int i = 0; i < RAYPERGI; i++)
 		{
 			N_dash = N;
 			CosineWeightedHemisphereUniformSampling(N_dash);
@@ -388,13 +383,14 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			ray_gi.p += SHADOWBIAS * N;
 			ray_gi.dir = N_dash;
 
-			returnColor += this->diffuse.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bounce - 2);
+			returnColor += this->diffuse.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bounce);
 		}
-		returnColor /= MONTECARLOGI;
+		returnColor /= RAYPERGI;
 		color += returnColor;
 	}
 #endif
 
+#ifdef ENABLEREFLECTION
 	// Calculate only reflection part for reflection
 	if (this->reflection.Sample(hInfo.uvw) != Color(0, 0, 0))
 	{
@@ -407,7 +403,9 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 
 		color += reflectioncolor;
 	}
+#endif
 
+#ifdef ENABLEREFRACTION
 	// Calculate refraction part
 	if (this->refraction.Sample(hInfo.uvw) != Color(0, 0, 0))
 	{
@@ -426,35 +424,9 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 
 		color += refractioncolor;
 	}
+#endif
 
 	return color;
-}
-
-bool DetectShadow(Node * traversingnode, Node * node, Ray ray, float t_max)
-{
-	int numberofchild = traversingnode->GetNumChild();
-	Ray currentray = ray;
-	for (int i = 0; i < numberofchild; i++)
-	{
-		node = traversingnode->GetChild(i);
-		if (node->GetNodeObj() != nullptr)
-		{
-			Ray changedray = node->ToNodeCoords(currentray);
-			HitInfo fake; fake.z = t_max;
-			if (node->GetNodeObj()->IntersectRay(changedray, fake, 1))
-				return true;
-		}
-
-		if (node != nullptr)
-		{
-			Node childnode;
-			if (DetectShadow(node, &childnode, node->ToNodeCoords(currentray), t_max))
-			{
-				return true;
-			}
-		}
-	}
-	return false;
 }
 
 bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const

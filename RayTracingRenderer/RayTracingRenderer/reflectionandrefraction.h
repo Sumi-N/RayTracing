@@ -8,7 +8,7 @@ extern MaterialList materials;
 extern TexturedColor environment;
 extern LightList lights;
 
-void RayTraversing(Node * node, Ray ray, HitInfo & hit, int bounce);
+void RayTraversing(Node * node, Ray ray, HitInfo & hit);
 
 namespace ReflectionAndRefraction 
 {
@@ -19,7 +19,7 @@ namespace ReflectionAndRefraction
 		Node * node = &rootNode;
 		HitInfo hit = HitInfo();
 
-		RayTraversing(node, ray, hit, bounce);
+		RayTraversing(node, ray, hit);
 
 		if (hit.node != nullptr)
 		{
@@ -52,13 +52,13 @@ namespace ReflectionAndRefraction
 
 	Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce, const float glossiness)
 	{
-		// bounce 1 is reflect 1 time
-		if (bounce < 0)
+		if (bounce > REFLECTIONBOUNCE)
 		{
 			return Color(0, 0, 0);
 		}
 		else
 		{
+			bounce++;
 			Vec3f N = hInfo.N;
 
 			ConeUniformSampling(N, glossiness);
@@ -76,25 +76,23 @@ namespace ReflectionAndRefraction
 			S.dir = R;
 			S.p = P;
 
-			Color returnColor = ReflectionRefractionTraverse(S, bounce - 1);
+			Color returnColor = ReflectionRefractionTraverse(S, bounce);
 			return returnColor;
 		}
 	}
 
-	Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refractionIndex, Color refraction, const float glossiness)
+	Color Refraction(Ray const & ray, const HitInfo & hit, int bounce, float refractionIndex, Color refraction, const float glossiness)
 	{
-		float R;
-		// Add bounce + 1 because in most case refraction need to go through front and back sides of the object
-		if (bounce <= -1)
+		if (bounce > REFRACTIONBOUNCE)
 		{
 			return Color(0, 0, 0);
 		}
 		else
 		{
+			bounce++;
 			Vec3f V = -1 * ray.dir;
-			V.Normalize();
 
-			Vec3f N = hInfo.N;
+			Vec3f N = hit.N;
 			ConeUniformSampling(N, glossiness);
 
 			Vec3f P;
@@ -103,21 +101,16 @@ namespace ReflectionAndRefraction
 
 			if (V.Dot(N) >= 0)
 			{
-				P = -1 * SHADOWBIAS * N;  P += hInfo.p;
+				P = -1 * SHADOWBIAS * N;  P += hit.p;
 				cos1 = V.Dot(N);
 			}
 			else
 			{
-				P = SHADOWBIAS * N;  P += hInfo.p;
+				P = SHADOWBIAS * N;  P += hit.p;
 				cos1 = V.Dot(-N);
 			}
 
 			sin1 = sqrt(1 - (cos1 * cos1));
-
-
-
-			// Calculate Fresnel reflection
-			R = FresnelReflections(hInfo, refractionIndex, cos1);
 
 			Vec3f T_h, T_v, T;
 
@@ -170,13 +163,15 @@ namespace ReflectionAndRefraction
 				S.dir = T;
 				S.p = P;
 
+				// Calculate Fresnel reflection
+				float R = FresnelReflections(hit, refractionIndex, cos1);
+
 				// Refraction part
-				Color returnColor = (1 - R) * refraction * ReflectionRefractionTraverse(S, bounce - 1);
+				Color returnColor = (1 - R) * refraction * ReflectionRefractionTraverse(S, bounce);
 				// Reflection part
-				returnColor += R * refraction * Reflection(ray, hInfo, bounce, glossiness);
+				returnColor += R * refraction * Reflection(ray, hit, bounce, glossiness);
 				return returnColor;
 			}
 		}
 	}
-
 }
