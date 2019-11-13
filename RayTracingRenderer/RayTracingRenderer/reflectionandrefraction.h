@@ -81,7 +81,7 @@ namespace ReflectionAndRefraction
 		}
 	}
 
-	Color Refraction(Ray const & ray, const HitInfo & hit, int bounce, float refractionIndex, Color refraction, const float glossiness)
+	Color Refraction(Ray const & ray, const HitInfo & hit, int bounce, const float & refractionIndex, Color refraction, const float glossiness)
 	{
 		if (bounce > REFRACTIONBOUNCE)
 		{

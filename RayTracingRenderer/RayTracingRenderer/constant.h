@@ -15,11 +15,12 @@
 #define REFRACTIONBOUNCE 2
 
 /*****These are values for glossiness of the object's surface*****/
-#define ENABLEGLOSSINESS
-#define RAYGLOSSINESS 1
+//#define ENABLEREFLECTIONGLOSSINESS
+//#define ENABLEREFRACTIONGLOSSINESS
+#define RAYGLOSSINESS 16
 
 /*****These are values for global illumination*****/
-//#define ENABLEGI
+#define ENABLEGI
 #define GIBOUNCE 1
 #define RAYPERGI 64
 

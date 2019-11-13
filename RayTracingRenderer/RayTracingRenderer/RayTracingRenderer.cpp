@@ -41,7 +41,7 @@ int main()
 	//LoadScene(".\\xmlfiles\\potscene.xml");
 	//LoadScene(".\\xmlfiles\\assignment9.xml");
 	//LoadScene(".\\xmlfiles\\assignment11_2.xml");
-	LoadScene(".\\xmlfiles\\assignment6.xml");
+	LoadScene(".\\xmlfiles\\assignment11.xml");
 	ShowViewport();
 }
 
@@ -395,11 +395,16 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 	if (this->reflection.Sample(hInfo.uvw) != Color(0, 0, 0))
 	{
 		Color reflectioncolor = Color(0, 0, 0);
-		for (int i = 0; i < RAYPERPIXELFORGLOSSINESS; i++)
+
+	#ifdef  ENABLEREFLECTIONGLOSSINESS
+		for (int i = 0; i < RAYGLOSSINESS; i++)
 		{
 			reflectioncolor += this->reflection.Sample(hInfo.uvw) * Reflection(ray, hInfo, bounce, reflectionGlossiness);
 		}
-		reflectioncolor /= RAYPERPIXELFORGLOSSINESS;
+		reflectioncolor /= RAYGLOSSINESS;
+	#else
+		reflectioncolor += this->reflection.Sample(hInfo.uvw) * Reflection(ray, hInfo, bounce, reflectionGlossiness);
+	#endif //  ENABLEREFLECTIONGLOSSINESS
 
 		color += reflectioncolor;
 	}
@@ -416,11 +421,16 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		}
 
 		Color refractioncolor = Color(0, 0, 0);
-		for (int i = 0; i < RAYPERPIXELFORGLOSSINESS; i++)
+
+	#ifdef ENABLEREFRACTIONGLOSSINESS
+		for (int i = 0; i < RAYGLOSSINESS; i++)
 		{
 			refractioncolor += Refraction(ray, hInfo, bounce, ior, refraction.Sample(hInfo.uvw), refractionGlossiness);
 		}
-		refractioncolor /= RAYPERPIXELFORGLOSSINESS;
+		refractioncolor /= RAYGLOSSINESS;
+	#else
+		refractioncolor += Refraction(ray, hInfo, bounce, ior, refraction.Sample(hInfo.uvw), refractionGlossiness);
+	#endif //  ENABLEREFRACTIONGLOSSINESS
 
 		color += refractioncolor;
 	}
