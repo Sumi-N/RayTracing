@@ -92,7 +92,7 @@ public:
 
 	virtual void SetViewportMaterial(int subMtlID = 0) const; // used for OpenGL display
 
-private:
+public:
 	TexturedColor diffuse, specular, reflection, refraction, emission;
 	float glossiness;
 	Color absorption;

@@ -48,6 +48,12 @@
     <ClInclude Include="constant.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="cameramode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="reflectionandrefraction.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RayTracingRenderer.cpp">

@@ -37,7 +37,6 @@ namespace Utility
 	{
 		Vec3f randomvec = Vec3f((static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)));
 		Vec3f u = dir.Cross(randomvec);
-
 		Vec3f v = dir.Cross(u);
 		u.Normalize();
 		v.Normalize();
@@ -68,6 +67,7 @@ namespace Utility
 		float z_length = sqrtf(1 - theta);
 
 		dir = x_length * x_dir + y_length * y_dir + z_length * dir;
+		dir.Normalize();
 	}
 }
 

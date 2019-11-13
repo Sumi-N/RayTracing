@@ -3,6 +3,7 @@
 
 #include "constant.h"
 #include "utility.h"
+#include "reflectionandrefraction.h"
 
 #include <iostream>
 #include <scene.h>
@@ -31,6 +32,7 @@ Vec3f pixelx;
 Vec3f pixely;
 
 using namespace Utility;
+using namespace ReflectionAndRefraction;
 
 int main()
 {
@@ -38,8 +40,8 @@ int main()
 	//LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
 	//LoadScene(".\\xmlfiles\\assignment9.xml");
+	//LoadScene(".\\xmlfiles\\assignment11_2.xml");
 	LoadScene(".\\xmlfiles\\assignment11.xml");
-	//LoadScene(".\\xmlfiles\\assignment11.xml");
 	ShowViewport();
 }
 
@@ -54,7 +56,7 @@ int main()
 //   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
 //   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
 
-Color RayTraversing(Node * node, Ray ray, HitInfo & hit, int bounce)
+void RayTraversing(Node * node, Ray ray, HitInfo & hit, int bounce)
 {
 	Node * currentnode;
 	int numberofchild = node->GetNumChild();
@@ -87,19 +89,44 @@ Color RayTraversing(Node * node, Ray ray, HitInfo & hit, int bounce)
 		}
 	}
 
-	//Shading
 	if (node == &rootNode)
 	{
 		hit = tmphit;
-		if (hit.node != nullptr)
-		{
-			return materials.Find(hit.node->GetMaterial()->GetName())->Shade(ray, hit, lights, bounce);
-		}
-
-		if(bounce != BOUNCINGTIME)
-			return environment.SampleEnvironment(ray.dir);
 	}
-	return Color(0, 0, 0);
+}
+
+Color InitialRayTraverse(Ray ray, int bounce)
+{
+	Node * node = &rootNode;
+	HitInfo hit = HitInfo();
+
+	RayTraversing(node, ray, hit, bounce);
+
+	if (hit.node != nullptr)
+	{
+		return materials.Find(hit.node->GetMaterial()->GetName())->Shade(ray, hit, lights, bounce);
+	}
+	else
+	{
+		return Color(0, 0, 0);
+	}
+}
+
+Color GlobalIlluminationTraverse(Ray ray, int bounce)
+{
+	Node * node = &rootNode;
+	HitInfo hit = HitInfo();
+
+	RayTraversing(node, ray, hit, bounce);
+	
+	if (hit.node != nullptr)
+	{
+		return materials.Find(hit.node->GetMaterial()->GetName())->Shade(ray, hit, lights, bounce);
+	}
+	else
+	{
+		return environment.SampleEnvironment(ray.dir);
+	}
 }
 
 Color BlurEffect(Ray ray)
@@ -124,7 +151,7 @@ Color BlurEffect(Ray ray)
 		cameraraies[i].dir = screenpoints[i] - cameraraies[i].p;
 		cameraraies[i].Normalize();
 
-		pixelcolors[i] = RayTraversing(&rootNode, cameraraies[i], hits[i], BOUNCINGTIME);
+		pixelcolors[i] = InitialRayTraverse(cameraraies[i], BOUNCINGTIME);
 		returnColor += pixelcolors[i];
 	}
 
@@ -168,7 +195,7 @@ Color AdaptiveSampling(Ray ray, float length, uint8_t & samplecount)
 		cameraraies[i].dir = screenpoints[i] - cameraraies[i].p;
 		cameraraies[i].Normalize();
 
-		pixelcolors[i] = RayTraversing(&rootNode, cameraraies[i], hits[i], BOUNCINGTIME);
+		pixelcolors[i] = InitialRayTraverse(cameraraies[i], BOUNCINGTIME);
 		averagepixelcolor += pixelcolors[i];
 	}
 
@@ -254,7 +281,7 @@ void BeginRender() {
 		
 		#elif defined NOANTIALIASING
 			HitInfo hit = HitInfo();
-			resultColor = RayTraversing(startnode, cameraray[i * renderImage.GetWidth() + j], hit, BOUNCINGTIME);
+			resultColor = InitialRayTraverse(cameraray[i * renderImage.GetWidth() + j], BOUNCINGTIME);
 			zbuffers[i * renderImage.GetWidth() + j] = hit.z;
 		#endif 
 
@@ -286,192 +313,10 @@ void BeginRender() {
 void StopRender() {
 }
 
-float FresnelReflections(const HitInfo & hInfo, float refractionIndex, float cos1)
-{
-	float R0;
-	if (hInfo.front)
-	{
-		R0 =      ((1 - refractionIndex) * (1 - refractionIndex))
-			  / //----------------------------------------------
-			      ((1 + refractionIndex) * (1 + refractionIndex));
-	}
-	else
-	{
-		R0 =    ((refractionIndex - 1) * (refractionIndex - 1))
-			 / //-----------------------------------------------
-			    ((1 + refractionIndex) * (1 + refractionIndex));
-	}
-
-	return R0 + (1 - R0) * pow(1 - cos1, 5);
-}
-
-Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce, const float glossiness)
-{
-	// bounce 1 is reflect 1 time
-	if (bounce <= 0)
-	{
-		return Color(0, 0, 0);
-	}
-	else
-	{
-		Vec3f N = hInfo.N;
-
-		//if(glossiness !=0)
-		ConeUniformSampling(N, glossiness);
-
-		Vec3f P = N;
-		P = SHADOWBIAS * P; 
-		P += hInfo.p;
-
-		Vec3f V = -1 * ray.dir;
-		Vec3f R = 2 * (N.Dot(V)) * N - V;
-		R.Normalize();
-
-		// S is a starting point from the surface point
-		Ray S;
-		S.dir = R;
-		S.p = P;
-
-		// Start traversing currentnode 
-		Node node;
-		Node * startnode = &rootNode;
-		HitInfo hitinfo;
-
-		Color returnColor = RayTraversing(startnode, S, hitinfo, bounce - 1);
-		return returnColor;
-	}
-}
-
-Color TotalInternalReflection(Ray ray, int bounce)
-{
-	// Start traversing currentnode 
-	Node node;
-	Node * startnode = &rootNode;
-	HitInfo hitinfo;
-	Color returnColor = Color(0, 0, 0);
-
-	returnColor = RayTraversing(startnode, ray, hitinfo, bounce-1);
-
-	return returnColor;
-}
-
-Color Refraction(Ray const & ray, const HitInfo & hInfo, int bounce, float refractionIndex, Color refraction, const float glossiness)
-{
-	float R;
-	// Add bounce + 1 because in most case refraction need to go through front and back sides of the object
-	if (bounce <= -1)
-	{
-		return Color(0, 0, 0);
-	}
-	else
-	{
-		Vec3f V = -1 * ray.dir;
-		V.Normalize();
-
-		Vec3f N = hInfo.N;
-		ConeUniformSampling(N, glossiness);
-
-		Vec3f P;
-
-		float cos1, cos2, sin1, sin2;
-
-		if (V.Dot(N) >= 0)
-		{
-			P = -1 * SHADOWBIAS * N;  P += hInfo.p;
-			cos1 = V.Dot(N);
-		}
-		else
-		{
-			P = SHADOWBIAS * N;  P += hInfo.p;
-			cos1 = V.Dot(-N);
-		}
-
-		sin1 = sqrt(1 - (cos1 * cos1));
-
-		
-
-		// Calculate fresnel reflection
-		R = FresnelReflections(hInfo, refractionIndex, cos1);
-
-		Vec3f T_h, T_v, T;
-
-		if (V.Dot(N) >= 0)
-		{
-			sin2 = (1 / refractionIndex) * sin1;
-		}
-		else
-		{
-			sin2 = refractionIndex * sin1;
-		}
-
-		// S is a starting point from the surface point
-		Ray S;
-
-		// Total internal reflection
-		if (sin2 > 1)
-		{
-			T = ray.dir - 2 * (ray.dir.Dot(N)) * N;
-			P -= 2 * SHADOWBIAS * N;
-			S.dir = T;
-			S.p = P;
-			S.Normalize();
-			return TotalInternalReflection(S, bounce);
-		}
-		else // Normal procedure
-		{
-			cos2 = sqrt(1 - (sin2 * sin2));
-
-			if (V.Dot(N) >= 0)
-			{
-				// Horizontal dirction Vector
-				T_h = -cos2 * N;
-				// Vertical Direction Vector
-				T_v = (V - (V.Dot(N))* N);
-			}
-			else
-			{
-				// Horizontal direction Vector
-				T_h = -cos2 * -N;
-				// Vertical Direction Vector
-				T_v = (V - (V.Dot(-N))* -N);
-			}
-
-			T_v.Normalize();
-			T_v = -sin2 * T_v;
-			// Combined horizontal and vertical
-			T = T_h + T_v;
-
-			S.dir = T;
-			S.p = P;
-
-			// Start traversing currentnode 
-			Node node;
-			Node * startnode = &rootNode;
-			HitInfo hitinfo;
-
-			Color returnColor = Color(0, 0, 0);
-
-			// Refraction part
-			returnColor = (1 - R) * refraction * RayTraversing(startnode, S, hitinfo, bounce - 1);
-			// Reflection part
-			returnColor += R * refraction * Reflection(ray, hInfo, bounce, glossiness);
-			return returnColor;
-		}
-	}
-}
-
-Color CalculateAbsorption(Color in, Color absorption, float distance)
-{
-	float rout = exp(-1 * absorption.r * distance) * in.r;
-	float gout = exp(-1 * absorption.g * distance) * in.g;
-	float bout = exp(-1 * absorption.b * distance) * in.b;
-	return Color(rout, gout, bout);
-}
-
 Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & lights, int bounce) const
 {
 	Vec3f N = hInfo.N;
-	Color color = Color();
+	Color color = Color(0, 0, 0);
 
 	Color specularpart;
 	Color diffusepart;
@@ -531,30 +376,26 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 	if (bounce > 0)
 	{
 		Color returnColor = Color(0, 0, 0);
-		Vec3f N_dash = N;
+		Vec3f N_dash;
 
 		for (int i = 0; i < MONTECARLOGI; i++)
 		{
+			N_dash = N;
 			CosineWeightedHemisphereUniformSampling(N_dash);
-
-			// Start traversing currentnode 
-			Node node;
-			Node * startnode = &rootNode;
-			HitInfo hitinfo;
 
 			Ray ray_gi;
 			ray_gi.p = hInfo.p;
 			ray_gi.p += SHADOWBIAS * N;
 			ray_gi.dir = N_dash;
 
-			returnColor += this->diffuse.Sample(hInfo.uvw, hInfo.duvw) * RayTraversing(startnode, ray_gi, hitinfo, bounce - 2);
+			returnColor += this->diffuse.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bounce - 2);
 		}
 		returnColor /= MONTECARLOGI;
 		color += returnColor;
 	}
 #endif
 
-	// Caluculate only relfection part for reflection
+	// Calculate only reflection part for reflection
 	if (this->reflection.Sample(hInfo.uvw) != Color(0, 0, 0))
 	{
 		Color reflectioncolor = Color(0, 0, 0);
@@ -567,13 +408,13 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		color += reflectioncolor;
 	}
 
-	// Caluculate refraction part
+	// Calculate refraction part
 	if (this->refraction.Sample(hInfo.uvw) != Color(0, 0, 0))
 	{
 		// When it is a back side hit, it means that absorption gonna happen during inside the material the light go through
 		if (!hInfo.front)
 		{
-			color += CalculateAbsorption(color, absorption, hInfo.z);
+			color += Color(exp(-1 * absorption.r * hInfo.z) * color.r, exp(-1 * absorption.g * hInfo.z) * color.g, exp(-1 * absorption.b * hInfo.z) * color.b);
 		}
 
 		Color refractioncolor = Color(0, 0, 0);
@@ -646,7 +487,7 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 		{
 			if (large > 0)
 			{
-				// this is for shadowprocess
+				// this is for shadow process
 				if (hitSide == 1)
 				{
 					answer = large;
@@ -673,7 +514,7 @@ bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 		}
 		else
 		{
-			// this is for shadowprocess
+			// this is for shadow process
 			if (hitSide == 1)
 			{
 				answer = small;
@@ -712,7 +553,7 @@ bool Plane::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
 	{
 		if (point.y >= -1 && point.y <= 1)
 		{
-			// this is for shadowprocess
+			// this is for shadow process
 			if (hitSide == 1)
 			{
 				if ((t > SHADOWBIAS) & (t <= hInfo.z))

@@ -160,11 +160,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="cameramode.h" />
     <ClInclude Include="constant.h" />
     <ClInclude Include="lights.h" />
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="materials.h" />
     <ClInclude Include="objects.h" />
+    <ClInclude Include="reflectionandrefraction.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="scene.h" />
     <ClInclude Include="texture.h" />
