@@ -12,7 +12,7 @@
 #define ENABLEREFLECTION
 #define ENABLEREFRACTION
 #define REFLECTIONBOUNCE 2
-#define REFRACTIONBOUNCE 2
+#define REFRACTIONBOUNCE 3
 
 /*****These are values for glossiness of the object's surface*****/
 //#define ENABLEREFLECTIONGLOSSINESS
@@ -21,8 +21,8 @@
 
 /*****These are values for global illumination*****/
 #define ENABLEGI
-#define GIBOUNCE 1
-#define RAYPERGI 64
+#define GIBOUNCE 2
+#define RAYPERGI 16
 
 /*****These are values for bluer effect*****/
 //#define BLUREFFECT

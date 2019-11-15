@@ -41,7 +41,8 @@ int main()
 	//LoadScene(".\\xmlfiles\\potscene.xml");
 	//LoadScene(".\\xmlfiles\\assignment9.xml");
 	//LoadScene(".\\xmlfiles\\assignment11_2.xml");
-	LoadScene(".\\xmlfiles\\assignment11.xml");
+	LoadScene(".\\xmlfiles\\bosonscene.xml");
+	//LoadScene(".\\xmlfiles\\assignment11.xml");
 	ShowViewport();
 }
 
