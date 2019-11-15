@@ -39,10 +39,11 @@ int main()
 	//LoadScene(".\\xmlfiles\\playground.xml");
 	//LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
-	//LoadScene(".\\xmlfiles\\assignment9.xml");
+	//LoadScene(".\\xmlfiles\\assignment10.xml");
 	//LoadScene(".\\xmlfiles\\assignment11_2.xml");
-	LoadScene(".\\xmlfiles\\bosonscene.xml");
+	//LoadScene(".\\xmlfiles\\bosonscene.xml");
 	//LoadScene(".\\xmlfiles\\assignment11.xml");
+	LoadScene(".\\xmlfiles\\assignment4.xml");
 	ShowViewport();
 }
 
@@ -111,6 +112,27 @@ Color InitialRayTraverse(Ray ray)
 	{
 		return Color(0, 0, 0);
 	}
+}
+
+Color PathTracingTraverse(Ray ray)
+{
+	Vec3f screenpoint = ray.p + camera.focaldist * ray.dir;
+	screenpoint -= HALF * (pixelx + pixely);
+	Color returnColor = Color(0, 0, 0);
+
+	for (int k = 0; k < RAYPERPT; k++)
+	{
+		Vec3f offset = Vec3f(0, 0, 0);
+		SquareUniformSampling(offset, pixelx, pixely, 2 * HALF);
+		Vec3f fixedpoint = screenpoint + offset;
+
+		ray.dir = fixedpoint - ray.p;
+		ray.Normalize();
+
+		returnColor += InitialRayTraverse(ray);
+	}
+	returnColor /= RAYPERPT;
+	return returnColor;
 }
 
 Color GlobalIlluminationTraverse(Ray ray, int bounce)
@@ -270,9 +292,11 @@ void BeginRender() {
 			samplecount[i * renderImage.GetWidth() + j] = 0;
 			cameraray[i * renderImage.GetWidth() + j].Normalize();
 
-			Color resultColor;
+			Color resultColor = Color(0, 0, 0);
 
-		#ifdef ENABLEAA
+		#ifdef ENABLEPT
+			resultColor = PathTracingTraverse(cameraray[i * renderImage.GetWidth() + j]);
+		#elif defined ENABLEAA
 			resultColor = AdaptiveSampling(cameraray[i * renderImage.GetWidth() + j], HALF, samplecount[i * renderImage.GetWidth() + j]);
 		#elif defined BLUREFFECT
 			resultColor = BlurEffect(cameraray[i * renderImage.GetWidth() + j]);
@@ -282,9 +306,12 @@ void BeginRender() {
 			//zbuffers[i * renderImage.GetWidth() + j] = hit.z;
 		#endif 
 
-			resultColor.r = pow(resultColor.r, 1 / 2.2f);
-			resultColor.g = pow(resultColor.g, 1 / 2.2f);
-			resultColor.b = pow(resultColor.b, 1 / 2.2f);
+			// gamma correction
+		#ifdef ENABLEGAMMA
+				resultColor.r = pow(resultColor.r, 1 / 2.2f);
+				resultColor.g = pow(resultColor.g, 1 / 2.2f);
+				resultColor.b = pow(resultColor.b, 1 / 2.2f);
+		#endif
 
 			pixels[i * renderImage.GetWidth() + j] = (Color24)resultColor;
 
@@ -318,11 +345,11 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 
 	for (auto light = lights.begin(); light != lights.end(); ++light)
 	{
-		if ((*light)->IsAmbient())
-		{
-			color += (*light)->Illuminate(hInfo.p, N) * this->diffuse.Sample(hInfo.uvw, hInfo.duvw);
-		}
-		else if (strcmp((*light)->GetName(), "directLight") == 0)
+		//if ((*light)->IsAmbient())
+		//{
+		//	color += (*light)->Illuminate(hInfo.p, N) * this->diffuse.Sample(hInfo.uvw, hInfo.duvw);
+		//}
+		if (strcmp((*light)->GetName(), "directLight") == 0)
 		{
 			Vec3f L = -1 * (*light)->Direction(hInfo.p);
 			L.Normalize();
@@ -365,8 +392,53 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			color += (diffusepart + specularpart) * IR;
 		}
 	}
+#ifdef ENABLEPT
+	// Diffuse part
+	if (bounce < GIBOUNCE)
+	{
+		int bouncetime = bounce + 1;
+		Color returnColor = Color(0, 0, 0);
+		Vec3f N_dash = N;
 
-#ifdef ENABLEGI
+		CosineWeightedHemisphereUniformSampling(N_dash);
+
+		Ray ray_gi;
+		ray_gi.p = hInfo.p;
+		ray_gi.p += SHADOWBIAS * N;
+		ray_gi.dir = N_dash;
+
+		returnColor = this->diffuse.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bouncetime);
+		returnColor *= (1 / M_PI);
+		color += returnColor;
+	}
+
+	// Specular part
+	if (bounce < GIBOUNCE)
+	{
+		int bouncetime = bounce + 1;
+		Color returnColor = Color(0, 0, 0);
+		Vec3f N_dash = N;
+
+		SpecularWeightedHemisphereSampling(N_dash, this->glossiness);
+
+		Ray ray_gi;
+		ray_gi.p = hInfo.p;
+		ray_gi.p += SHADOWBIAS * N;
+		ray_gi.dir = N_dash;
+
+		Vec3f L = -1 * (*light)->Direction(hInfo.p);
+		L.Normalize();
+		Vec3f V = ray.p - hInfo.p;
+		V.Normalize();
+		Vec3f H = (V + L) / (V + L).Length();
+		H.Normalize();
+
+		returnColor = pow(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bouncetime);
+		returnColor *= ((this->glossiness + 2) / 2 * M_PI);
+		color += returnColor;
+	}
+
+#else ifdef ENABLEGI
 	// For global illumination
 	if (bounce < GIBOUNCE)
 	{

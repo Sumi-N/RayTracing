@@ -50,23 +50,37 @@ Color PointLight::Illuminate(Vec3f const & p, Vec3f const & N) const
 {
 	Vec3f direction;
 	float ratio = 0.0f;
+#ifdef ENABLEPT
+	direction = position - p;
+	float length = direction.Length();
+	ConeUniformSampling(direction, size / 2);
+	direction.Normalize();
+	if (Shadow(Ray(p, direction), length) == 0.0f)
+	{
+		ratio = 0.0f;
+	}
+	else
+	{
+		ratio = 1.0f;
+	}
+#else
 	for (int i = 0; i < RAYPERSAMPLING; i++)
 	{
 		direction = position - p;
 		float length = direction.Length();
 		ConeUniformSampling(direction, size / 2);
 		direction.Normalize();
-		if (Shadow(Ray(p, direction)) == 0.0f)
+		if (Shadow(Ray(p, direction), length) == 0.0f)
 		{
 			ratio = 0.0f;
-			for (int j = 0; j < RAYPERPIXELFORSHADOW; j++)
+			for (int j = 0; j < RAYPERSHADOW; j++)
 			{
 				direction = position - p;
 				ConeUniformSampling(direction, size / 2);
 				direction.Normalize();
 				ratio += Shadow(Ray(p, direction), length);
 			}
-			ratio /= RAYPERPIXELFORSHADOW;
+			ratio /= RAYPERSHADOW;
 			break;
 		}
 		else
@@ -74,16 +88,7 @@ Color PointLight::Illuminate(Vec3f const & p, Vec3f const & N) const
 			ratio = 1.0f;
 		}
 	}
-
-	//for (int j = 0; j < RAYPERPIXELFORSHADOW; j++)
-	//{
-	//	direction = position - p;
-	//	float length = direction.Length();
-	//	ConeUniformSampling(direction, size / 2);
-	//	direction.Normalize();
-	//	ratio += Shadow(Ray(p, direction), length);
-	//}
-	//ratio /= RAYPERPIXELFORSHADOW;
+#endif
 
 	return ratio * intensity;
 }

@@ -69,5 +69,24 @@ namespace Utility
 		dir = x_length * x_dir + y_length * y_dir + z_length * dir;
 		dir.Normalize();
 	}
+
+	inline void SpecularWeightedHemisphereSampling(Vec3f & dir, float glossiness)
+	{
+		Vec3f randomvec = Vec3f((static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)));
+		Vec3f x_dir = dir.Cross(randomvec);
+		Vec3f y_dir = dir.Cross(x_dir);
+		x_dir.Normalize();
+		y_dir.Normalize();
+
+		float theta = (static_cast<float>(rand()) / (RAND_MAX));
+		float phy = (static_cast<float>(rand()) / (RAND_MAX));
+
+		float x_length = cosf(phy) * pow(theta, 1 / (glossiness + 1));
+		float y_length = sinf(phy) * pow(theta, 1 / (glossiness + 1));
+		float z_length = sqrtf(1 - pow(theta, 1 / (glossiness + 1)) * pow(theta, 1 / (glossiness + 1)));
+
+		dir = x_length * x_dir + y_length * y_dir + z_length * dir;
+		dir.Normalize();
+	}
 }
 
