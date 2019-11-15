@@ -104,34 +104,5 @@ namespace Utility
 
 		dir = x_length * x_dir + y_length * y_dir + z_length * dir;
 	}
-
-	inline void Test(Vec3f dir, float glossiness)
-	{
-		Vec3f randomvec = Vec3f((static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)));
-		Vec3f x_dir = dir.Cross(randomvec);
-		Vec3f y_dir = dir.Cross(x_dir);
-		x_dir.Normalize();
-		y_dir.Normalize();
-
-		float theta = (static_cast<float>(rand()) / (RAND_MAX));
-		float phy = (static_cast<float>(rand()) / (RAND_MAX));
-
-		float x_length, y_length, z_length;
-
-		if ()
-		{
-			x_length = cosf(2 * static_cast<float>(M_PI) * phy) * sqrtf(theta);
-			y_length = sinf(2 * static_cast<float>(M_PI) * phy) * sqrtf(theta);
-			z_length = sqrtf(1 - theta);
-		}
-		else
-		{
-			x_length = cosf(phy) * pow(theta, 1 / (glossiness + 1));
-			y_length = sinf(phy) * pow(theta, 1 / (glossiness + 1));
-			z_length = sqrtf(1 - pow(theta, 1 / (glossiness + 1)) * pow(theta, 1 / (glossiness + 1)));
-		}
-
-		dir = x_length * x_dir + y_length * y_dir + z_length * dir;
-	}
 }
 

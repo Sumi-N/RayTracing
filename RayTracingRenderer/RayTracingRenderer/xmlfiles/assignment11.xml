@@ -64,7 +64,7 @@
     <material type="blinn" name="mtl2">
       <diffuse  r="0.2" g="0.8" b="0.2"/>
       <specular r="0.9" g="0.9" b="1.0" value="0.8"/>
-      <glossiness value="10"/>
+      <glossiness value="40"/>
     </material>
  
     <!-- Lights -->

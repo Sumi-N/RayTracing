@@ -22,7 +22,7 @@
 #define RAYPERGI 16
 
 /*****This is a value for gamma correction*****/
-//#define ENABLEGAMMA
+#define ENABLEGAMMA
 
 /*****This is a value for multiple importance sampling*****/
 #define ENABLESAMPLING

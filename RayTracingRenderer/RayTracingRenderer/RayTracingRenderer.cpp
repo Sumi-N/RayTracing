@@ -42,8 +42,8 @@ int main()
 	//LoadScene(".\\xmlfiles\\assignment10.xml");
 	//LoadScene(".\\xmlfiles\\assignment11_2.xml");
 	//LoadScene(".\\xmlfiles\\bosonscene.xml");
-	//LoadScene(".\\xmlfiles\\assignment11.xml");
-	LoadScene(".\\xmlfiles\\assignment4.xml");
+	LoadScene(".\\xmlfiles\\assignment11.xml");
+	//LoadScene(".\\xmlfiles\\assignment4.xml");
 	ShowViewport();
 }
 
@@ -393,7 +393,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		}
 	}
 #ifdef ENABLEPT
-	// Diffuse part
+	// Diffuse part for GI
 	if (bounce < GIBOUNCE)
 	{
 		int bouncetime = bounce + 1;
@@ -408,16 +408,34 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		ray_gi.dir = N_dash;
 
 		returnColor = this->diffuse.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bouncetime);
-		returnColor *= (1 / M_PI);
+		returnColor *= (1 / static_cast<float>(M_PI));
 		color += returnColor;
 	}
 
-	// Specular part
+	// Specular part for GI
 	if (bounce < GIBOUNCE)
 	{
 		int bouncetime = bounce + 1;
 		Color returnColor = Color(0, 0, 0);
 		Vec3f N_dash = N;
+
+		//HemisphereUniformSampling(N_dash);
+
+		//Ray ray_gi;
+		//ray_gi.p = hInfo.p;
+		//ray_gi.p += SHADOWBIAS * N;
+		//ray_gi.dir = N_dash;
+
+		//Vec3f L = -1 * ray_gi.dir;
+		//L.Normalize();
+		//Vec3f V = ray.p - hInfo.p;
+		//V.Normalize();
+		//Vec3f H = (V + L) / (V + L).Length();
+		//H.Normalize();
+
+		//returnColor = pow(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bouncetime);
+		//returnColor *= ((this->glossiness + 2) / 2 * M_PI);
+		//color += returnColor;
 
 		SpecularWeightedHemisphereSampling(N_dash, this->glossiness);
 
@@ -426,7 +444,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		ray_gi.p += SHADOWBIAS * N;
 		ray_gi.dir = N_dash;
 
-		Vec3f L = -1 * (*light)->Direction(hInfo.p);
+		Vec3f L = -1 * ray_gi.dir;
 		L.Normalize();
 		Vec3f V = ray.p - hInfo.p;
 		V.Normalize();
