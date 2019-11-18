@@ -52,6 +52,7 @@ namespace ReflectionAndRefraction
 
 	Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce, const float glossiness)
 	{
+#ifdef ENABLEREFLECTION
 		if (bounce > REFLECTIONBOUNCE)
 		{
 			return Color(0, 0, 0);
@@ -79,6 +80,8 @@ namespace ReflectionAndRefraction
 			Color returnColor = ReflectionRefractionTraverse(S, bounce);
 			return returnColor;
 		}
+#endif // ENABLEREFLECTION
+		return Color(0, 0, 0);
 	}
 
 	Color Refraction(Ray const & ray, const HitInfo & hit, int bounce, const float & refractionIndex, Color refraction, const float glossiness)

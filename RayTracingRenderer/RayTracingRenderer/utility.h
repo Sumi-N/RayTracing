@@ -2,6 +2,7 @@
 #define _USE_MATH_DEFINES
 
 #include <math.h>
+#include <stdio.h> 
 #include <cmath>
 #include <cyCodeBase/cyVector.h>
 
@@ -96,42 +97,16 @@ namespace Utility
 		y_dir.Normalize();
 
 		float theta = (static_cast<float>(rand()) / (RAND_MAX));
-		float phy = (static_cast<float>(rand()) / (RAND_MAX));
+		float phy = 2 * static_cast<float>(M_PI) * (static_cast<float>(rand()) / (RAND_MAX));
 
-		float x_length = cosf(phy) * sqrtf( 1 - pow(theta, 1 / (1 + glossiness)) * pow(theta, 1 / (1 + glossiness)));
-		float y_length = sinf(phy) * sqrtf(1 - pow(theta, 1 / (1 + glossiness)) * pow(theta, 1 / (1 + glossiness)));
-		float z_length = pow(theta, 1 / (1 + glossiness));
+		float theta2 = acosf(pow(theta, 1/(1+ glossiness)));
 
-		dir = x_length * x_dir + y_length * y_dir + z_length * dir;
-	}
+		Vec3f randomradiusdir = sinf(phy) * x_dir + cosf(phy) * y_dir;
+		randomradiusdir.Normalize();
+		randomradiusdir *= tanf(theta2);
 
-	inline void Test(Vec3f dir, float glossiness)
-	{
-		Vec3f randomvec = Vec3f((static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)));
-		Vec3f x_dir = dir.Cross(randomvec);
-		Vec3f y_dir = dir.Cross(x_dir);
-		x_dir.Normalize();
-		y_dir.Normalize();
-
-		float theta = (static_cast<float>(rand()) / (RAND_MAX));
-		float phy = (static_cast<float>(rand()) / (RAND_MAX));
-
-		float x_length, y_length, z_length;
-
-		//if ()
-		//{
-		//	x_length = cosf(2 * static_cast<float>(M_PI) * phy) * sqrtf(theta);
-		//	y_length = sinf(2 * static_cast<float>(M_PI) * phy) * sqrtf(theta);
-		//	z_length = sqrtf(1 - theta);
-		//}
-		//else
-		//{
-		//	x_length = cosf(phy) * pow(theta, 1 / (glossiness + 1));
-		//	y_length = sinf(phy) * pow(theta, 1 / (glossiness + 1));
-		//	z_length = sqrtf(1 - pow(theta, 1 / (glossiness + 1)) * pow(theta, 1 / (glossiness + 1)));
-		//}
-
-		dir = x_length * x_dir + y_length * y_dir + z_length * dir;
+		dir += randomradiusdir;
+		dir.Normalize();
 	}
 }
 
