@@ -13,11 +13,11 @@
 
 /*****These are values for bluer effect*****/
 //#define BLUREFFECT
-#define RAYPERPIXELFORBLUREFFECT 64
+#define RAYPERPIXELFORBLUREFFECT 1024
 
 /*****These are values for path tracing*****/
 #define ENABLEPT
-#define RAYPERPT 64
+#define RAYPERPT 256
 #define GIBOUNCE 2
 
 //These are the constant values which is highly unlikely to be changed

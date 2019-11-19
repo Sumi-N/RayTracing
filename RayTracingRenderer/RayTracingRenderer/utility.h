@@ -99,7 +99,7 @@ namespace Utility
 	//	float theta = (static_cast<float>(rand()) / (RAND_MAX));
 	//	float phy = 2 * static_cast<float>(M_PI) * (static_cast<float>(rand()) / (RAND_MAX));
 
-	//	float theta2 = acosf(pow(theta, 1/(1+ glossiness)));
+	//	float theta2 = acosf(powf(theta, 1/(1+ glossiness)));
 
 	//	Vec3f randomradiusdir = sinf(phy) * x_dir + cosf(phy) * y_dir;
 	//	randomradiusdir.Normalize();
@@ -173,14 +173,13 @@ namespace Utility
 		x_dir.Normalize();
 		y_dir.Normalize();
 
-		theta = acosf(pow(theta, 1 / (1 + alpha)));
-		phy *= 2 * static_cast<float>(M_PI);
+		//theta = acosf(powf(theta, 1 / (1 + alpha)));
 
-		Vec3f randomradiusdir = sinf(phy) * x_dir + cosf(phy) * y_dir;
-		randomradiusdir.Normalize();
-		randomradiusdir *= tanf(theta);
+		float x_length = cosf(2 * static_cast<float>(M_PI) * phy) * sqrtf(1 - powf(theta, 1 / (1 + alpha) * powf(theta, 1 / (1 + alpha))));
+		float y_length = sinf(2 * static_cast<float>(M_PI) * phy) * sqrtf(1 - powf(theta, 1 / (1 + alpha) * powf(theta, 1 / (1 + alpha))));
+		float z_length = powf(theta, 1 / (1 + alpha));
 
-		return z_dir + randomradiusdir;
+		return x_length * x_dir + y_length * y_dir + z_length * z_dir;
 	}
 }
 

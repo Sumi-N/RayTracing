@@ -47,7 +47,7 @@ namespace ReflectionAndRefraction
 				((1 + refractionIndex) * (1 + refractionIndex));
 		}
 
-		return R0 + (1 - R0) * pow(1 - cos1, 5);
+		return R0 + (1 - R0) * powf(1 - cos1, 5);
 	}
 
 	Color Reflection(Ray const & ray, const HitInfo & hInfo, int bounce, const float glossiness)

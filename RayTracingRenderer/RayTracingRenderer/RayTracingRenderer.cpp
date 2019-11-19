@@ -209,8 +209,10 @@ void BeginRender() {
 	pixely = (h / H)*y;
 
 #pragma omp parallel for
-	for (int i = 0; i < renderImage.GetHeight(); i++) {
-		for (int j = 0; j < renderImage.GetWidth(); j++) {
+	for (int j = 0; j < renderImage.GetWidth(); j++)
+	{
+		for (int i = 0; i < renderImage.GetHeight(); i++) 
+		{
 
 			cameraray[i * renderImage.GetWidth() + j].dir = f + (j + HALF) * (w / W)*x - (i + HALF) * (h / H)*y - camera.pos;
 			cameraray[i * renderImage.GetWidth() + j].p = camera.pos;
@@ -237,9 +239,9 @@ void BeginRender() {
 
 			// gamma correction
 		#ifdef ENABLEGAMMA
-				resultColor.r = pow(resultColor.r, 1 / 2.2f);
-				resultColor.g = pow(resultColor.g, 1 / 2.2f);
-				resultColor.b = pow(resultColor.b, 1 / 2.2f);
+				resultColor.r = powf(resultColor.r, 1 / 2.2f);
+				resultColor.g = powf(resultColor.g, 1 / 2.2f);
+				resultColor.b = powf(resultColor.b, 1 / 2.2f);
 		#endif
 
 			pixels[i * renderImage.GetWidth() + j] = (Color24)resultColor;
@@ -296,7 +298,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			}
 
 			float oneofcos = 1 / hInfo.N.Dot(L);
-			Color specularpart = oneofcos * pow(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
+			Color specularpart = oneofcos * powf(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
 			Color diffusepart = this->diffuse.Sample(hInfo.uvw, hInfo.duvw);
 			color += (diffusepart + specularpart) * IR;
 		}
@@ -317,7 +319,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			}
 
 			float oneofcos = 1 / hInfo.N.Dot(L);
-			specularpart = oneofcos * pow(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
+			specularpart = oneofcos * powf(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
 			diffusepart = this->diffuse.Sample(hInfo.uvw, hInfo.duvw);
 			color += (diffusepart + specularpart) * IR;
 		}
@@ -341,7 +343,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		ray_gi.dir = N_dash;
 
 		returnColor = this->diffuse.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bouncetime);
-		returnColor *= (1 / static_cast<float>(M_PI));
+		//returnColor *= (1 / static_cast<float>(M_PI));
 		color += returnColor;
 	}
 
