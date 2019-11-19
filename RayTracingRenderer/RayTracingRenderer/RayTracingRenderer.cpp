@@ -36,13 +36,13 @@ using namespace ReflectionAndRefraction;
 
 int main()
 {
-	//LoadScene(".\\xmlfiles\\playground.xml");
+	LoadScene(".\\xmlfiles\\playground4.xml");
 	//LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
 	//LoadScene(".\\xmlfiles\\assignment10.xml");
 	//LoadScene(".\\xmlfiles\\assignment11_2.xml");
 	//LoadScene(".\\xmlfiles\\bosonscene.xml");
-	LoadScene(".\\xmlfiles\\assignment11.xml");
+	//LoadScene(".\\xmlfiles\\assignment11.xml");
 	//LoadScene(".\\xmlfiles\\assignment4.xml");
 	ShowViewport();
 }
@@ -107,12 +107,6 @@ Color InitialRayTraverse(Ray ray)
 	if (hit.node != nullptr)
 	{
 		Color returnColor = materials.Find(hit.node->GetMaterial()->GetName())->Shade(ray, hit, lights, 0);
-		if (isnan(returnColor.r) || isnan(returnColor.g) || isnan(returnColor.b))
-		{
-			int t = 5;
-			t += returnColor.r;
-			printf("hello %d", t);
-		}
 		return returnColor;
 	}
 	else
@@ -236,6 +230,11 @@ void BeginRender() {
 			//zbuffers[i * renderImage.GetWidth() + j] = hit.z;
 		#endif 
 
+			if (isnan(resultColor.r) || isnan(resultColor.g) || isnan(resultColor.b))
+			{	
+				printf("There is some NaN in the calculation process\n");
+			}
+
 			// gamma correction
 		#ifdef ENABLEGAMMA
 				resultColor.r = pow(resultColor.r, 1 / 2.2f);
@@ -272,6 +271,11 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 	Color color = Color(0, 0, 0);
 	Color specularpart = Color(0, 0, 0);
 	Color diffusepart = Color(0, 0, 0);
+
+	if (ray.p == hInfo.p)
+	{
+		return color;
+	}
 
 	for (auto light = lights.begin(); light != lights.end(); ++light)
 	{
@@ -319,14 +323,17 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		}
 	}
 #ifdef ENABLEPT
+
+	float theta = GetUniformRamdomFloat();
+	float phy = GetUniformRamdomFloat();
+
 	// Diffuse part for GI
 	if (bounce < GIBOUNCE)
 	{
 		int bouncetime = bounce + 1;
 		Color returnColor = Color(0, 0, 0);
-		Vec3f N_dash = N;
 
-		CosineWeightedHemisphereUniformSampling(N_dash);
+		Vec3f N_dash = CosineWeightedHemisphereUniformSampling(N, theta, phy);
 
 		Ray ray_gi;
 		ray_gi.p = hInfo.p;
@@ -334,7 +341,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		ray_gi.dir = N_dash;
 
 		returnColor = this->diffuse.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bouncetime);
-		//returnColor *= (1 / static_cast<float>(M_PI));
+		returnColor *= (1 / static_cast<float>(M_PI));
 		color += returnColor;
 	}
 
@@ -348,12 +355,12 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		Vec3f R = 2 * (N.Dot(V)) * N - V;
 		R.Normalize();
 
-		SpecularWeightedHemisphereSampling(R, this->glossiness);
+		Vec3f D_dash = SpecularWeightedHemisphereSampling(R, this->glossiness, theta, phy);
 
 		Ray ray_gi;
 		ray_gi.p = hInfo.p;
 		ray_gi.p += SHADOWBIAS * N;
-		ray_gi.dir = R;
+		ray_gi.dir = D_dash;
 
 		returnColor = this->specular.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bouncetime);
 		//returnColor *= ((this->glossiness + 2) / 2 *  static_cast<float>(M_PI));
@@ -391,19 +398,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			color += Color(exp(-1 * absorption.r * hInfo.z) * color.r, exp(-1 * absorption.g * hInfo.z) * color.g, exp(-1 * absorption.b * hInfo.z) * color.b);
 		}
 
-		Color refractioncolor = Color(0, 0, 0);
-
-	#ifdef ENABLEREFRACTIONGLOSSINESS
-		for (int i = 0; i < RAYGLOSSINESS; i++)
-		{
-			refractioncolor += Refraction(ray, hInfo, bounce, ior, refraction.Sample(hInfo.uvw), refractionGlossiness);
-		}
-		refractioncolor /= RAYGLOSSINESS;
-	#else
-		refractioncolor += Refraction(ray, hInfo, bounce, ior, refraction.Sample(hInfo.uvw), refractionGlossiness);
-	#endif //  ENABLEREFRACTIONGLOSSINESS
-
-		color += refractioncolor;
+		color += Refraction(ray, hInfo, bounce, ior, refraction.Sample(hInfo.uvw), refractionGlossiness);
 	}
 #endif
 

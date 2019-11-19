@@ -52,61 +52,135 @@ namespace Utility
 		dir.Normalize();
 	}
 
-	inline void HemisphereUniformSampling(Vec3f & dir)
+	//inline void HemisphereUniformSampling(Vec3f & dir)
+	//{
+	//	Vec3f randomvec = Vec3f((static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)));
+	//	Vec3f x_dir = dir.Cross(randomvec);
+	//	Vec3f y_dir = dir.Cross(x_dir);
+	//	x_dir.Normalize();
+	//	y_dir.Normalize();
+
+	//	float theta = (static_cast<float>(rand()) / (RAND_MAX));
+	//	float phy = (static_cast<float>(rand()) / (RAND_MAX));
+
+	//	float x_length = cosf(2 * static_cast<float>(M_PI) * phy) * sqrtf(1 - (1- theta) * (1 - theta));
+	//	float y_length = sinf(2 * static_cast<float>(M_PI) * phy) * sqrtf(1 - (1 - theta) * (1 - theta));
+	//	float z_length = 1 - theta;
+
+	//	dir = x_length * x_dir + y_length * y_dir + z_length * dir;
+	//}
+
+	//inline void CosineWeightedHemisphereUniformSampling(Vec3f & dir)
+	//{
+	//	Vec3f randomvec = Vec3f((static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)));
+	//	Vec3f x_dir = dir.Cross(randomvec);
+	//	Vec3f y_dir = dir.Cross(x_dir);
+	//	x_dir.Normalize();
+	//	y_dir.Normalize();
+
+	//	float theta = (static_cast<float>(rand()) / (RAND_MAX));
+	//	float phy = (static_cast<float>(rand()) / (RAND_MAX));
+
+	//	float x_length = cosf(2 * static_cast<float>(M_PI) * phy) * sqrtf(theta);
+	//	float y_length = sinf(2 * static_cast<float>(M_PI) * phy) * sqrtf(theta);
+	//	float z_length = sqrtf(1 - theta);
+
+	//	dir = x_length * x_dir + y_length * y_dir + z_length * dir;
+	//}
+
+	//inline void SpecularWeightedHemisphereSampling(Vec3f & dir, float glossiness)
+	//{
+	//	Vec3f randomvec = Vec3f((static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)));
+	//	Vec3f x_dir = dir.Cross(randomvec);
+	//	Vec3f y_dir = dir.Cross(x_dir);
+	//	x_dir.Normalize();
+	//	y_dir.Normalize();
+
+	//	float theta = (static_cast<float>(rand()) / (RAND_MAX));
+	//	float phy = 2 * static_cast<float>(M_PI) * (static_cast<float>(rand()) / (RAND_MAX));
+
+	//	float theta2 = acosf(pow(theta, 1/(1+ glossiness)));
+
+	//	Vec3f randomradiusdir = sinf(phy) * x_dir + cosf(phy) * y_dir;
+	//	randomradiusdir.Normalize();
+	//	randomradiusdir *= tanf(theta2);
+
+	//	dir += randomradiusdir;
+	//	dir.Normalize();
+	//}
+
+	inline float GetUniformRamdomFloat()
 	{
-		Vec3f randomvec = Vec3f((static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)));
-		Vec3f x_dir = dir.Cross(randomvec);
-		Vec3f y_dir = dir.Cross(x_dir);
+		return (static_cast<float>(rand()) / (RAND_MAX));
+	}
+
+	inline Vec3f HemisphereUniformSampling(const Vec3f & z_dir, float theta, float phy)
+	{
+		Vec3f x_dir;
+		if (z_dir.y != 0 && z_dir.x != 0)
+		{
+			x_dir = Vec3f(-1 * z_dir.y, z_dir.x, 0);
+		}
+		else
+		{
+			x_dir = Vec3f(0, -1 * z_dir.z, z_dir.y);
+		}
+		Vec3f y_dir = z_dir.Cross(x_dir);
 		x_dir.Normalize();
 		y_dir.Normalize();
 
-		float theta = (static_cast<float>(rand()) / (RAND_MAX));
-		float phy = (static_cast<float>(rand()) / (RAND_MAX));
-
-		float x_length = cosf(2 * static_cast<float>(M_PI) * phy) * sqrtf(1 - (1- theta) * (1 - theta));
+		float x_length = cosf(2 * static_cast<float>(M_PI) * phy) * sqrtf(1 - (1 - theta) * (1 - theta));
 		float y_length = sinf(2 * static_cast<float>(M_PI) * phy) * sqrtf(1 - (1 - theta) * (1 - theta));
 		float z_length = 1 - theta;
 
-		dir = x_length * x_dir + y_length * y_dir + z_length * dir;
+		return x_length * x_dir + y_length * y_dir + z_length * z_dir;
 	}
 
-	inline void CosineWeightedHemisphereUniformSampling(Vec3f & dir)
+	inline Vec3f CosineWeightedHemisphereUniformSampling(const Vec3f & z_dir, float theta, float phy)
 	{
-		Vec3f randomvec = Vec3f((static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)));
-		Vec3f x_dir = dir.Cross(randomvec);
-		Vec3f y_dir = dir.Cross(x_dir);
+		Vec3f x_dir;
+		if (z_dir.y != 0 && z_dir.x != 0)
+		{
+			x_dir = Vec3f(-1 * z_dir.y, z_dir.x, 0);
+		}
+		else
+		{
+			x_dir = Vec3f(0, -1 * z_dir.z, z_dir.y);
+		}
+		Vec3f y_dir = z_dir.Cross(x_dir);
 		x_dir.Normalize();
 		y_dir.Normalize();
-
-		float theta = (static_cast<float>(rand()) / (RAND_MAX));
-		float phy = (static_cast<float>(rand()) / (RAND_MAX));
 
 		float x_length = cosf(2 * static_cast<float>(M_PI) * phy) * sqrtf(theta);
 		float y_length = sinf(2 * static_cast<float>(M_PI) * phy) * sqrtf(theta);
 		float z_length = sqrtf(1 - theta);
 
-		dir = x_length * x_dir + y_length * y_dir + z_length * dir;
+		return x_length * x_dir + y_length * y_dir + z_length * z_dir;
 	}
 
-	inline void SpecularWeightedHemisphereSampling(Vec3f & dir, float glossiness)
+	inline Vec3f SpecularWeightedHemisphereSampling(const Vec3f & z_dir, const float & alpha, float theta, float phy)
 	{
-		Vec3f randomvec = Vec3f((static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)), (static_cast<float>(rand()) / (RAND_MAX)));
-		Vec3f x_dir = dir.Cross(randomvec);
-		Vec3f y_dir = dir.Cross(x_dir);
+		Vec3f x_dir;
+		if (z_dir.y != 0 && z_dir.x != 0)
+		{
+			x_dir = Vec3f(-1 * z_dir.y, z_dir.x, 0);
+		}
+		else
+		{
+			x_dir = Vec3f(0, -1 * z_dir.z, z_dir.y);
+		}
+		Vec3f y_dir = z_dir.Cross(x_dir);
 		x_dir.Normalize();
 		y_dir.Normalize();
 
-		float theta = (static_cast<float>(rand()) / (RAND_MAX));
-		float phy = 2 * static_cast<float>(M_PI) * (static_cast<float>(rand()) / (RAND_MAX));
-
-		float theta2 = acosf(pow(theta, 1/(1+ glossiness)));
+		theta = acosf(pow(theta, 1 / (1 + alpha)));
+		phy *= 2 * static_cast<float>(M_PI);
 
 		Vec3f randomradiusdir = sinf(phy) * x_dir + cosf(phy) * y_dir;
 		randomradiusdir.Normalize();
-		randomradiusdir *= tanf(theta2);
+		randomradiusdir *= tanf(theta);
 
-		dir += randomradiusdir;
-		dir.Normalize();
+		return z_dir + randomradiusdir;
 	}
 }
 
