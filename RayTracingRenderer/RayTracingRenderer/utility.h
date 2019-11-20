@@ -181,5 +181,22 @@ namespace Utility
 
 		return x_length * x_dir + y_length * y_dir + z_length * z_dir;
 	}
+
+	inline void ClampColorValue(cy::Color & color)
+	{
+		if (color.r > 1)
+		{
+			color.r = 1.0f;
+		}
+		if (color.g > 1)
+		{
+			color.g = 1.0f;
+		}
+		if (color.b > 1)
+		{
+			color.b = 1.0f;
+		}
+		return;
+	}
 }
 

@@ -2,8 +2,6 @@
 //
 
 #include "constant.h"
-#include "utility.h"
-#include "reflectionandrefraction.h"
 
 #include <iostream>
 #include <scene.h>
@@ -14,6 +12,9 @@
 #include <cyBVH.h>
 #include <time.h>
 #include <math.h>
+
+#include "utility.h"
+#include "reflectionandrefraction.h"
 
 Node rootNode;
 Camera camera;
@@ -36,13 +37,13 @@ using namespace ReflectionAndRefraction;
 
 int main()
 {
-	LoadScene(".\\xmlfiles\\playground4.xml");
+	//LoadScene(".\\xmlfiles\\playground4.xml");
 	//LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
 	//LoadScene(".\\xmlfiles\\assignment10.xml");
 	//LoadScene(".\\xmlfiles\\assignment11_2.xml");
 	//LoadScene(".\\xmlfiles\\bosonscene.xml");
-	//LoadScene(".\\xmlfiles\\assignment11.xml");
+	LoadScene(".\\xmlfiles\\assignment11.xml");
 	//LoadScene(".\\xmlfiles\\assignment4.xml");
 	ShowViewport();
 }
@@ -319,8 +320,9 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			}
 
 			float oneofcos = 1 / hInfo.N.Dot(L);
-			specularpart = oneofcos * powf(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
-			diffusepart = this->diffuse.Sample(hInfo.uvw, hInfo.duvw);
+			diffusepart = (1 / static_cast<float>(M_PI)) * this->diffuse.Sample(hInfo.uvw, hInfo.duvw);
+			specularpart = ((this->glossiness + 2) / 2) * oneofcos * powf(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
+			ClampColorValue(specularpart);
 			color += (diffusepart + specularpart) * IR;
 		}
 	}
@@ -343,7 +345,6 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		ray_gi.dir = N_dash;
 
 		returnColor = this->diffuse.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bouncetime);
-		//returnColor *= (1 / static_cast<float>(M_PI));
 		color += returnColor;
 	}
 
@@ -365,7 +366,6 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		ray_gi.dir = D_dash;
 
 		returnColor = this->specular.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bouncetime);
-		//returnColor *= ((this->glossiness + 2) / 2 *  static_cast<float>(M_PI));
 		color += returnColor;
 	}
 #endif
