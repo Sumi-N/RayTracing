@@ -5,7 +5,7 @@
 /*****These are values for refrection and refraction*****/
 //#define ENABLEREFLECTION
 #define ENABLEREFRACTION
-#define REFRACTIONBOUNCE 3
+#define REFRACTIONBOUNCE 5
 
 /*****This is a value for gamma correction*****/
 #define ENABLEGAMMA

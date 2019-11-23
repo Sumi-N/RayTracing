@@ -37,7 +37,7 @@ using namespace ReflectionAndRefraction;
 
 int main()
 {
-	LoadScene(".\\xmlfiles\\playground4.xml");
+	LoadScene(".\\xmlfiles\\playground5.xml");
 	//LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
 	//LoadScene(".\\xmlfiles\\assignment10.xml");
@@ -336,6 +336,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 	float rand3 = GetUniformRamdomFloat();
 
 #ifdef ENABLEGIMIS
+
 	float pdf_diffuse = sinf(static_cast<float>(M_PI) / 2 * rand);
 	float pdf_specular = ((this->glossiness + 2) / 2) * cosf(pow(static_cast<float>(M_PI) / 2 * rand2, 1 / (this->glossiness + 1)));
 	float borderline = (TotalRGBValue(this->diffuse.Sample(hInfo.uvw, hInfo.duvw)) * pdf_diffuse) / (TotalRGBValue(this->diffuse.Sample(hInfo.uvw, hInfo.duvw)) * pdf_diffuse + TotalRGBValue(this->specular.Sample(hInfo.uvw, hInfo.duvw)) * pdf_specular);
