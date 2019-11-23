@@ -198,5 +198,15 @@ namespace Utility
 		}
 		return;
 	}
+
+	inline float AverageRGBValue(const cy::Color & color) 
+	{
+		return (color.r + color.g + color.b) / 3;
+	}
+
+	inline float TotalRGBValue(const cy::Color & color) 
+	{
+		return (color.r + color.g + color.b);
+	}
 }
 

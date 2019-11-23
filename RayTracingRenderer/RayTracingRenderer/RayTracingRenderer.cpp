@@ -331,6 +331,57 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 	float theta = GetUniformRamdomFloat();
 	float phy = GetUniformRamdomFloat();
 
+	float rand = GetUniformRamdomFloat();
+	float rand2 = GetUniformRamdomFloat();
+	float rand3 = GetUniformRamdomFloat();
+
+#ifdef ENABLEGIMIS
+	float pdf_diffuse = sinf(static_cast<float>(M_PI) / 2 * rand);
+	float pdf_specular = ((this->glossiness + 2) / 2) * cosf(pow(static_cast<float>(M_PI) / 2 * rand2, 1 / (this->glossiness + 1)));
+	float borderline = (TotalRGBValue(this->diffuse.Sample(hInfo.uvw, hInfo.duvw)) * pdf_diffuse) / (TotalRGBValue(this->diffuse.Sample(hInfo.uvw, hInfo.duvw)) * pdf_diffuse + TotalRGBValue(this->specular.Sample(hInfo.uvw, hInfo.duvw)) * pdf_specular);
+
+	// Diffuse part for GI
+	if (rand3 < borderline) {
+		if (bounce < GIBOUNCE)
+		{
+			int bouncetime = bounce + 1;
+			Color returnColor = Color(0, 0, 0);
+
+			Vec3f N_dash = CosineWeightedHemisphereUniformSampling(N, theta, phy);
+
+			Ray ray_gi;
+			ray_gi.p = hInfo.p;
+			ray_gi.p += SHADOWBIAS * N;
+			ray_gi.dir = N_dash;
+
+			returnColor = this->diffuse.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bouncetime);
+			color += returnColor;
+		}
+	}
+	else {
+		// Specular part for GI
+		if (bounce < GIBOUNCE)
+		{
+			int bouncetime = bounce + 1;
+			Color returnColor = Color(0, 0, 0);
+
+			Vec3f V = -1 * ray.dir;
+			Vec3f R = 2 * (N.Dot(V)) * N - V;
+			R.Normalize();
+
+			Vec3f D_dash = SpecularWeightedHemisphereSampling(R, this->glossiness, theta, phy);
+
+			Ray ray_gi;
+			ray_gi.p = hInfo.p;
+			ray_gi.p += SHADOWBIAS * N;
+			ray_gi.dir = D_dash;
+
+			returnColor = this->specular.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bouncetime);
+			color += returnColor;
+		}
+	}
+
+#else
 	// Diffuse part for GI
 	if (bounce < GIBOUNCE)
 	{
@@ -368,7 +419,8 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		returnColor = this->specular.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bouncetime);
 		color += returnColor;
 	}
-#endif
+#endif // End Enable GIMIS
+#endif // End Enable PT
 
 #ifdef ENABLEREFLECTION
 	// Calculate only reflection part for reflection
