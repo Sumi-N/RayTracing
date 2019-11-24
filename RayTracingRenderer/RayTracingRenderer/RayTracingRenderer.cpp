@@ -299,8 +299,16 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			}
 
 			float oneofcos = 1 / hInfo.N.Dot(L);
-			Color specularpart = oneofcos * powf(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
 			Color diffusepart = this->diffuse.Sample(hInfo.uvw, hInfo.duvw);
+			if (hInfo.N.Dot(L) != 0)
+			{
+				specularpart = ((this->glossiness + 2) / 2) * oneofcos * powf(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
+			}
+			else
+			{
+				specularpart = Color(0, 0, 0);
+			}
+			ClampColorValue(specularpart);
 			color += (diffusepart + specularpart) * IR;
 		}
 		else if (strcmp((*light)->GetName(), "pointLight") == 0)
@@ -321,7 +329,14 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 
 			float oneofcos = 1 / hInfo.N.Dot(L);
 			diffusepart = (1 / static_cast<float>(M_PI)) * this->diffuse.Sample(hInfo.uvw, hInfo.duvw);
-			specularpart = ((this->glossiness + 2) / 2) * oneofcos * powf(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
+			if (hInfo.N.Dot(L) != 0)
+			{
+				specularpart = ((this->glossiness + 2) / 2) * oneofcos * powf(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
+			}
+			else
+			{
+				specularpart = Color(0, 0, 0);
+			}
 			ClampColorValue(specularpart);
 			color += (diffusepart + specularpart) * IR;
 		}
@@ -444,8 +459,16 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			color += Refraction(ray, hInfo, bouncetime, refraction.Sample(hInfo.uvw), ior, refractionGlossiness);
 		}
 	}
-
-	return color;
+#endif
+	if (isnan(color.r) || isnan(color.g) || isnan(color.b))
+	{		
+		return Color(0, 0, 0);
+	}
+	else
+	{
+		return color;
+	}
+	
 }
 
 bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
