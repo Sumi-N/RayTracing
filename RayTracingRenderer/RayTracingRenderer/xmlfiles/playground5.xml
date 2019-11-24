@@ -71,7 +71,7 @@
       <diffuse  r="0.0" g="0.0" b="0.0"/>
       <specular r="0.0" g="0.0" b="0.0" value="0.8"/>
       <glossiness value="10000"/>
-      <refraction value="0.8" index="1.52"/>
+      <refraction r="1.0" g ="1.0" b="1.0" index="2.0" value="0.8" glossiness="10000"/>
       <absorption r="0.01" g="0.001" b="0.0001"/>
     </material>
  

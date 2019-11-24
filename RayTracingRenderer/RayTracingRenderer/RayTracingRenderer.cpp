@@ -343,42 +343,48 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 
 	// Diffuse part for GI
 	if (rand3 < borderline) {
-		if (bounce < GIBOUNCE)
+		if (this->diffuse.Sample(hInfo.uvw) != Color(0, 0, 0))
 		{
-			int bouncetime = bounce + 1;
-			Color returnColor = Color(0, 0, 0);
+			if (bounce < GIBOUNCE)
+			{
+				int bouncetime = bounce + 1;
+				Color returnColor = Color(0, 0, 0);
 
-			Vec3f N_dash = CosineWeightedHemisphereUniformSampling(N, theta, phy);
+				Vec3f N_dash = CosineWeightedHemisphereUniformSampling(N, theta, phy);
 
-			Ray ray_gi;
-			ray_gi.p = hInfo.p;
-			ray_gi.p += SHADOWBIAS * N;
-			ray_gi.dir = N_dash;
+				Ray ray_gi;
+				ray_gi.p = hInfo.p;
+				ray_gi.p += SHADOWBIAS * N;
+				ray_gi.dir = N_dash;
 
-			returnColor = this->diffuse.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bouncetime);
-			color += returnColor;
+				returnColor = this->diffuse.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bouncetime);
+				color += returnColor;
+			}
 		}
 	}
 	else {
 		// Specular part for GI
-		if (bounce < GIBOUNCE)
+		if (this->diffuse.Sample(hInfo.uvw) != Color(0, 0, 0))
 		{
-			int bouncetime = bounce + 1;
-			Color returnColor = Color(0, 0, 0);
+			if (bounce < GIBOUNCE)
+			{
+				int bouncetime = bounce + 1;
+				Color returnColor = Color(0, 0, 0);
 
-			Vec3f V = -1 * ray.dir;
-			Vec3f R = 2 * (N.Dot(V)) * N - V;
-			R.Normalize();
+				Vec3f V = -1 * ray.dir;
+				Vec3f R = 2 * (N.Dot(V)) * N - V;
+				R.Normalize();
 
-			Vec3f D_dash = SpecularWeightedHemisphereSampling(R, this->glossiness, theta, phy);
+				Vec3f D_dash = SpecularWeightedHemisphereSampling(R, this->glossiness, theta, phy);
 
-			Ray ray_gi;
-			ray_gi.p = hInfo.p;
-			ray_gi.p += SHADOWBIAS * N;
-			ray_gi.dir = D_dash;
+				Ray ray_gi;
+				ray_gi.p = hInfo.p;
+				ray_gi.p += SHADOWBIAS * N;
+				ray_gi.dir = D_dash;
 
-			returnColor = this->specular.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bouncetime);
-			color += returnColor;
+				returnColor = this->specular.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bouncetime);
+				color += returnColor;
+			}
 		}
 	}
 
@@ -423,39 +429,21 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 #endif // End Enable GIMIS
 #endif // End Enable PT
 
-#ifdef ENABLEREFLECTION
-	// Calculate only reflection part for reflection
-	if (this->reflection.Sample(hInfo.uvw) != Color(0, 0, 0))
-	{
-		Color reflectioncolor = Color(0, 0, 0);
-
-	#ifdef  ENABLEREFLECTIONGLOSSINESS
-		for (int i = 0; i < RAYGLOSSINESS; i++)
-		{
-			reflectioncolor += this->reflection.Sample(hInfo.uvw) * Reflection(ray, hInfo, bounce, reflectionGlossiness);
-		}
-		reflectioncolor /= RAYGLOSSINESS;
-	#else
-		reflectioncolor += this->reflection.Sample(hInfo.uvw) * Reflection(ray, hInfo, bounce, reflectionGlossiness);
-	#endif //  ENABLEREFLECTIONGLOSSINESS
-
-		color += reflectioncolor;
-	}
-#endif
-
-#ifdef ENABLEREFRACTION
 	// Calculate refraction part
 	if (this->refraction.Sample(hInfo.uvw) != Color(0, 0, 0))
 	{
-		// When it is a back side hit, it means that absorption gonna happen during inside the material the light go through
-		if (!hInfo.front)
+		if (bounce < GIBOUNCE)
 		{
-			color += Color(exp(-1 * absorption.r * hInfo.z) * color.r, exp(-1 * absorption.g * hInfo.z) * color.g, exp(-1 * absorption.b * hInfo.z) * color.b);
-		}
+			int bouncetime = bounce + 1;
+			// When it is a back side hit, it means that absorption gonna happen during inside the material the light go through
+			if (!hInfo.front)
+			{
+				color += Color(exp(-1 * absorption.r * hInfo.z) * color.r, exp(-1 * absorption.g * hInfo.z) * color.g, exp(-1 * absorption.b * hInfo.z) * color.b);
+			}
 
-		color += Refraction(ray, hInfo, bounce, ior, refraction.Sample(hInfo.uvw), refractionGlossiness);
+			color += Refraction(ray, hInfo, bouncetime, refraction.Sample(hInfo.uvw), ior, refractionGlossiness);
+		}
 	}
-#endif
 
 	return color;
 }
@@ -599,79 +587,79 @@ bool CheckBoxCollision(const float* vertices, Ray const & ray, float & answer)
 	float t_xmax, t_ymax, t_zmax;
 	float t_tmpmin, t_tmpmax;
 
-	//if (ray.dir.x == 0)
-	//{
-	//	t_ymin = (vertices[1] - ray.p.y) / ray.dir.y;
-	//	t_ymax = (vertices[4] - ray.p.y) / ray.dir.y;
+	if (ray.dir.x == 0)
+	{
+		t_ymin = (vertices[1] - ray.p.y) / ray.dir.y;
+		t_ymax = (vertices[4] - ray.p.y) / ray.dir.y;
 
-	//	if (t_ymin > t_ymax)
-	//	{
-	//		SwapFloat(t_ymin, t_ymax);
-	//	}
+		if (t_ymin > t_ymax)
+		{
+			SwapFloat(t_ymin, t_ymax);
+		}
 
-	//	t_zmin = (vertices[2] - ray.p.z) / ray.dir.z;
-	//	t_zmax = (vertices[5] - ray.p.z) / ray.dir.z;
+		t_zmin = (vertices[2] - ray.p.z) / ray.dir.z;
+		t_zmax = (vertices[5] - ray.p.z) / ray.dir.z;
 
-	//	if (t_zmin > t_zmax)
-	//	{
-	//		SwapFloat(t_zmin, t_zmax);
-	//	}
+		if (t_zmin > t_zmax)
+		{
+			SwapFloat(t_zmin, t_zmax);
+		}
 
-	//	if (t_ymin > t_zmax || t_ymin > t_zmax)
-	//	{
-	//		return false;
-	//	}
-	//	return true;
-	//} 
-	//else if (ray.dir.y == 0)
-	//{
-	//	t_xmin = (vertices[0] - ray.p.x) / ray.dir.x;
-	//	t_xmax = (vertices[3] - ray.p.x) / ray.dir.x;
+		if (t_ymin > t_zmax || t_ymin > t_zmax)
+		{
+			return false;
+		}
+		return true;
+	}
+	else if (ray.dir.y == 0)
+	{
+		t_xmin = (vertices[0] - ray.p.x) / ray.dir.x;
+		t_xmax = (vertices[3] - ray.p.x) / ray.dir.x;
 
-	//	if (t_xmin > t_xmax)
-	//	{
-	//		SwapFloat(t_xmin, t_xmax);
-	//	}
+		if (t_xmin > t_xmax)
+		{
+			SwapFloat(t_xmin, t_xmax);
+		}
 
-	//	t_zmin = (vertices[2] - ray.p.z) / ray.dir.z;
-	//	t_zmax = (vertices[5] - ray.p.z) / ray.dir.z;
+		t_zmin = (vertices[2] - ray.p.z) / ray.dir.z;
+		t_zmax = (vertices[5] - ray.p.z) / ray.dir.z;
 
-	//	if (t_zmin > t_zmax)
-	//	{
-	//		SwapFloat(t_zmin, t_zmax);
-	//	}
+		if (t_zmin > t_zmax)
+		{
+			SwapFloat(t_zmin, t_zmax);
+		}
 
-	//	if (t_xmin > t_zmax || t_zmin > t_xmax)
-	//	{
-	//		return false;
-	//	}
-	//	return true;
-	//} 
-	//else if (ray.dir.z == 0)
-	//{
-	//	t_xmin = (vertices[0] - ray.p.x) / ray.dir.x;
-	//	t_xmax = (vertices[3] - ray.p.x) / ray.dir.x;
+		if (t_xmin > t_zmax || t_zmin > t_xmax)
+		{
+			return false;
+		}
+		return true;
+	}
+	else if (ray.dir.z == 0)
+	{
+		t_xmin = (vertices[0] - ray.p.x) / ray.dir.x;
+		t_xmax = (vertices[3] - ray.p.x) / ray.dir.x;
 
-	//	if (t_xmin > t_xmax)
-	//	{
-	//		SwapFloat(t_xmin, t_xmax);
-	//	}
+		if (t_xmin > t_xmax)
+		{
+			SwapFloat(t_xmin, t_xmax);
+		}
 
-	//	t_ymin = (vertices[1] - ray.p.y) / ray.dir.y;
-	//	t_ymax = (vertices[4] - ray.p.y) / ray.dir.y;
+		t_ymin = (vertices[1] - ray.p.y) / ray.dir.y;
+		t_ymax = (vertices[4] - ray.p.y) / ray.dir.y;
 
-	//	if (t_ymin > t_ymax)
-	//	{
-	//		SwapFloat(t_ymin, t_ymax);
-	//	}
+		if (t_ymin > t_ymax)
+		{
+			SwapFloat(t_ymin, t_ymax);
+		}
 
-	//	if (t_xmin > t_ymax || t_ymin > t_xmax)
-	//	{
-	//		return false;
-	//	}
-	//	return true;
-	//}
-	//else
+		if (t_xmin > t_ymax || t_ymin > t_xmax)
+		{
+			return false;
+		}
+		return true;
+	}
+	else
 	{
 		t_xmin = (vertices[0] - ray.p.x) / ray.dir.x;
 		t_xmax = (vertices[3] - ray.p.x) / ray.dir.x;
