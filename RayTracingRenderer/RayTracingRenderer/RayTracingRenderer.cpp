@@ -450,16 +450,16 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		if (bounce < GIBOUNCE)
 		{
 			int bouncetime = bounce + 1;
-			// When it is a back side hit, it means that absorption gonna happen during inside the material the light go through
-			if (!hInfo.front)
-			{
-				color += Color(exp(-1 * absorption.r * hInfo.z) * color.r, exp(-1 * absorption.g * hInfo.z) * color.g, exp(-1 * absorption.b * hInfo.z) * color.b);
-			}
+
+			//// When it is a back side hit, it means that absorption gonna happen during inside the material the light go through
+			//if (!hInfo.front)
+			//{
+			//	color += Color(exp(-1 * absorption.r * hInfo.z) * color.r, exp(-1 * absorption.g * hInfo.z) * color.g, exp(-1 * absorption.b * hInfo.z) * color.b);
+			//}
 
 			color += Refraction(ray, hInfo, bouncetime, refraction.Sample(hInfo.uvw), ior, refractionGlossiness);
 		}
 	}
-#endif
 	if (isnan(color.r) || isnan(color.g) || isnan(color.b))
 	{		
 		return Color(0, 0, 0);

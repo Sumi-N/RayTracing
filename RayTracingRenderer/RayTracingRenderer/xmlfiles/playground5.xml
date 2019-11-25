@@ -22,7 +22,7 @@
         <rotate angle="90" y="1"/>
         <translate x="-15"/>
       </object>
-      <object type="plane" name="WallRight" material="wall">
+      <object type="plane" name="WallRight" material="wallleft">
         <scale value="32"/>
         <rotate angle="-90" y="1"/>
         <translate x="15"/>
@@ -58,9 +58,11 @@
       <specular value="0"/>
     </material>
     <material type="blinn" name="mtl1">
-      <diffuse  r="0.6" g="0.2" b="0.8"/>
-      <specular r="0.6" g="0.2" b="0.8" value="0.8"/>
-      <glossiness value="10"/>
+      <diffuse  r="0.0" g="0.0" b="0.0"/>
+      <specular r="0.0" g="0.0" b="0.0" value="0.8"/>
+      <glossiness value="10000"/>
+      <refraction r="0.6" g ="0.2" b="0.8" index="2.0" value="0.8" glossiness="10000"/>
+      <absorption r="0.01" g="0.001" b="0.0001"/>
     </material>
     <material type="blinn" name="mtl2">
       <diffuse  r="0.8" g="0.8" b="0.8"/>

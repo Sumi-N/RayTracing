@@ -7,8 +7,8 @@
 
 /*****These are values for path tracing*****/
 #define ENABLEPT
-#define RAYPERPT 256
-#define GIBOUNCE 5
+#define RAYPERPT 512
+#define GIBOUNCE 8
 
 //These are the constant values which is highly unlikely to be changed
 #define SHADOWBIAS 0.0005f
