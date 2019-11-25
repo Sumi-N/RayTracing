@@ -37,10 +37,10 @@ using namespace ReflectionAndRefraction;
 
 int main()
 {
-	LoadScene(".\\xmlfiles\\playground5.xml");
+	//LoadScene(".\\xmlfiles\\playground5.xml");
 	//LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
-	//LoadScene(".\\xmlfiles\\assignment10.xml");
+	LoadScene(".\\xmlfiles\\playground6.xml");
 	//LoadScene(".\\xmlfiles\\assignment11_2.xml");
 	//LoadScene(".\\xmlfiles\\bosonscene.xml");
 	//LoadScene(".\\xmlfiles\\assignment11.xml");

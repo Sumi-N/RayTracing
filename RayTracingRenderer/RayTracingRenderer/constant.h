@@ -6,7 +6,7 @@
 #define ENABLEGAMMA
 
 /*****These are values for path tracing*****/
-#define ENABLEPT
+//#define ENABLEPT
 #define RAYPERPT 512
 #define GIBOUNCE 8
 
@@ -18,5 +18,5 @@
 #define ENABLEGIMIS
 
 /*****These are values for bluer effect*****/
-//#define BLUREFFECT
-#define RAYPERPIXELFORBLUREFFECT 1024
+#define BLUREFFECT
+#define RAYPERPIXELFORBLUREFFECT 16

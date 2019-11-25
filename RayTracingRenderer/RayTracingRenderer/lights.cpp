@@ -50,7 +50,7 @@ Color PointLight::Illuminate(Vec3f const & p, Vec3f const & N) const
 {
 	Vec3f direction;
 	float ratio = 0.0f;
-#ifdef ENABLEPT
+
 	direction = position - p;
 	float length = direction.Length();
 	ConeUniformSampling(direction, size / 2);
@@ -63,32 +63,6 @@ Color PointLight::Illuminate(Vec3f const & p, Vec3f const & N) const
 	{
 		ratio = 1.0f;
 	}
-#else
-	for (int i = 0; i < RAYPERSAMPLING; i++)
-	{
-		direction = position - p;
-		float length = direction.Length();
-		ConeUniformSampling(direction, size / 2);
-		direction.Normalize();
-		if (Shadow(Ray(p, direction), length) == 0.0f)
-		{
-			ratio = 0.0f;
-			for (int j = 0; j < RAYPERSHADOW; j++)
-			{
-				direction = position - p;
-				ConeUniformSampling(direction, size / 2);
-				direction.Normalize();
-				ratio += Shadow(Ray(p, direction), length);
-			}
-			ratio /= RAYPERSHADOW;
-			break;
-		}
-		else
-		{
-			ratio = 1.0f;
-		}
-	}
-#endif
 
 	return ratio * intensity;
 }
