@@ -3,7 +3,7 @@
 ///
 /// \file       materials.h 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    11.0
+/// \version    13.0
 /// \date       August 21, 2019
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -92,7 +92,17 @@ public:
 
 	virtual void SetViewportMaterial(int subMtlID = 0) const; // used for OpenGL display
 
-public:
+	// Photon Extensions
+	virtual bool IsPhotonSurface(int subMtlID = 0) const
+	{
+		return diffuse.GetColor().Gray() > 0;
+	} // if this method returns true, the photon will be stored
+	virtual bool RandomPhotonBounce(Ray &r, Color &c, const HitInfo &hInfo) const  // if this method returns true, a new photon with the given direction and color will be traced
+	{
+		return false;
+	}
+
+private:
 	TexturedColor diffuse, specular, reflection, refraction, emission;
 	float glossiness;
 	Color absorption;
@@ -123,6 +133,16 @@ public:
 	void AppendMaterial(Material *m)
 	{
 		mtls.push_back(m);
+	}
+
+	// Photon Extensions
+	virtual bool IsPhotonSurface(int subMtlID = 0) const
+	{
+		return mtls[subMtlID]->IsPhotonSurface();
+	}
+	virtual bool RandomPhotonBounce(Ray &r, Color &c, const HitInfo &hInfo) const
+	{
+		return hInfo.mtlID < (int)mtls.size() ? mtls[hInfo.mtlID]->RandomPhotonBounce(r, c, hInfo) : false;
 	}
 
 private:

@@ -126,6 +126,7 @@
     <ClInclude Include="cyIVector.h" />
     <ClInclude Include="cyLightingGrid.h" />
     <ClInclude Include="cyMatrix.h" />
+    <ClInclude Include="cyPhotonMap.h" />
     <ClInclude Include="cyPoint.h" />
     <ClInclude Include="cyPointCloud.h" />
     <ClInclude Include="cyQuat.h" />

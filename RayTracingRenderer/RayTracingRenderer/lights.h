@@ -1,8 +1,9 @@
+
 //-------------------------------------------------------------------------------
 ///
 /// \file       lights.h 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    10.0
+/// \version    13.0
 /// \date       August 21, 2019
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -103,10 +104,7 @@ public:
 	{
 		return (p - position).GetNormalized();
 	}
-	virtual void SetViewportLight(int lightID) const
-	{
-		SetViewportParam(lightID, ColorA(0.0f), ColorA(intensity), Vec4f(position, 1.0f));
-	}
+	virtual void SetViewportLight(int lightID) const;
 	void SetIntensity(Color intens)
 	{
 		intensity = intens;
@@ -118,6 +116,20 @@ public:
 	void SetSize(float s)
 	{
 		size = s;
+	}
+
+	// Photon Extensions
+	virtual bool  IsPhotonSource() const
+	{
+		return true;
+	}
+	virtual Color GetPhotonIntensity() const
+	{
+		return intensity;
+	}
+	virtual Ray   RandomPhoton() const
+	{
+		return Ray();
 	}
 
 private:

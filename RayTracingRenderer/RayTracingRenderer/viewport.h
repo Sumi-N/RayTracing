@@ -3,7 +3,7 @@
 ///
 /// \file       viewport.cpp 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    11.0
+/// \version    13.0
 /// \date       August 21, 2019
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -686,6 +686,13 @@ void GenLight::SetViewportParam(int lightID, ColorA ambient, ColorA intensity, V
 	glLightfv(GL_LIGHT0 + lightID, GL_SPECULAR, &intensity.r);
 	glLightfv(GL_LIGHT0 + lightID, GL_POSITION, &pos.x);
 }
+void PointLight::SetViewportLight(int lightID) const
+{
+	SetViewportParam(lightID, ColorA(0, 0, 0), ColorA(intensity), Vec4f(position, 1.0f));
+	glLightf(GL_LIGHT0 + lightID, GL_CONSTANT_ATTENUATION, 0);
+	glLightf(GL_LIGHT0 + lightID, GL_LINEAR_ATTENUATION, 0);
+	glLightf(GL_LIGHT0 + lightID, GL_QUADRATIC_ATTENUATION, 1);
+}
 bool TextureFile::SetViewportTexture() const
 {
 	if (viewportTextureID == 0)
@@ -726,4 +733,5 @@ bool TextureChecker::SetViewportTexture() const
 	glBindTexture(GL_TEXTURE_2D, viewportTextureID);
 	return true;
 }
+//-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------

@@ -1,8 +1,9 @@
+
 //-------------------------------------------------------------------------------
 ///
 /// \file       scene.h 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    11.0
+/// \version    13.0
 /// \date       August 21, 2019
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -393,6 +394,20 @@ public:
 	virtual void  SetViewportLight(int lightID) const
 	{
 	}    // used for OpenGL display
+
+	  // Photon Extensions
+	virtual bool  IsPhotonSource() const
+	{
+		return false;
+	}
+	virtual Color GetPhotonIntensity() const
+	{
+		return Color(0, 0, 0);
+	}
+	virtual Ray   RandomPhoton() const
+	{
+		return Ray(Vec3f(0, 0, 0), Vec3f(0, 0, 1));
+	}
 };
 
 class LightList : public ItemList<Light>
@@ -413,6 +428,16 @@ public:
 	virtual void SetViewportMaterial(int subMtlID = 0) const
 	{
 	}   // used for OpenGL display
+
+	  // Photon Extensions
+	virtual bool IsPhotonSurface(int subMtlID = 0) const
+	{
+		return true;
+	} // if this method returns true, the photon will be stored
+	virtual bool RandomPhotonBounce(Ray &r, Color &c, const HitInfo &hInfo) const
+	{
+		return false;
+	} // if this method returns true, a new photon with the given direction and color will be traced
 };
 
 class MaterialList : public ItemList<Material>
