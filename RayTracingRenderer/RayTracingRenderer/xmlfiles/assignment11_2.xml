@@ -10,10 +10,10 @@
     <object type="plane" material="white">
       <scale value="500"/>
     </object>
-    <object type="obj" name="objfiles/teapot.obj" material="white">
-      <scale value="0.7"/>
-      <rotate angle="-50" z="1"/>
-      <translate x="0" y="0" z="0"/>
+    <object type="obj" name="objfiles/raytracinglogo.obj" material="white">
+      <scale value="0.1"/>
+      <rotate angle="90" x="1"/>
+      <translate x="0" y="0" z="5"/>
     </object>
 
     <!-- Materials -->
@@ -23,14 +23,21 @@
       <glossiness value="50"/>
     </material>
 
+    <!-- Lights -->
+    <light type="point" name="pointLight">
+      <intensity value="2.0"/>
+      <position x="0" y="0" z="22"/>
+      <size value="4"/>
+    </light>
+
   </scene>
 
   <camera>
-    <position x="0" y="-70" z="25"/>
-    <target x="0" y="0" z="3"/>
+    <position x="-30" y="-25" z="7"/>
+    <target x="0" y="3" z="5"/>
     <up x="0" y="0" z="1"/>
     <fov value="25"/>
-    <width value="800"/>
-    <height value="600"/>
+    <width value="1600"/>
+    <height value="1200"/>
   </camera>
 </xml>

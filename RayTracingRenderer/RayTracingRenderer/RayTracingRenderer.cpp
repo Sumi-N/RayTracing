@@ -37,11 +37,10 @@ using namespace ReflectionAndRefraction;
 
 int main()
 {
-	LoadScene(".\\xmlfiles\\playground5.xml");
-	//LoadScene(".\\xmlfiles\\catscene.xml");
-	//LoadScene(".\\xmlfiles\\potscene.xml");
+	//LoadScene(".\\xmlfiles\\playground5.xml");
+	//LoadScene(".\\xmlfiles\\raytracinglogo.xml");
 	//LoadScene(".\\xmlfiles\\assignment10.xml");
-	//LoadScene(".\\xmlfiles\\assignment11_2.xml");
+	LoadScene(".\\xmlfiles\\assignment11_2.xml");
 	//LoadScene(".\\xmlfiles\\bosonscene.xml");
 	//LoadScene(".\\xmlfiles\\assignment11.xml");
 	//LoadScene(".\\xmlfiles\\assignment4.xml");
@@ -814,7 +813,7 @@ bool TriObj::IntersectTriangle(Ray const & ray, HitInfo & hInfo, int hitSide, un
 			hInfo.z = t;
 			// This is for texturing
 			{
-				hInfo.uvw = GetTexCoord(faceID, bc);
+				//hInfo.uvw = GetTexCoord(faceID, bc);
 			}
 			return true;
 		}
