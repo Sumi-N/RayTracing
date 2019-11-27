@@ -7,7 +7,7 @@
 
 /*****These are values for path tracing*****/
 #define ENABLEPT
-#define RAYPERPT 64
+#define RAYPERPT 8
 #define GIBOUNCE 3
 
 //These are the constant values which is highly unlikely to be changed
