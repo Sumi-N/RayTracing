@@ -328,10 +328,10 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			}
 
 			float oneofcos = 1 / hInfo.N.Dot(L);
-			diffusepart = (1 / static_cast<float>(M_PI)) * this->diffuse.Sample(hInfo.uvw, hInfo.duvw);
+			diffusepart = this->diffuse.Sample(hInfo.uvw, hInfo.duvw);
 			if (hInfo.N.Dot(L) != 0)
 			{
-				specularpart = ((this->glossiness + 2) / 2) * oneofcos * powf(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
+				specularpart =  oneofcos * powf(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
 			}
 			else
 			{
@@ -343,19 +343,16 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 	}
 #ifdef ENABLEPT
 
-	float theta = GetUniformRamdomFloat();
-	float phy = GetUniformRamdomFloat();
+	float xi1 = GetUniformRamdomFloat();
+	float xi2 = GetUniformRamdomFloat();
 
 	float rand = GetUniformRamdomFloat();
-	float rand2 = GetUniformRamdomFloat();
-	float rand3 = GetUniformRamdomFloat();
 
 #ifdef ENABLEGIMIS
 
-	float pdf_diffuse = sinf(static_cast<float>(M_PI) * rand);
-	//float pdf_specular = ((this->glossiness + 2) / 2) * pow(static_cast<float>(M_PI) / 2 * rand2, 1 / (this->glossiness + 1)));
-	float pdf_specular = ((this->glossiness + 2) / 2 * static_cast<float>(M_PI)) * pow(rand2, this->glossiness / (this->glossiness + 1));
-	float borderline = (pdf_diffuse) / (pdf_diffuse + pdf_specular);
+	float pdf_diffuse = sinf(static_cast<float>(M_PI)/2 * xi1);
+	float pdf_specular = (glossiness + 2) / (2 * static_cast<float>(M_PI)) * pow(cosf(static_cast<float>(M_PI) / 2 * xi1), glossiness);
+	float borderline = (diffuse.GetColor().Gray() * pdf_diffuse) / (diffuse.GetColor().Gray() * pdf_diffuse + specular.GetColor().Gray() * pdf_specular);
 
 	if (bounce < GIBOUNCE)
 	{
@@ -363,11 +360,11 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		Color returnColor = Color(0, 0, 0);
 
 		// Diffuse part for GI
-		if (rand3 < borderline)
+		if (rand < borderline)
 		{
 			if (this->diffuse.Sample(hInfo.uvw) != Color(0, 0, 0))
 			{
-				Vec3f N_dash = CosineWeightedHemisphereUniformSampling(N, theta, phy);
+				Vec3f N_dash = CosineWeightedHemisphereUniformSampling(N, xi1, xi2);
 
 				Ray ray_gi;
 				ray_gi.p = hInfo.p;
@@ -386,7 +383,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 				Vec3f R = 2 * (N.Dot(V)) * N - V;
 				R.Normalize();
 
-				Vec3f D_dash = SpecularWeightedHemisphereSampling(R, this->glossiness, theta, phy);
+				Vec3f D_dash = SpecularWeightedHemisphereSampling(R, this->glossiness, xi1, xi2);
 
 				Ray ray_gi;
 				ray_gi.p = hInfo.p;
@@ -406,7 +403,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		int bouncetime = bounce + 1;
 		Color returnColor = Color(0, 0, 0);
 
-		Vec3f N_dash = CosineWeightedHemisphereUniformSampling(N, theta, phy);
+		Vec3f N_dash = CosineWeightedHemisphereUniformSampling(N, xi1, xi2);
 
 		Ray ray_gi;
 		ray_gi.p = hInfo.p;
@@ -420,7 +417,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		Vec3f R = 2 * (N.Dot(V)) * N - V;
 		R.Normalize();
 
-		Vec3f D_dash = SpecularWeightedHemisphereSampling(R, this->glossiness, theta, phy);
+		Vec3f D_dash = SpecularWeightedHemisphereSampling(R, this->glossiness, xi1, xi2);
 
 		Ray ray_gi2;
 		ray_gi2.p = hInfo.p;

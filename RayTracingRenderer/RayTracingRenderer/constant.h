@@ -7,7 +7,7 @@
 
 /*****These are values for path tracing*****/
 #define ENABLEPT
-#define RAYPERPT 32
+#define RAYPERPT 1024
 #define GIBOUNCE 3
 
 //These are the constant values which is highly unlikely to be changed
@@ -15,7 +15,7 @@
 #define HALF 0.5f
 
 //These are the values for multiple impotant sampling
-#define ENABLEGIMIS
+//#define ENABLEGIMIS
 
 /*****These are values for bluer effect*****/
 //#define BLUREFFECT
