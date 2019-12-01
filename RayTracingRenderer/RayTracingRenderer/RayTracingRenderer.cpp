@@ -40,10 +40,10 @@ int main()
 	//LoadScene(".\\xmlfiles\\playground5.xml");
 	//LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
-	//LoadScene(".\\xmlfiles\\playground6.xml");
-	//LoadScene(".\\xmlfiles\\assignment11_2.xml");
-	//LoadScene(".\\xmlfiles\\bosonscene.xml");
+	//LoadScene(".\\xmlfiles\\playground11.xml");
 	LoadScene(".\\xmlfiles\\assignment11.xml");
+	//LoadScene(".\\xmlfiles\\bosonscene.xml");
+	//LoadScene(".\\xmlfiles\\raytracinglogo.xml");
 	//LoadScene(".\\xmlfiles\\assignment4.xml");
 	ShowViewport();
 }
@@ -302,7 +302,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			Color diffusepart = this->diffuse.Sample(hInfo.uvw, hInfo.duvw);
 			if (hInfo.N.Dot(L) != 0)
 			{
-				specularpart = ((this->glossiness + 2) / 2) * oneofcos * powf(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
+				specularpart = ((this->glossiness + 2) / 2) *  powf(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
 			}
 			else
 			{
@@ -352,8 +352,9 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 
 #ifdef ENABLEGIMIS
 
-	float pdf_diffuse = sinf(static_cast<float>(M_PI) / 2 * rand);
-	float pdf_specular = ((this->glossiness + 2) / 2) * cosf(pow(static_cast<float>(M_PI) / 2 * rand2, 1 / (this->glossiness + 1)));
+	float pdf_diffuse = sinf(static_cast<float>(M_PI) * rand);
+	//float pdf_specular = ((this->glossiness + 2) / 2) * pow(static_cast<float>(M_PI) / 2 * rand2, 1 / (this->glossiness + 1)));
+	float pdf_specular = ((this->glossiness + 2) / 2 * static_cast<float>(M_PI)) * pow(rand2, this->glossiness / (this->glossiness + 1));
 	float borderline = (pdf_diffuse) / (pdf_diffuse + pdf_specular);
 
 	if (bounce < GIBOUNCE)
