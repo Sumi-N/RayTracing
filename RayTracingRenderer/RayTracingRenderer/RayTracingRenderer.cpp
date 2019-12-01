@@ -40,10 +40,10 @@ int main()
 	//LoadScene(".\\xmlfiles\\playground5.xml");
 	//LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
-	//LoadScene(".\\xmlfiles\\playground6.xml");
-	//LoadScene(".\\xmlfiles\\assignment11_2.xml");
-	//LoadScene(".\\xmlfiles\\bosonscene.xml");
+	//LoadScene(".\\xmlfiles\\playground11.xml");
 	LoadScene(".\\xmlfiles\\assignment11.xml");
+	//LoadScene(".\\xmlfiles\\bosonscene.xml");
+	//LoadScene(".\\xmlfiles\\raytracinglogo.xml");
 	//LoadScene(".\\xmlfiles\\assignment4.xml");
 	ShowViewport();
 }
@@ -182,6 +182,7 @@ Color BlurEffect(Ray ray)
 
 	return returnColor / RAYPERPIXELFORBLUREFFECT;
 }
+
 void BeginRender() {
 
 	time_t time0;   // create timers.
@@ -270,131 +271,131 @@ void StopRender() {
 
 Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & lights, int bounce) const
 {
-	Vec3f N = hInfo.N;
-	Color color = Color(0, 0, 0);
-	Color specularpart = Color(0, 0, 0);
-	Color diffusepart = Color(0, 0, 0);
+		Vec3f N = hInfo.N;
+		Color color = Color(0, 0, 0);
+		Color specularpart = Color(0, 0, 0);
+		Color diffusepart = Color(0, 0, 0);
 
-	if (ray.p == hInfo.p)
-	{
-		return color;
-	}
-
-	for (auto light = lights.begin(); light != lights.end(); ++light)
-	{
-		if (strcmp((*light)->GetName(), "directLight") == 0)
+		if (ray.p == hInfo.p)
 		{
-			Vec3f L = -1 * (*light)->Direction(hInfo.p);
-			L.Normalize();
-			Vec3f V = ray.p - hInfo.p;
-			V.Normalize();
-			Vec3f H = (V + L) / (V + L).Length();
-			H.Normalize();
-
-			// Incoming light
-			Color IR = Color(0, 0, 0);
-			if (N.Dot(-1 * (*light)->Direction(hInfo.p)) >= 0)
-			{
-				IR = (*light)->Illuminate(hInfo.p, N) * N.Dot(L);
-			}
-
-			float oneofcos = 1 / hInfo.N.Dot(L);
-			Color diffusepart = this->diffuse.Sample(hInfo.uvw, hInfo.duvw);
-			if (hInfo.N.Dot(L) != 0)
-			{
-				specularpart = ((this->glossiness + 2) / 2) * oneofcos * powf(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
-			}
-			else
-			{
-				specularpart = Color(0, 0, 0);
-			}
-			ClampColorValue(specularpart);
-			color += (diffusepart + specularpart) * IR;
+			return color;
 		}
-		else if (strcmp((*light)->GetName(), "pointLight") == 0)
+
+		for (auto light = lights.begin(); light != lights.end(); ++light)
 		{
-			Vec3f L = -1 * (*light)->Direction(hInfo.p);
-			L.Normalize();
-			Vec3f V = ray.p - hInfo.p;
-			V.Normalize();
-			Vec3f H = (V + L) / (V + L).Length();
-			H.Normalize();
+			if (strcmp((*light)->GetName(), "directLight") == 0)
+			{
+				Vec3f L = -1 * (*light)->Direction(hInfo.p);
+				L.Normalize();
+				Vec3f V = ray.p - hInfo.p;
+				V.Normalize();
+				Vec3f H = (V + L) / (V + L).Length();
+				H.Normalize();
 
-			// Incoming light
-			Color IR = Color(0, 0, 0);
-			if (N.Dot(-1 * (*light)->Direction(hInfo.p)) >= 0)
-			{
-				IR = (*light)->Illuminate(hInfo.p, N) * N.Dot(L);
-			}
+				// Incoming light
+				Color IR = Color(0, 0, 0);
+				if (N.Dot(-1 * (*light)->Direction(hInfo.p)) >= 0)
+				{
+					IR = (*light)->Illuminate(hInfo.p, N) * N.Dot(L);
+				}
 
-			float oneofcos = 1 / hInfo.N.Dot(L);
-			diffusepart = (1 / static_cast<float>(M_PI)) * this->diffuse.Sample(hInfo.uvw, hInfo.duvw);
-			if (hInfo.N.Dot(L) != 0)
-			{
-				specularpart = ((this->glossiness + 2) / 2) * oneofcos * powf(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
+				float oneofcos = 1 / hInfo.N.Dot(L);
+				Color diffusepart = this->diffuse.Sample(hInfo.uvw, hInfo.duvw);
+				if (hInfo.N.Dot(L) != 0)
+				{
+					specularpart = ((this->glossiness + 2) / 2) *  powf(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
+				}
+				else
+				{
+					specularpart = Color(0, 0, 0);
+				}
+				ClampColorValue(specularpart);
+				color += (diffusepart + specularpart) * IR;
 			}
-			else
+			else if (strcmp((*light)->GetName(), "pointLight") == 0)
 			{
-				specularpart = Color(0, 0, 0);
+				Vec3f L = -1 * (*light)->Direction(hInfo.p);
+				L.Normalize();
+				Vec3f V = ray.p - hInfo.p;
+				V.Normalize();
+				Vec3f H = (V + L) / (V + L).Length();
+				H.Normalize();
+
+				// Incoming light
+				Color IR = Color(0, 0, 0);
+				if (N.Dot(-1 * (*light)->Direction(hInfo.p)) >= 0)
+				{
+					IR = (*light)->Illuminate(hInfo.p, N) * N.Dot(L);
+				}
+
+				float oneofcos = 1 / hInfo.N.Dot(L);
+				diffusepart = this->diffuse.Sample(hInfo.uvw, hInfo.duvw);
+				if (hInfo.N.Dot(L) != 0)
+				{
+					specularpart = oneofcos * powf(H.Dot(hInfo.N), this->glossiness) * this->specular.Sample(hInfo.uvw, hInfo.duvw);
+				}
+				else
+				{
+					specularpart = Color(0, 0, 0);
+				}
+				ClampColorValue(specularpart);
+				color += (diffusepart + specularpart) * IR;
 			}
-			ClampColorValue(specularpart);
-			color += (diffusepart + specularpart) * IR;
 		}
-	}
 #ifdef ENABLEPT
 
-	float theta = GetUniformRamdomFloat();
-	float phy = GetUniformRamdomFloat();
+		float xi1 = GetUniformRamdomFloat();
+		float xi2 = GetUniformRamdomFloat();
 
-	float rand = GetUniformRamdomFloat();
-	float rand2 = GetUniformRamdomFloat();
-	float rand3 = GetUniformRamdomFloat();
+		float rand = GetUniformRamdomFloat();
 
 #ifdef ENABLEGIMIS
 
-	float pdf_diffuse = sinf(static_cast<float>(M_PI) / 2 * rand);
-	float pdf_specular = ((this->glossiness + 2) / 2) * cosf(pow(static_cast<float>(M_PI) / 2 * rand2, 1 / (this->glossiness + 1)));
-	float borderline = (pdf_diffuse) / (pdf_diffuse + pdf_specular);
+		float pdf_diffuse = sinf(static_cast<float>(M_PI) / 2 * xi1);
+		float pdf_specular = (glossiness + 2) / (2 * static_cast<float>(M_PI)) * pow(cosf(static_cast<float>(M_PI) / 2 * xi2), glossiness);
+		float borderline = (diffuse.GetColor().Gray() * pdf_diffuse) / (diffuse.GetColor().Gray() * pdf_diffuse + specular.GetColor().Gray() * pdf_specular);
+		//float borderline = (pdf_diffuse) / (pdf_diffuse + pdf_specular);
 
 	if (bounce < GIBOUNCE)
 	{
 		int bouncetime = bounce + 1;
 		Color returnColor = Color(0, 0, 0);
 
-		// Diffuse part for GI
-		if (rand3 < borderline)
+		if (rand < borderline)
 		{
+			// Diffuse part for GI
 			if (this->diffuse.Sample(hInfo.uvw) != Color(0, 0, 0))
 			{
-				Vec3f N_dash = CosineWeightedHemisphereUniformSampling(N, theta, phy);
+				Vec3f N_dash = CosineWeightedHemisphereUniformSampling(N, xi1, xi2);
 
 				Ray ray_gi;
 				ray_gi.p = hInfo.p;
 				ray_gi.p += SHADOWBIAS * N;
 				ray_gi.dir = N_dash;
 
-				returnColor = this->diffuse.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bouncetime);		
+				returnColor = 1/borderline * this->diffuse.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bouncetime);
 			}
 		}
 		else
 		{
 			// Specular part for GI
-			if (this->diffuse.Sample(hInfo.uvw) != Color(0, 0, 0))
+			if (this->specular.Sample(hInfo.uvw) != Color(0, 0, 0))
 			{
 				Vec3f V = -1 * ray.dir;
 				Vec3f R = 2 * (N.Dot(V)) * N - V;
 				R.Normalize();
 
-				Vec3f D_dash = SpecularWeightedHemisphereSampling(R, this->glossiness, theta, phy);
+				Vec3f D_dash = SpecularWeightedHemisphereSampling(R, this->glossiness, xi1, xi2);
 
 				Ray ray_gi;
 				ray_gi.p = hInfo.p;
 				ray_gi.p += SHADOWBIAS * N;
 				ray_gi.dir = D_dash;
 
-				returnColor = this->specular.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bouncetime);
+				returnColor = 1 / (1 - borderline) * this->specular.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bouncetime);
 			}
 		}
+		ClampColorValue(returnColor);
 		color += returnColor;
 	}
 
@@ -405,7 +406,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		int bouncetime = bounce + 1;
 		Color returnColor = Color(0, 0, 0);
 
-		Vec3f N_dash = CosineWeightedHemisphereUniformSampling(N, theta, phy);
+		Vec3f N_dash = CosineWeightedHemisphereUniformSampling(N, xi1, xi2);
 
 		Ray ray_gi;
 		ray_gi.p = hInfo.p;
@@ -419,7 +420,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		Vec3f R = 2 * (N.Dot(V)) * N - V;
 		R.Normalize();
 
-		Vec3f D_dash = SpecularWeightedHemisphereSampling(R, this->glossiness, theta, phy);
+		Vec3f D_dash = SpecularWeightedHemisphereSampling(R, this->glossiness, xi1, xi2);
 
 		Ray ray_gi2;
 		ray_gi2.p = hInfo.p;
@@ -440,23 +441,22 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			int bouncetime = bounce + 1;
 
 			//// When it is a back side hit, it means that absorption gonna happen during inside the material the light go through
-			//if (!hInfo.front)
-			//{
-			//	color += Color(exp(-1 * absorption.r * hInfo.z) * color.r, exp(-1 * absorption.g * hInfo.z) * color.g, exp(-1 * absorption.b * hInfo.z) * color.b);
-			//}
+			if (!hInfo.front)
+			{
+				color += Color(exp(-1 * absorption.r * hInfo.z) * color.r, exp(-1 * absorption.g * hInfo.z) * color.g, exp(-1 * absorption.b * hInfo.z) * color.b);
+			}
 
 			color += Refraction(ray, hInfo, bouncetime, refraction.Sample(hInfo.uvw), ior, refractionGlossiness);
 		}
 	}
 	if (isnan(color.r) || isnan(color.g) || isnan(color.b))
-	{		
+	{
 		return Color(0, 0, 0);
 	}
 	else
 	{
 		return color;
 	}
-	
 }
 
 bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const

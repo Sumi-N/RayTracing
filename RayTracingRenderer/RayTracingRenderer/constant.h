@@ -15,7 +15,7 @@
 #define HALF 0.5f
 
 //These are the values for multiple impotant sampling
-//#define ENABLEGIMIS
+#define ENABLEGIMIS
 
 /*****These are values for bluer effect*****/
 //#define BLUREFFECT
