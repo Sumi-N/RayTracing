@@ -151,11 +151,21 @@ namespace ReflectionAndRefraction
 			// Calculate Fresnel reflection
 			float R = FresnelReflections(hit, refractionindex, cos1);
 
-			// Refraction part
-			Color returnColor = (1 - R) * refractioncolor * ReflectionRefractionTraverse(S, bounce);
-			// Reflection part
-			returnColor += R * refractioncolor * Reflection(ray, hit, bounce, alpha);
-			return returnColor;
+			float rand = GetUniformRamdomFloat();
+			Color returncolor = Color(0, 0, 0);
+
+			if (rand <= R)
+			{
+				// Reflection part
+				returncolor = refractioncolor * Reflection(ray, hit, bounce, alpha);
+
+			}
+			else
+			{
+				// Refraction part
+				returncolor = refractioncolor * ReflectionRefractionTraverse(S, bounce);
+			}
+			return returncolor;
 		}
 	}
 } //<- End of namespace
