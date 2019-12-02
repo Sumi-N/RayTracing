@@ -12,9 +12,11 @@
 #include <cyBVH.h>
 #include <time.h>
 #include <math.h>
+#include <cyPhotonMap.h>
 
 #include "utility.h"
 #include "reflectionandrefraction.h"
+#include "photonmap.h"
 
 Node rootNode;
 Camera camera;
@@ -28,6 +30,7 @@ std::vector<NodeMtl> nodeMtlList;
 TexturedColor background;
 TexturedColor environment;
 TextureList textureList;
+PhotonMap photonMap;
 
 Vec3f pixelx;
 Vec3f pixely;
@@ -37,15 +40,17 @@ using namespace ReflectionAndRefraction;
 
 int main()
 {
-	LoadScene(".\\xmlfiles\\playground5.xml");
+	//LoadScene(".\\xmlfiles\\playground5.xml");
 	//LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
-	//LoadScene(".\\xmlfiles\\playground11.xml");
-	//LoadScene(".\\xmlfiles\\assignment11.xml");
+	LoadScene(".\\xmlfiles\\assignment11.xml");
 	//LoadScene(".\\xmlfiles\\bosonscene.xml");
 	//LoadScene(".\\xmlfiles\\raytracinglogo.xml");
 	//LoadScene(".\\xmlfiles\\assignment4.xml");
 	//LoadScene(".\\xmlfiles\\proj12.xml");
+
+	SetupPhotonMap();
+
 	ShowViewport();
 }
 

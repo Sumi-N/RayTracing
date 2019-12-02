@@ -105,6 +105,7 @@ public:
 		return (p - position).GetNormalized();
 	}
 	virtual void SetViewportLight(int lightID) const;
+
 	void SetIntensity(Color intens)
 	{
 		intensity = intens;
@@ -130,6 +131,10 @@ public:
 	virtual Ray   RandomPhoton() const
 	{
 		return Ray();
+	}
+	virtual Vec3f GetLightPosition() const
+	{
+		return position;
 	}
 
 private:

@@ -48,10 +48,10 @@
     <ClInclude Include="constant.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cameramode.h">
+    <ClInclude Include="reflectionandrefraction.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="reflectionandrefraction.h">
+    <ClInclude Include="photonmap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

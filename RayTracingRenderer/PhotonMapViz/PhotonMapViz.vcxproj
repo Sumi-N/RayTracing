@@ -128,6 +128,14 @@
   <ItemGroup>
     <ClCompile Include="PhotonMapViz.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\tinyxml\tinyxmlSTL.vcxproj">
+      <Project>{a3a84737-5017-4577-b8a2-79429a25b8b6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\tinyxml\tinyxml_lib.vcxproj">
+      <Project>{c406daec-0886-4771-8dea-9d7329b46cc1}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

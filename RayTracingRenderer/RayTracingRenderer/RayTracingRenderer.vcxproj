@@ -160,12 +160,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="cameramode.h" />
     <ClInclude Include="constant.h" />
     <ClInclude Include="lights.h" />
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="materials.h" />
     <ClInclude Include="objects.h" />
+    <ClInclude Include="photonmap.h" />
     <ClInclude Include="reflectionandrefraction.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="scene.h" />
@@ -183,6 +183,14 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RayTracingRenderer.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\tinyxml\tinyxmlSTL.vcxproj">
+      <Project>{a3a84737-5017-4577-b8a2-79429a25b8b6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\tinyxml\tinyxml_lib.vcxproj">
+      <Project>{c406daec-0886-4771-8dea-9d7329b46cc1}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
