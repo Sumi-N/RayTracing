@@ -99,7 +99,21 @@ public:
 	} // if this method returns true, the photon will be stored
 	virtual bool RandomPhotonBounce(Ray &r, Color &c, const HitInfo &hInfo) const  // if this method returns true, a new photon with the given direction and color will be traced
 	{
-		return false;
+		float rand = Utility::GetUniformRamdomFloat();
+		if (0 < rand <= diffuse.GetColor().Gray())
+		{
+
+			return true;
+		}
+		else if (diffuse.GetColor().Gray() < rand <= specular.GetColor().Gray() + diffuse.GetColor().Gray())
+		{
+
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 private:

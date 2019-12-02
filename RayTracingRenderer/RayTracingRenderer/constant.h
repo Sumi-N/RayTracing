@@ -12,6 +12,7 @@
 
 /*****These are values for bluer effect*****/
 #define NUMOFPHOTONS 1000000
+#define PHOTONBOUNCE 2
 
 //These are the constant values which is highly unlikely to be changed
 #define SHADOWBIAS 0.0005f
