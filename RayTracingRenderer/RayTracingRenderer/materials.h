@@ -14,6 +14,14 @@
 #define _MATERIALS_H_INCLUDED_
 
 #include "scene.h"
+#include "constant.h"
+
+namespace Utility 
+{
+	float GetUniformRamdomFloat();
+	Vec3f CosineWeightedHemisphereUniformSampling(const Vec3f &, float, float);
+	Vec3f SpecularWeightedHemisphereSampling(const Vec3f &, const float &, float, float);
+}
 
 //-------------------------------------------------------------------------------
 
@@ -100,14 +108,73 @@ public:
 	virtual bool RandomPhotonBounce(Ray &r, Color &c, const HitInfo &hInfo) const  // if this method returns true, a new photon with the given direction and color will be traced
 	{
 		float rand = Utility::GetUniformRamdomFloat();
-		if (0 < rand <= diffuse.GetColor().Gray())
-		{
 
+		float xi1 = Utility::GetUniformRamdomFloat();
+		float xi2 = Utility::GetUniformRamdomFloat();
+
+		if (0 < rand && rand <= diffuse.GetColor().Max())
+		{
+			c *= 1 / diffuse.GetColor().Max() * diffuse.GetColor();
+
+			Vec3f N_dash = Utility::CosineWeightedHemisphereUniformSampling(hInfo.N, xi1, xi2);
+
+			Ray ray_gi;
+			ray_gi.p = hInfo.p;
+			ray_gi.p += SHADOWBIAS * hInfo.N;
+			ray_gi.dir = N_dash;
+			r = ray_gi;
 			return true;
 		}
-		else if (diffuse.GetColor().Gray() < rand <= specular.GetColor().Gray() + diffuse.GetColor().Gray())
+		else if (diffuse.GetColor().Max() < rand && rand <= specular.GetColor().Max() + diffuse.GetColor().Max())
 		{
+			float rand2 = Utility::GetUniformRamdomFloat();
+			if (0 < rand2 && rand2 <= reflection.GetColor().Max())
+			{
+				c *= 1 / reflection.GetColor().Max() * reflection.GetColor();
 
+				Vec3f V = -1 * r.dir;
+				Vec3f R = 2 * (hInfo.N.Dot(V)) * hInfo.N - V;
+				R.Normalize();
+
+				//Vec3f D_dash = SpecularWeightedHemisphereSampling(R, glossiness, xi1, xi2);
+
+				Ray ray_gi;
+				ray_gi.p = hInfo.p;
+				ray_gi.p += SHADOWBIAS * hInfo.N;
+				ray_gi.dir = R;
+				r = ray_gi;
+			}
+			else if (reflection.GetColor().Max() < rand2 && rand2 <= reflection.GetColor().Max() + refraction.GetColor().Max())
+			{
+				c *= 1 / refraction.GetColor().Max() * refraction.GetColor();
+
+				Vec3f V = -1 * r.dir;
+				Vec3f R = 2 * (hInfo.N.Dot(V)) * hInfo.N - V;
+				R.Normalize();
+
+				//Vec3f D_dash = SpecularWeightedHemisphereSampling(R, glossiness, xi1, xi2);
+
+				Ray ray_gi;
+				ray_gi.p = hInfo.p;
+				ray_gi.p += SHADOWBIAS * hInfo.N;
+				ray_gi.dir = R;
+			}
+			else
+			{
+				c *= 1 / (1 - reflection.GetColor().Max() - refraction.GetColor().Max()) * specular.GetColor();
+
+				Vec3f V = -1 * r.dir;
+				Vec3f R = 2 * (hInfo.N.Dot(V)) * hInfo.N - V;
+				R.Normalize();
+
+				Vec3f D_dash = Utility::SpecularWeightedHemisphereSampling(R, glossiness, xi1, xi2);
+
+				Ray ray_gi;
+				ray_gi.p = hInfo.p;
+				ray_gi.p += SHADOWBIAS * hInfo.N;
+				ray_gi.dir = D_dash;
+				r = ray_gi;
+			}
 			return true;
 		}
 		else
