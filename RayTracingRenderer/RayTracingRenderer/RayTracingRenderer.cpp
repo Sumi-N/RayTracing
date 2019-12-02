@@ -41,10 +41,11 @@ int main()
 	//LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
 	//LoadScene(".\\xmlfiles\\playground11.xml");
-	LoadScene(".\\xmlfiles\\assignment11.xml");
+	//LoadScene(".\\xmlfiles\\assignment11.xml");
 	//LoadScene(".\\xmlfiles\\bosonscene.xml");
 	//LoadScene(".\\xmlfiles\\raytracinglogo.xml");
 	//LoadScene(".\\xmlfiles\\assignment4.xml");
+	LoadScene(".\\xmlfiles\\proj12.xml");
 	ShowViewport();
 }
 
@@ -352,9 +353,12 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 #ifdef ENABLEGIMIS
 
 		float pdf_diffuse = sinf(static_cast<float>(M_PI) / 2 * xi1);
-		float pdf_specular = (glossiness + 2) / (2 * static_cast<float>(M_PI)) * pow(cosf(static_cast<float>(M_PI) / 2 * xi2), glossiness);
+		float pdf_specular = (glossiness + 2) / (2 * static_cast<float>(M_PI)) * pow(cosf(static_cast<float>(M_PI) / 2 * xi2), glossiness/(glossiness + 1));
 		float borderline = (diffuse.GetColor().Gray() * pdf_diffuse) / (diffuse.GetColor().Gray() * pdf_diffuse + specular.GetColor().Gray() * pdf_specular);
-		//float borderline = (pdf_diffuse) / (pdf_diffuse + pdf_specular);
+		if (isnan(borderline))
+		{
+			borderline = 0.5f;
+		}
 
 	if (bounce < GIBOUNCE)
 	{
@@ -395,7 +399,9 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 				returnColor = 1 / (1 - borderline) * this->specular.Sample(hInfo.uvw, hInfo.duvw) * GlobalIlluminationTraverse(ray_gi, bouncetime);
 			}
 		}
+
 		ClampColorValue(returnColor);
+
 		color += returnColor;
 	}
 
@@ -449,8 +455,10 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 			color += Refraction(ray, hInfo, bouncetime, refraction.Sample(hInfo.uvw), ior, refractionGlossiness);
 		}
 	}
+
 	if (isnan(color.r) || isnan(color.g) || isnan(color.b))
 	{
+		printf("There is NaN in the calculation process");
 		return Color(0, 0, 0);
 	}
 	else
