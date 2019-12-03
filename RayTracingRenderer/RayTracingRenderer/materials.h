@@ -153,10 +153,6 @@ public:
 
 				Vec3f N = hInfo.N;
 
-				//float xi1 = GetUniformRamdomFloat();
-				//float xi2 = GetUniformRamdomFloat();
-				//SpecularWeightedHemisphereSampling(N, alpha, xi1, xi2);
-
 				Vec3f P;
 
 				float cos1, cos2, sin1, sin2;
@@ -219,12 +215,6 @@ public:
 
 					S.dir = T;
 					S.p = P;
-
-					// Calculate Fresnel reflection
-					//float R = FresnelReflections(hit, refractionindex, cos1);
-
-					//float rand = GetUniformRamdomFloat();
-					//Color returncolor = Color(0, 0, 0);
 				}
 
 				Ray ray_gi;
@@ -253,6 +243,7 @@ public:
 		{
 			return false;
 		}
+		return false;
 	}
 
 private:

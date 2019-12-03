@@ -54,11 +54,13 @@ inline void BouncePhotonRay(Ray ray, Color intensity, int bounce)
 
 	if (hit.node != nullptr)
 	{
+		Ray nextray = ray;
 		if (bounce < PHOTONBOUNCE)
 		{
-			if (materials.Find(hit.node->GetMaterial()->GetName())->RandomPhotonBounce(ray, intensity, hit))
+			if (materials.Find(hit.node->GetMaterial()->GetName())->RandomPhotonBounce(nextray, intensity, hit))
 			{
-				BouncePhotonRay(ray, intensity, bounce + 1);
+				photonMap.AddPhoton(hit.p, ray.dir, 1 - intensity);
+				BouncePhotonRay(nextray, intensity, bounce + 1);
 			}
 			else
 			{
@@ -81,11 +83,13 @@ inline void InitialPhotonRay(Ray ray, Color intensity)
 
 	if (hit.node != nullptr)
 	{
+		Ray nextray = ray;
 		if (0 < PHOTONBOUNCE)
 		{
-			if (materials.Find(hit.node->GetMaterial()->GetName())->RandomPhotonBounce(ray, intensity, hit))
+			if (materials.Find(hit.node->GetMaterial()->GetName())->RandomPhotonBounce(nextray, intensity, hit))
 			{
-				BouncePhotonRay(ray, intensity, 1);
+				photonMap.AddPhoton(hit.p, ray.dir, 1 - intensity);
+				BouncePhotonRay(nextray, intensity, 1);
 			}
 			else
 			{
@@ -102,7 +106,7 @@ inline void InitialPhotonRay(Ray ray, Color intensity)
 inline void SetupPhotonMap()
 {
 	photonMap.Clear();
-	photonMap.Resize(NUMOFPHOTONS);
+	photonMap.Resize(NUMOFPHOTONS * 10);
 
 	for (auto light = lights.begin(); light != lights.end(); ++light)
 	{
@@ -128,6 +132,8 @@ inline void SetupPhotonMap()
 			}
 		}
 	}
+
+	photonMap.PrepareForIrradianceEstimation();
 
 	FILE *fp = fopen("..//PhotonMapViz//photonmap.dat", "wb");
 	fwrite(photonMap.GetPhotons(), sizeof(cyPhotonMap::Photon), photonMap.NumPhotons(), fp);

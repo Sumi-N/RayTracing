@@ -276,6 +276,18 @@ void StopRender() {
 
 Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & lights, int bounce) const
 {
+	Color irrad;
+	Vec3f direction;
+
+	Vec3f position = hInfo.p;
+	Vec3f normal = hInfo.N;
+
+	photonMap.EstimateIrradiance<100>(irrad, direction, 0.1f, position, &normal, 1.0f, cyPhotonMap::PhotonMap::FilterType::FILTER_TYPE_CONSTANT);
+#ifdef ENABLEPHOTONMAPPING
+
+	
+
+#else
 	Vec3f N = hInfo.N;
 	Color color = Color(0, 0, 0);
 	Color specularpart = Color(0, 0, 0);
@@ -410,6 +422,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 	{
 		return color;
 	}
+#endif // ENABLEPHOTONMAPPING
 }
 
 bool Sphere::IntersectRay(Ray const & ray, HitInfo & hInfo, int hitSide) const
