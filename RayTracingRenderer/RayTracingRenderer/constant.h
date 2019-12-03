@@ -11,8 +11,9 @@
 #define GIBOUNCE 3
 
 /*****These are values for bluer effect*****/
+#define ENABLEPHOTONMAPPING
 #define NUMOFPHOTONS 1000000
-#define PHOTONBOUNCE 2
+#define PHOTONBOUNCE 3
 
 //These are the constant values which is highly unlikely to be changed
 #define SHADOWBIAS 0.0005f

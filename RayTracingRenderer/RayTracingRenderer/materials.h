@@ -143,21 +143,93 @@ public:
 				ray_gi.p += SHADOWBIAS * hInfo.N;
 				ray_gi.dir = R;
 				r = ray_gi;
+				return true;
 			}
 			else if (reflection.GetColor().Max() < rand2 && rand2 <= reflection.GetColor().Max() + refraction.GetColor().Max())
 			{
 				c *= 1 / refraction.GetColor().Max() * refraction.GetColor();
 
 				Vec3f V = -1 * r.dir;
-				Vec3f R = 2 * (hInfo.N.Dot(V)) * hInfo.N - V;
-				R.Normalize();
 
-				//Vec3f D_dash = SpecularWeightedHemisphereSampling(R, glossiness, xi1, xi2);
+				Vec3f N = hInfo.N;
+
+				//float xi1 = GetUniformRamdomFloat();
+				//float xi2 = GetUniformRamdomFloat();
+				//SpecularWeightedHemisphereSampling(N, alpha, xi1, xi2);
+
+				Vec3f P;
+
+				float cos1, cos2, sin1, sin2;
+
+				if (V.Dot(N) >= 0)
+				{
+					P = -1 * SHADOWBIAS * N;  P += hInfo.p;
+					cos1 = V.Dot(N);
+				}
+				else
+				{
+					P = SHADOWBIAS * N;  P += hInfo.p;
+					cos1 = V.Dot(-N);
+				}
+
+				sin1 = sqrt(1 - (cos1 * cos1));
+
+				Vec3f T_h, T_v, T;
+
+				if (V.Dot(N) >= 0)
+				{
+					sin2 = (1 / ior) * sin1;
+				}
+				else
+				{
+					sin2 = ior * sin1;
+				}
+
+				// S is a starting point from the surface point
+				Ray S;
+
+				// Total internal reflection
+				if (sin2 > 1)
+				{
+					return false;
+				}
+				else // Normal procedure
+				{
+					cos2 = sqrt(1 - (sin2 * sin2));
+
+					if (V.Dot(N) >= 0)
+					{
+						// Horizontal direction Vector
+						T_h = -cos2 * N;
+						// Vertical Direction Vector
+						T_v = (V - (V.Dot(N))* N);
+					}
+					else
+					{
+						// Horizontal direction Vector
+						T_h = -cos2 * -N;
+						// Vertical Direction Vector
+						T_v = (V - (V.Dot(-N))* -N);
+					}
+
+					T_v.Normalize();
+					T_v = -sin2 * T_v;
+					// Combined horizontal and vertical
+					T = T_h + T_v;
+
+					S.dir = T;
+					S.p = P;
+
+					// Calculate Fresnel reflection
+					//float R = FresnelReflections(hit, refractionindex, cos1);
+
+					//float rand = GetUniformRamdomFloat();
+					//Color returncolor = Color(0, 0, 0);
+				}
 
 				Ray ray_gi;
-				ray_gi.p = hInfo.p;
-				ray_gi.p += SHADOWBIAS * hInfo.N;
-				ray_gi.dir = R;
+				ray_gi = S;
+				return true;
 			}
 			else
 			{

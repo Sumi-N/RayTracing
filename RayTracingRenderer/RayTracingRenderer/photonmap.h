@@ -52,9 +52,9 @@ inline void BouncePhotonRay(Ray ray, Color intensity, int bounce)
 
 	PhotonTraversing(node, ray, hit);
 
-	if (bounce < PHOTONBOUNCE)
+	if (hit.node != nullptr)
 	{
-		if (hit.node != nullptr)
+		if (bounce < PHOTONBOUNCE)
 		{
 			if (materials.Find(hit.node->GetMaterial()->GetName())->RandomPhotonBounce(ray, intensity, hit))
 			{
@@ -65,12 +65,9 @@ inline void BouncePhotonRay(Ray ray, Color intensity, int bounce)
 				photonMap.AddPhoton(hit.p, ray.dir, intensity);
 			}
 		}
-	}
-	else
-	{
-		if (hit.node != nullptr)
+		else
 		{
-				photonMap.AddPhoton(hit.p, ray.dir, intensity);
+			photonMap.AddPhoton(hit.p, ray.dir, intensity);
 		}
 	}
 }
@@ -84,9 +81,16 @@ inline void InitialPhotonRay(Ray ray, Color intensity)
 
 	if (hit.node != nullptr)
 	{
-		if (materials.Find(hit.node->GetMaterial()->GetName())->RandomPhotonBounce(ray, intensity, hit))
+		if (0 < PHOTONBOUNCE)
 		{
-			BouncePhotonRay(ray, intensity, 0);
+			if (materials.Find(hit.node->GetMaterial()->GetName())->RandomPhotonBounce(ray, intensity, hit))
+			{
+				BouncePhotonRay(ray, intensity, 1);
+			}
+			else
+			{
+				photonMap.AddPhoton(hit.p, ray.dir, intensity);
+			}
 		}
 		else
 		{

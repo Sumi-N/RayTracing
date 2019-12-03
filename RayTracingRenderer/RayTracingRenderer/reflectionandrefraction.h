@@ -81,9 +81,9 @@ namespace ReflectionAndRefraction
 
 		Vec3f N = hit.N;
 
-		float theta = GetUniformRamdomFloat();
-		float phy = GetUniformRamdomFloat();
-		SpecularWeightedHemisphereSampling(N, alpha, theta, phy);
+		float xi1 = GetUniformRamdomFloat();
+		float xi2 = GetUniformRamdomFloat();
+		SpecularWeightedHemisphereSampling(N, alpha, xi1, xi2);
 
 		Vec3f P;
 
