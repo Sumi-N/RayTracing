@@ -15,19 +15,19 @@
       <rotate angle="90" x="1"/>
       <translate y="10"/>
     </object>
-    <object type="obj" name="objfiles/diamond.obj" material="glossy1">
+    <object type="obj" name="objfiles/Gemstone1.obj" material="glossy1">
       <scale value="6"/>
       <translate x="-28" y="0" z="6"/>
     </object>
-    <object type="obj" name="objfiles/christal2.obj" material="glossy1">
+    <object type="obj" name="objfiles/Gemstone2.obj" material="glossy1">
       <scale value="6"/>
       <translate x="-14" y="0" z="6"/>
     </object>
-    <object type="obj" name="objfiles/ellipse.obj" material="glossy1">
+    <object type="obj" name="objfiles/Gemstone3.obj" material="glossy1">
       <scale value="5"/>
       <translate x="0" y="0" z="6"/>
     </object>
-    <object type="obj" name="objfiles/christal.obj" material="glossy1">
+    <object type="obj" name="objfiles/Gemstone4.obj" material="glossy1">
       <scale value="1"/>
       <translate x="14" y="0" z="6"/>
     </object>
@@ -36,9 +36,17 @@
       <rotate angle="-50" z="1"/>
       <translate x="13" y="-21" z="0"/>
     </object>
-    <object type="sphere" name="sphere5" material="glossy1">
+    <object type="obj" name="Gemstone5" material="glossy1">
       <scale value="2"/>
       <translate x="22" y="-30" z="2"/>
+    </object>
+    <object type="obj" name="objfiles/Gemstone6.obj" material="glossy1">
+      <scale value="2"/>
+      <translate x="30" y="-21" z="2"/>
+    </object>
+      <object type="obj" name="objfiles/Gemstone7.obj" material="glossy1">
+      <scale value="2"/>
+      <translate x="18" y="-21" z="2"/>
     </object>
 
     <!-- Materials -->
