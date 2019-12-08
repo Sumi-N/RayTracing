@@ -15,12 +15,12 @@
     <object type="plane" name="RightWall" material="rainbow">
       <scale value="100"/>
       <rotate angle="270" y="1"/>
-      <translate x="50"/>
+      <translate x="67"/>
     </object>
         <object type="plane" name="LeftWall" material="rainbow">
       <scale value="100"/>
       <rotate angle="90" y="1"/>
-      <translate x="-50"/>
+      <translate x="-67"/>
     </object>
     <object type="plane" name="GroundPlane" material="rainbow">
       <scale value="1000"/>
@@ -33,7 +33,7 @@
     </object>
     <object type="obj" name="objfiles/teapot.obj" material="teapot">
       <scale value="0.5"/>
-      <rotate angle="-50" z="1"/>
+      <rotate angle="-20" z="1"/>
       <translate x="0" y="-11" z="0"/>
     </object>
     <object type="obj" name="objfiles/Gemstone2.obj" material="gem1material">
@@ -44,92 +44,92 @@
     <object type="obj" name="objfiles/Gemstone1.obj" material="gem2material">
       <rotate angle="150" x="1"/>
       <rotate angle="0" y="1"/>
-      <rotate angle="0" z="1"/>
-      <scale value="3"/>
-      <translate x="15" y="-11" z="0"/>
+      <rotate angle="90" z="1"/>
+      <scale value="6"/>
+      <translate x="15" y="-11" z="1.5"/>
     </object>
     <object type="obj" name="objfiles/Gemstone3.obj" material="gem3material">
       <rotate angle="150" x="1"/>
       <rotate angle="0" y="1"/>
-      <rotate angle="0" z="1"/>
-      <scale value="3"/>
-      <translate x="13.28" y="-4" z="0"/>
+      <rotate angle="117" z="1"/>
+      <scale value="4"/>
+      <translate x="13.28" y="-4" z="-0"/>
     </object>
     <object type="obj" name="objfiles/Gemstone4.obj" material="gem4material">
       <rotate angle="150" x="1"/>
       <rotate angle="0" y="1"/>
-      <rotate angle="0" z="1"/>
-      <scale value="3"/>
-      <translate x="8.5" y="1.3" z="0"/>
+      <rotate angle="144" z="1"/>
+      <scale value="4"/>
+      <translate x="8.5" y="1.3" z="1"/>
     </object>
     <object type="obj" name="objfiles/Gemstone5.obj" material="gem5material">
       <rotate angle="150" x="1"/>
       <rotate angle="0" y="1"/>
-      <rotate angle="0" z="1"/>
-      <scale value="3"/>
-      <translate x="1.8" y="3.9" z="0"/>
+      <rotate angle="171" z="1"/>
+      <scale value="4"/>
+      <translate x="1.8" y="3.9" z="0.5"/>
     </object>
     <object type="obj" name="objfiles/Gemstone6.obj" material="gem6material">
       <rotate angle="150" x="1"/>
       <rotate angle="0" y="1"/>
-      <rotate angle="0" z="1"/>
-      <scale value="3"/>
-      <translate x="-5.3" y="3" z="0"/>
+      <rotate angle="198" z="1"/>
+      <scale value="4"/>
+      <translate x="-5.3" y="3" z="0.5"/>
     </object>
     <object type="obj" name="objfiles/Gemstone7.obj" material="gem7material">
       <rotate angle="150" x="1"/>
       <rotate angle="0" y="1"/>
-      <rotate angle="0" z="1"/>
-      <scale value="3"/>
-      <translate x="-11.2" y="-1" z="0"/>
+      <rotate angle="225" z="1"/>
+      <scale value="4"/>
+      <translate x="-11.2" y="-1" z="1.5"/>
     </object>
     <object type="obj" name="objfiles/Gemstone8.obj" material="gem8material">
       <rotate angle="150" x="1"/>
       <rotate angle="0" y="1"/>
-      <rotate angle="0" z="1"/>
-      <scale value="3"/>
+      <rotate angle="252" z="1"/>
+      <scale value="4"/>
       <translate x="-14.5" y="-7.5" z="0"/>
     </object>
     <object type="obj" name="objfiles/Gemstone9.obj" material="gem9material">
       <rotate angle="150" x="1"/>
       <rotate angle="0" y="1"/>
-      <rotate angle="0" z="1"/>
-      <scale value="3"/>
-      <translate x="-14.6" y="-14.5" z="0"/>
+      <rotate angle="279" z="1"/>
+      <scale value="4"/>
+      <translate x="-14.6" y="-14.5" z="-1"/>
     </object>
     <object type="obj" name="objfiles/Gemstone10.obj" material="gem10material">
       <rotate angle="150" x="1"/>
       <rotate angle="0" y="1"/>
-      <rotate angle="0" z="1"/>
-      <scale value="3"/>
-      <translate x="-11.3" y="-20.8" z="0"/>
+      <rotate angle="307" z="1"/>
+      <scale value="4"/>
+      <translate x="-11.3" y="-20.8" z="-1.5"/>
     </object>
     <object type="obj" name="objfiles/Gemstone11.obj" material="gem11material">
       <rotate angle="150" x="1"/>
       <rotate angle="0" y="1"/>
-      <rotate angle="0" z="1"/>
-      <scale value="3"/>
-      <translate x="-5.44" y="-25" z="0"/>
+      <rotate angle="335" z="1"/>
+      <scale value="4"/>
+      <translate x="-5.44" y="-25" z="0.5"/>
     </object>
     <object type="obj" name="objfiles/Gemstone12.obj" material="gem12material">
       <rotate angle="90" y="1"/>
       <rotate angle="0" z="1"/>
       <rotate angle="150" x="1"/>
-      <scale value="3"/>
-      <translate x="1.67" y="-26" z="0"/>
+      <scale value="4"/>
+      <translate x="1.67" y="-26" z="-0.5"/>
     </object>
     <object type="obj" name="objfiles/Gemstone13.obj" material="gem13material">
       <rotate angle="150" x="1"/>
       <rotate angle="0" y="1"/>
-      <rotate angle="0" z="1"/>
-      <scale value="3"/>
-      <translate x="8.41" y="-23.4" z="0"/>
+      <rotate angle="30" z="1"/>
+      <scale value="4"/>
+      <translate x="8.41" y="-23.4" z="1.0"/>
     </object>
     <object type="obj" name="objfiles/Gemstone14.obj" material="gem14material">
       <rotate angle="150" x="1"/>
       <rotate angle="0" y="1"/>
-      <rotate angle="0" z="1"/>
-      <scale value="3"/>
+      <rotate angle="58" z="1"/>
+      <scale value="4"/>
       <translate x="13.21" y="-18" z="0"/>
     </object>
 
@@ -167,49 +167,49 @@
       <diffuse  r="0.0" g="0.0" b="0.0"/>
       <specular r="0.0" g="0.0" b="0.0" value="0.8"/>
       <glossiness value="10000"/>
-      <refraction r="0.8" g ="1.0" b="1.0" index="2.0" value="1.0" glossiness="10000"/>
+      <refraction r="1.0" g ="1.0" b="1.0" index="2.0" value="1.0" glossiness="10000"/>
       <absorption r="0.01" g="0.001" b="0.0001"/>
     </material>
         <material type="blinn" name="gem3material">
       <diffuse  r="0.0" g="0.0" b="0.0"/>
       <specular r="0.0" g="0.0" b="0.0" value="0.8"/>
       <glossiness value="10000"/>
-      <refraction r="0.8" g ="0.6" b="1.0" index="2.0" value="1.0" glossiness="10000"/>
+      <refraction r="1.0" g ="1.0" b="1.0" index="2.0" value="1.0" glossiness="10000"/>
       <absorption r="0.01" g="0.001" b="0.0001"/>
     </material>
         <material type="blinn" name="gem4material">
       <diffuse  r="0.0" g="0.0" b="0.0"/>
       <specular r="0.0" g="0.0" b="0.0" value="0.8"/>
       <glossiness value="10000"/>
-      <refraction r="1.0" g ="0.4" b="0.6" index="2.0" value="1.0" glossiness="10000"/>
+      <refraction r="1.0" g ="1.0" b="1.0" index="2.0" value="1.0" glossiness="10000"/>
       <absorption r="0.01" g="0.001" b="0.0001"/>
     </material>
         <material type="blinn" name="gem5material">
       <diffuse  r="0.0" g="0.0" b="0.0"/>
       <specular r="0.0" g="0.0" b="0.0" value="0.8"/>
       <glossiness value="10000"/>
-      <refraction r="0.8" g ="1.0" b="0.9" index="2.0" value="1.0" glossiness="10000"/>
+      <refraction r="1.0" g ="1.0" b="1.0" index="2.0" value="1.0" glossiness="10000"/>
       <absorption r="0.01" g="0.001" b="0.0001"/>
     </material>
         <material type="blinn" name="gem6material">
       <diffuse  r="0.0" g="0.0" b="0.0"/>
       <specular r="0.0" g="0.0" b="0.0" value="0.8"/>
       <glossiness value="10000"/>
-      <refraction r="1.0" g ="0.8" b="0.8" index="2.0" value="1.0" glossiness="10000"/>
+      <refraction r="1.0" g ="1.0" b="1.0" index="2.0" value="1.0" glossiness="10000"/>
       <absorption r="0.01" g="0.001" b="0.0001"/>
     </material>
         <material type="blinn" name="gem7material">
       <diffuse  r="0.0" g="0.0" b="0.0"/>
       <specular r="0.0" g="0.0" b="0.0" value="0.8"/>
       <glossiness value="10000"/>
-      <refraction r="1.0" g ="0.8" b="1.0" index="2.0" value="1.0" glossiness="10000"/>
+      <refraction r="1.0" g ="1.0" b="1.0" index="2.0" value="1.0" glossiness="10000"/>
       <absorption r="0.01" g="0.001" b="0.0001"/>
     </material>
         <material type="blinn" name="gem8material">
       <diffuse  r="0.0" g="0.0" b="0.0"/>
       <specular r="0.0" g="0.0" b="0.0" value="0.8"/>
       <glossiness value="10000"/>
-      <refraction r="0.7" g ="1.0" b="0.7" index="2.0" value="1.0" glossiness="10000"/>
+      <refraction r="1.0" g ="1.0" b="1.0" index="2.0" value="1.0" glossiness="10000"/>
       <absorption r="0.01" g="0.001" b="0.0001"/>
     </material>
         <material type="blinn" name="gem9material">
@@ -223,35 +223,35 @@
       <diffuse  r="0.0" g="0.0" b="0.0"/>
       <specular r="0.0" g="0.0" b="0.0" value="0.8"/>
       <glossiness value="10000"/>
-      <refraction r="1.0" g ="0.8" b="0.6" index="2.0" value="1.0" glossiness="10000"/>
+      <refraction r="1.0" g ="1.0" b="1.0" index="2.0" value="1.0" glossiness="10000"/>
       <absorption r="0.01" g="0.001" b="0.0001"/>
     </material>
         <material type="blinn" name="gem11material">
       <diffuse  r="0.0" g="0.0" b="0.0"/>
       <specular r="0.0" g="0.0" b="0.0" value="0.8"/>
       <glossiness value="10000"/>
-      <refraction r="1.0" g ="1.0" b="0.4" index="2.0" value="1.0" glossiness="10000"/>
+      <refraction r="1.0" g ="1.0" b="1.0" index="2.0" value="1.0" glossiness="10000"/>
       <absorption r="0.01" g="0.001" b="0.0001"/>
     </material>
         <material type="blinn" name="gem12material">
       <diffuse  r="0.0" g="0.0" b="0.0"/>
       <specular r="0.0" g="0.0" b="0.0" value="0.8"/>
       <glossiness value="10000"/>
-      <refraction r="0.5" g ="0.5" b="1.0" index="2.0" value="1.0" glossiness="10000"/>
+      <refraction r="1.0" g ="1.0" b="1.0" index="2.0" value="1.0" glossiness="10000"/>
       <absorption r="0.01" g="0.001" b="0.0001"/>
     </material>
         <material type="blinn" name="gem13material">
       <diffuse  r="0.0" g="0.0" b="0.0"/>
       <specular r="0.0" g="0.0" b="0.0" value="0.8"/>
       <glossiness value="10000"/>
-      <refraction r="0.4" g ="1.0" b="0.4" index="2.0" value="1.0" glossiness="10000"/>
+      <refraction r="1.0" g ="1.0" b="1.0" index="2.0" value="1.0" glossiness="10000"/>
       <absorption r="0.01" g="0.001" b="0.0001"/>
     </material>
         <material type="blinn" name="gem14material">
       <diffuse  r="0.0" g="0.0" b="0.0"/>
       <specular r="0.0" g="0.0" b="0.0" value="0.8"/>
       <glossiness value="10000"/>
-      <refraction r="1.0" g ="0.6" b="0.6" index="2.0" value="1.0" glossiness="10000"/>
+      <refraction r="1.0" g ="1.0" b="1.0" index="2.0" value="1.0" glossiness="10000"/>
       <absorption r="0.01" g="0.001" b="0.0001"/>
     </material>
 
@@ -265,11 +265,11 @@
   </scene>
 
   <camera>
-    <position x="0" y="-45" z="27"/>
-    <target x="0" y="0" z="-11.5"/>
+    <position x="-0.5" y="-45" z="27"/>
+    <target x="-0.5" y="0" z="-11.5"/>
     <up x="0" y="0" z="1"/>
     <fov value="40"/>
-    <width value="800"/>
-    <height value="600"/>
+    <width value="1920"/>
+    <height value="1080"/>
   </camera>
 </xml>
