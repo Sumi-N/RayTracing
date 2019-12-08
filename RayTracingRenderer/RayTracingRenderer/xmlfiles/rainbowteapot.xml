@@ -9,15 +9,25 @@
     <!-- Objects -->
     <object type="plane" name="groundPlane" material="ground">
       <scale value="1000"/>
+      <translate z="-100"/>
     </object>
-    <object type="plane" name="wall" material="bricks">
+    <object type="plane" name="wall" material="ground">
       <scale value="100"/>
       <rotate angle="90" x="1"/>
       <translate y="10"/>
     </object>
+    <object type="plane" name="wall" material="rainbow">
+      <scale value="100"/>
+      <rotate angle="90" x="1"/>
+      <translate y="-70"/>
+    </object>
+    <object type="obj" name="Gemstone5" material="glossy1">
+      <scale value="2"/>
+      <translate x="0" y="-16" z="2"/>
+    </object>
     <object type="obj" name="objfiles/Gemstone1.obj" material="glossy1">
       <scale value="6"/>
-      <translate x="-28" y="0" z="6"/>
+      <translate x="-14" y="-5" z="6"/>
     </object>
     <object type="obj" name="objfiles/Gemstone2.obj" material="glossy1">
       <scale value="6"/>
@@ -31,34 +41,30 @@
       <scale value="1"/>
       <translate x="14" y="0" z="6"/>
     </object>
-    <object type="obj" name="objfiles/teapot.obj" material="bricks">
+    <object type="obj" name="objfiles/teapot.obj" material="rainbow">
       <scale value="0.5"/>
       <rotate angle="-50" z="1"/>
-      <translate x="13" y="-21" z="0"/>
-    </object>
-    <object type="obj" name="Gemstone5" material="glossy1">
-      <scale value="2"/>
-      <translate x="22" y="-30" z="2"/>
+      <translate x="0" y="-11" z="0"/>
     </object>
     <object type="obj" name="objfiles/Gemstone6.obj" material="glossy1">
       <scale value="2"/>
-      <translate x="30" y="-21" z="2"/>
+      <translate x="-10" y="-16" z="2"/>
     </object>
       <object type="obj" name="objfiles/Gemstone7.obj" material="glossy1">
       <scale value="2"/>
-      <translate x="18" y="-21" z="2"/>
+      <translate x="10" y="-16" z="2"/>
     </object>
 
     <!-- Materials -->
     <material type="blinn" name="ground">
-      <diffuse r="1" g="1" b="1" texture="checkerboard">
+      <diffuse r="1" g="1" b="1">
         <color1 r="0.5" g="0.5" b="0.7"/>
         <color2 r="1.0" g="1.0" b="1.0"/>
         <scale value="0.003"/>
       </diffuse>
       <specular value="0"/>
     </material>
-    <material type="blinn" name="bricks">
+    <material type="blinn" name="rainbow">
       <diffuse texture="texturefiles/rainbow3.png">
         <scale value="0.05"/>
       </diffuse>
@@ -66,10 +72,11 @@
       <glossiness value="10"/>
     </material>
     <material type="blinn" name="glossy1">
-      <diffuse value="0"/>
-      <specular value="0.8"/>
-      <glossiness value="50"/>
-      <reflection value="0.8" glossiness="0.05"/>
+      <diffuse  r="0.0" g="0.0" b="0.0"/>
+      <specular r="0.0" g="0.0" b="0.0" value="0.8"/>
+      <glossiness value="10000"/>
+      <refraction r="1.0" g ="1.0" b="1.0" index="2.0" value="1.0" glossiness="10000"/>
+      <absorption r="0.01" g="0.001" b="0.0001"/>
     </material>
 
     <!-- Lights -->
@@ -84,8 +91,8 @@
   </scene>
 
   <camera>
-    <position x="42" y="-42" z="15"/>
-    <target x="6" y="0" z="-3"/>
+    <position x="0" y="-42" z="15"/>
+    <target x="0" y="0" z="-3"/>
     <up x="0" y="0" z="1"/>
     <fov value="40"/>
     <width value="800"/>
