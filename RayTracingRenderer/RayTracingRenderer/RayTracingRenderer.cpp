@@ -37,10 +37,10 @@ using namespace ReflectionAndRefraction;
 
 int main()
 {
-	LoadScene(".\\xmlfiles\\playground5.xml");
+	//oadScene(".\\xmlfiles\\playground5.xml");
 	//LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
-	//LoadScene(".\\xmlfiles\\playground11.xml");
+	LoadScene(".\\xmlfiles\\rainbowteapot.xml");
 	//LoadScene(".\\xmlfiles\\assignment11.xml");
 	//LoadScene(".\\xmlfiles\\bosonscene.xml");
 	//LoadScene(".\\xmlfiles\\raytracinglogo.xml");
@@ -236,7 +236,7 @@ void BeginRender() {
 
 			if (isnan(resultColor.r) || isnan(resultColor.g) || isnan(resultColor.b))
 			{	
-				printf("There is some NaN in the calculation process\n");
+				//printf("There is some NaN in the calculation process\n");
 			}
 
 			// gamma correction
@@ -398,7 +398,7 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 
 	if (isnan(color.r) || isnan(color.g) || isnan(color.b))
 	{
-		printf("There is NaN in the calculation process");
+		//printf("There is NaN in the calculation process");
 		return Color(0, 0, 0);
 	}
 	else

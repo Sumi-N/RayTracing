@@ -133,3 +133,18 @@ Color TextureChecker::Sample(Vec3f const &uvw) const
 }
 
 //-------------------------------------------------------------------------------
+
+Color RandomChecker::Sample(Vec3f const &uvw) const
+{
+	Color randomColor1;
+
+	Vec3f u = TileClamp(uvw);
+	if (u.x <= 0.5f)
+	{
+		return u.y <= 0.5f ? color1 : color2;
+	}
+	else
+	{
+		return u.y <= 0.5f ? color2 : color1;
+	}
+}
