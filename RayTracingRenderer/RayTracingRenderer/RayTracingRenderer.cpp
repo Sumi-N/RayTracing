@@ -40,7 +40,7 @@ int main()
 	//oadScene(".\\xmlfiles\\playground5.xml");
 	//LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
-	LoadScene(".\\xmlfiles\\rainbowteapot.xml");
+	LoadScene(".\\xmlfiles\\rainbowteapot2.xml");
 	//LoadScene(".\\xmlfiles\\assignment11.xml");
 	//LoadScene(".\\xmlfiles\\bosonscene.xml");
 	//LoadScene(".\\xmlfiles\\raytracinglogo.xml");
