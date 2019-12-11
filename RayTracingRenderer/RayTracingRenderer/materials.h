@@ -13,6 +13,8 @@
 #ifndef _MATERIALS_H_INCLUDED_
 #define _MATERIALS_H_INCLUDED_
 
+#include "utility.h"
+
 #include "scene.h"
 #include "constant.h"
 

@@ -8,12 +8,13 @@
 /*****These are values for path tracing*****/
 #define ENABLEPT
 #define RAYPERPT 8
-#define GIBOUNCE 3
+#define GIBOUNCE 0
 
 /*****These are values for bluer effect*****/
-//#define ENABLEPHOTONMAPPING
+#define ENABLEPHOTONMAPPING
 #define NUMOFPHOTONS 100000
-#define PHOTONBOUNCE 1
+#define PHOTONBOUNCE 10
+#define PHOTONNUMBERPERRADIUS 100
 
 //These are the constant values which is highly unlikely to be changed
 #define SHADOWBIAS 0.0005f

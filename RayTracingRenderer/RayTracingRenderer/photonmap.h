@@ -88,17 +88,17 @@ inline void InitialPhotonRay(Ray ray, Color intensity)
 		{
 			if (materials.Find(hit.node->GetMaterial()->GetName())->RandomPhotonBounce(nextray, intensity, hit))
 			{
-				photonMap.AddPhoton(hit.p, ray.dir, 1 - intensity);
+				//photonMap.AddPhoton(hit.p, ray.dir, 1 - intensity);
 				BouncePhotonRay(nextray, intensity, 1);
 			}
 			else
 			{
-				photonMap.AddPhoton(hit.p, ray.dir, intensity);
+				//photonMap.AddPhoton(hit.p, ray.dir, intensity);
 			}
 		}
 		else
 		{
-			photonMap.AddPhoton(hit.p, ray.dir, intensity);
+			//photonMap.AddPhoton(hit.p, ray.dir, intensity);
 		}
 	}
 }

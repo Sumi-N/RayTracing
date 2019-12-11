@@ -75,7 +75,7 @@
 
 		<!-- Lights -->
 		<light type="point" name="pointLight">
-			<intensity value="100.5"/>
+			<intensity value="100"/>
 			<position x="0" y="0" z="22"/>
 		</light>
 	</scene>

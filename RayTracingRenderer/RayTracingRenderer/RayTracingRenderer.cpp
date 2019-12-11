@@ -275,19 +275,7 @@ void StopRender() {
 }
 
 Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & lights, int bounce) const
-{
-	Color irrad;
-	Vec3f direction;
-
-	Vec3f position = hInfo.p;
-	Vec3f normal = hInfo.N;
-
-	photonMap.EstimateIrradiance<100>(irrad, direction, 0.1f, position, &normal, 1.0f, cyPhotonMap::PhotonMap::FilterType::FILTER_TYPE_CONSTANT);
-#ifdef ENABLEPHOTONMAPPING
-
-	
-
-#else
+{	
 	Vec3f N = hInfo.N;
 	Color color = Color(0, 0, 0);
 	Color specularpart = Color(0, 0, 0);
@@ -413,6 +401,8 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		}
 	}
 
+#ifndef ENABLEPHOTONMAPPING
+
 	if (isnan(color.r) || isnan(color.g) || isnan(color.b))
 	{
 		printf("There is NaN in the calculation process");
@@ -422,6 +412,34 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 	{
 		return color;
 	}
+
+#else
+	Color irrad;
+	Vec3f direction;
+	float radius = 1.4f;
+
+	Vec3f position = hInfo.p;
+	Vec3f normal = hInfo.N;
+
+	photonMap.EstimateIrradiance<PHOTONNUMBERPERRADIUS>(irrad, direction, radius, position, &normal, 1.0f, cyPhotonMap::PhotonMap::FilterType::FILTER_TYPE_CONSTANT);
+
+	Color resultcolor = Color(0, 0, 0);
+	if (diffuse.Sample(hInfo.uvw) != Color(0, 0, 0))
+	{
+		resultcolor += diffuse.Sample(hInfo.uvw, hInfo.duvw) * irrad / (3.14 * radius * radius * PHOTONNUMBERPERRADIUS);
+	}
+	if (specular.Sample(hInfo.uvw) != Color(0, 0, 0))
+	{
+		//resultcolor += specular.Sample(hInfo.uvw, hInfo.duvw) * irrad / (3.14 * radius * radius * PHOTONNUMBERPERRADIUS);
+	}
+	if (refraction.Sample(hInfo.uvw) != Color(0, 0, 0))
+	{
+		//resultcolor += refraction.Sample(hInfo.uvw, hInfo.duvw) * irrad / (3.14 * radius * radius * PHOTONNUMBERPERRADIUS);
+	}
+
+	color /= 100;
+	color += resultcolor;
+	return  color;
 #endif // ENABLEPHOTONMAPPING
 }
 
