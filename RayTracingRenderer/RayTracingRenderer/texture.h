@@ -46,4 +46,25 @@ private:
 
 //-------------------------------------------------------------------------------
 
+class RandomChecker : public Texture
+{
+public:
+	RandomChecker() : color1(0, 0, 0), color2(1, 1, 1), viewportTextureID(0)
+	{
+	}
+	void SetColor1(const Color &c)
+	{
+		color1 = c;
+	}
+	void SetColor2(const Color &c)
+	{
+		color2 = c;
+	}
+	virtual Color Sample(Vec3f const &uvw) const;
+	virtual bool SetViewportTexture() const;
+private:
+	Color color1, color2;
+	mutable unsigned int viewportTextureID;
+};
+
 #endif
