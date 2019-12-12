@@ -68,9 +68,9 @@
 		</material>
 		<material type="blinn" name="mtl3">
 			<diffuse  value="0"/>
-			<specular value="1.0"/>
+			<specular value="0.0"/>
 			<glossiness value="80"/>
-			<refraction value="1.0" index="1.52"/>
+			<refraction value="1.0" index="1.52" glossiness = "100000"/>
 		</material>
 
 		<!-- Lights -->

@@ -7,8 +7,8 @@
 
 /*****These are values for path tracing*****/
 #define ENABLEPT
-#define RAYPERPT 8
-#define GIBOUNCE 4
+#define RAYPERPT 256
+#define GIBOUNCE 10
 
 /*****These are values for bluer effect*****/
 //#define ENABLEPHOTONMAPPING

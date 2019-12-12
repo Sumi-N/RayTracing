@@ -43,11 +43,11 @@ int main()
 	//oadScene(".\\xmlfiles\\playground5.xml");
 	//LoadScene(".\\xmlfiles\\catscene.xml");
 	//LoadScene(".\\xmlfiles\\potscene.xml");
-	LoadScene(".\\xmlfiles\\rainbowteapot2.xml");
+	//LoadScene(".\\xmlfiles\\rainbowteapot2.xml");
 	//LoadScene(".\\xmlfiles\\assignment11.xml");
 	//LoadScene(".\\xmlfiles\\bosonscene.xml");
 	//LoadScene(".\\xmlfiles\\raytracinglogo.xml");
-	//LoadScene(".\\xmlfiles\\assignment10.xml");
+	LoadScene(".\\xmlfiles\\cornelbox.xml");
 	//LoadScene(".\\xmlfiles\\proj12.xml");
 
 	SetupPhotonMap();
@@ -438,7 +438,8 @@ Color MtlBlinn::Shade(Ray const & ray, const HitInfo & hInfo, const LightList & 
 		//resultcolor += refraction.Sample(hInfo.uvw, hInfo.duvw) * irrad / (3.14 * radius * radius * PHOTONNUMBERPERRADIUS);
 	}
 
-	color /= 100;
+	//color /= 100;
+	color *= 2;
 	color += resultcolor;
 	return  color;
 #endif // ENABLEPHOTONMAPPING
