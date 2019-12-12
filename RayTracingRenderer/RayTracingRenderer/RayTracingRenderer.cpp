@@ -46,7 +46,7 @@ int main()
 	LoadScene(".\\xmlfiles\\cornelbox.xml");
 	//LoadScene(".\\xmlfiles\\bosonscene.xml");
 	//LoadScene(".\\xmlfiles\\raytracinglogo.xml");
-	//LoadScene(".\\xmlfiles\\assignment4.xml");
+	//LoadScene(".\\xmlfiles\\assignment10.xml");
 	//LoadScene(".\\xmlfiles\\proj12.xml");
 
 	SetupPhotonMap();
