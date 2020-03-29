@@ -184,6 +184,23 @@
   <ItemGroup>
     <ResourceCompile Include="RayTracingRenderer.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\cyCodeBase\cyCodeBase.vcxproj">
+      <Project>{fa372c0c-400e-48a9-a162-a98c4d69cea9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\tinyxml\tinyxmlSTL.vcxproj">
+      <Project>{a3a84737-5017-4577-b8a2-79429a25b8b6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\tinyxml\tinyXmlTest.vcxproj">
+      <Project>{34719950-09e8-457e-be23-8f1ce3a1f1f6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\tinyxml\tinyXmlTestSTL.vcxproj">
+      <Project>{53ed5965-5bca-47b5-9eb0-edd20882f22f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\tinyxml\tinyxml_lib.vcxproj">
+      <Project>{c406daec-0886-4771-8dea-9d7329b46cc1}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
